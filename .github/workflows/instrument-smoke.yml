@@ -1,0 +1,19 @@
+name: Scene instrument smoke
+on:
+  pull_request:
+    paths:
+      - 'handheld-v18.js'
+      - 'tests/instrument-auto-v18.test.cjs'
+      - 'index.html'
+      - '.github/workflows/instrument-smoke.yml'
+jobs:
+  score:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          node --check handheld-v18.js
+          node tests/instrument-auto-v18.test.cjs
