@@ -31,7 +31,11 @@ function score(plan){
  const style=chooseStyle(plan.bandStyle),p=STYLES[style],key=SCALE[plan.mode]||SCALE.major;
  const duration=clamp(+plan.duration||30,1,65),bpm=clamp(+plan.bpm||p.bpm,65,190);
  const eighth=30/bpm,totalSteps=Math.ceil(duration/eighth),bar=eighth*8;
- const rand=rng(plan.seed),character=rng(plan.characterSeed);
+ const character=rng(plan.characterSeed);
+ function beatRandom(step,channel,offset=0){
+  const seed=(plan.seed^Math.imul(step+1,2654435761)^Math.imul(channel+1,2246822519)^Math.imul(offset+1,3266489917))>>>0;
+  return rng(seed)();
+ }
  const mainRiff=Array.from({length:8},(_,i)=>i===7?0:Math.floor(character()*6));
  const values=Array.from({length:4},()=>character());
  const notes=[],percussion=[],rests=[],harmony=[];
@@ -55,10 +59,13 @@ function score(plan){
   const frac=t/duration,index=frac<.16?0:frac<.51?1:frac<.85?2:3;
   let intensity=arr[index],st=state(Math.floor(t/eighth));
   // Narrative expectation modulates density without eliminating song form.
-  if(st&&['danger','loss','stumble'].includes(st.cue))intensity*=.23;
-  if(st&&['recovery','success'].includes(st.cue))intensity=Math.min(1,intensity+.42);
-  if(st&&st.cue==='anticipation')intensity*=.48;
-  if(st&&st.cue==='turn')intensity*=st.age<4?.38:.88;
+  // Δψ (change) and tension drive the size of the arrangement change.
+  // The cue still determines its direction. No strong change from neutral text.
+  const drive=st?clamp(.56*(st.deltaPsi||0)+.44*(st.tension||0),0,1):0;
+  if(st&&['danger','loss','stumble'].includes(st.cue))intensity*=.34-.25*drive;
+  if(st&&['recovery','success'].includes(st.cue))intensity=Math.min(1,intensity+.18+.48*drive);
+  if(st&&st.cue==='anticipation')intensity*=.65-.28*drive;
+  if(st&&st.cue==='turn')intensity*=st.age<4?.50-.23*drive:.92;
   return {index,name:['Intro','Verse','Chorus','Outro'][index],intensity};
  }
  function note(t,d,midi,v,instrument,articulation,role,group){
@@ -74,7 +81,8 @@ function score(plan){
   if(e.cue==='stumble'||e.cue==='turn'&&e.tension>.28){
    const start=e.step*eighth+eighth*.18;
    // Audible full-band drop instead of the old ~0.2s almost-inaudible rest.
-   const length=e.cue==='stumble'?2.4:1.45;
+   const drive=clamp(.6*(e.deltaPsi||0)+.4*(e.tension||0),0,1);
+   const length=e.cue==='stumble'?1.55+1.55*drive:.85+.95*drive;
    rests.push({start,end:Math.min(duration,start+length*eighth),cue:e.cue});
   }
  }
@@ -115,9 +123,10 @@ function score(plan){
    const articulation=palm?'mute':(chorus||lift)?'open':(quiet||down)?'gentle':'normal';
    const sustain=palm?.16:lift?.93:chorus?.60:down?.80:style==='ballad'?1.25:.43;
    const emphasis=beat===0||beat===4?1:.73;
-   const volume=(.067+attack*.055)*emphasis*(down?.42:lift?1.48:turn?.82:waiting?.63:1)*p.attack;
+   const drive=s?clamp(.56*(s.deltaPsi||0)+.44*(s.tension||0),0,1):0;
+   const volume=(.067+attack*.055)*emphasis*(down?.52-.30*drive:lift?1.20+.45*drive:turn?.90-.16*drive:waiting?.75-.25*drive:1)*p.attack;
    pitches.forEach((interval,k)=>{
-    const jitter=(rand()-.5)*p.loose;
+    const jitter=(beatRandom(i,0,k)-.5)*p.loose;
     note(Math.max(.001,t+k*(style==='punk'?.007:.012)+jitter),
        sustain,noteRoot+interval,volume*(k===0?1:.88),
        'guitar',articulation,'chord','guitar');
@@ -126,7 +135,7 @@ function score(plan){
   }
   // One guitarist: little fills in gaps rather than a permanent second lead.
   if(!strum&&beat%2===1&&part.index!==0&&!down&&!waiting&&!mutedAt(t)){
-   if(chorus||rand()>.45){
+   if(chorus||beatRandom(i,1)>.45){
     const degreeValue=mainRiff[beat] + (lift?2:0);
     note(t,eighth*(chorus?.60:.45),pitch(root,key,degreeValue)+
       (style==='ballad'?-12:0),.064*attack,
