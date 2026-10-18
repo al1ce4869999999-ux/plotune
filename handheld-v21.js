@@ -221,18 +221,18 @@ function analyzeEmotionalArc(scene,style){
    {name:'余韻',start:.77,end:1}
   ],reason:'明確な喪失・絶望の描写を根拠に重い悲劇的展開を作曲'};
  }
-function prepare(plan,style,appraisal=null,reactive=false,scene=''){
+function prepare(plan,style,appraisal=null,reactive=false,scene='',context=''){
  const picked=style==='auto'?chooseStyle(scene):null;
  const type=STYLES[picked?.style||style]?picked?.style||style:'mischief';
  // A selected DS music style fixes the dramatic grammar, never the instruments.
  // Automatic orchestration applies to both manual and automatic styles.
  // Legacy instrument-specific presets remain supported for existing saved work.
- const instrumentChoice=STORY_INSTRUMENTS[type]?null:chooseInstrumentPalette(scene,type);
+ const instrumentChoice=STORY_INSTRUMENTS[type]?null:chooseInstrumentPalette(context||scene,type);
  const emotionalArc=analyzeEmotionalArc(scene,type);
  const knowledge=root.PlotuneLoop?.analyzeWhole(appraisal);
  return {...plan,genre:'game',gameStyle:type,loopMode:true,
   loopArrangement:reactive&&knowledge?.active?knowledge:null,gameAutoChoice:picked,
-  instrumentChoice,emotionalArc,arrangementSource:style==='auto'?'automatic-style':'manual-style'};
+  instrumentChoice,emotionalArc,storyContext:context||scene,arrangementSource:style==='auto'?'automatic-style':'manual-style'};
 }
 function score(plan){
  const game=STYLES[plan.gameStyle]||STYLES.journey;
@@ -501,40 +501,50 @@ function score(plan){
    for(const key of Object.keys(voices))
      voices[key]=key==='drums'?drums.length:notes.filter(n=>n.voice===key).length;
  }
-  // Tiny cartoon disappointment: "しょぼん(´･ω･｀)", not loss or dread.
-  // Major pentatonic, warm plucked notes, little downward sighs and a
-  // curious upward ending. No low pedal, minor harmony or funeral rhythm.
+  // Character identity shapes a repeatable motif, while scene changes its
+  // variation, register, rhythmic spaces and timbre in every emotion preset.
   if(plan.gameStyle==='sadness' && !plan.emotionalArc){
     notes.length=0;drums.length=0;
-    const gentle=[4,2,1,0,null,1,2,null, 4,2,1,null,2,1,0,null];
-    const chordRoots=[0,3,4,0];
-    const upper=tonic+12;
-    for(let b=0;b<bars;b++){
-      const start=b*meter,variation=b%4,chordDegree=chordRoots[variation];
-      for(let slot=0;slot<16;slot+=2){
-        const degree=gentle[(slot+variation*2)%gentle.length];
-        const t=start+slot*step;
-        if(degree===null||t>=duration)continue;
-        const ending=variation===3&&slot===14?2:degree;
-        notes.push({t,d:Math.min(step*(slot%8===6?2.2:1.35),duration-t),
-          midi:clamp(midi(upper,MAJOR,ending),60,85),
-          voice:'lead',role:'lead',timbre:'kalimba',volume:.070});
+    const context=String(plan.storyContext||'');
+    const charRand=random(((plan.characterSeed||1)^0x529a3d71)>>>0);
+    const sceneRand=random(((plan.seed||1)^0x12b6a90f)>>>0);
+    const expressive=/森|魔法|星|神秘|妖精/.test(context)?['ocarina','celesta']:
+      /未来|宇宙|電子|機械|ロボット/.test(context)?['synthlead','kalimba']:
+      /内気|静か|無口|孤独/.test(context)?['softpiano','musicbox']:
+      /強気|勝負|負けず嫌い|悔し/.test(context)?['marimba','kalimba']:
+      ['kalimba','musicbox'];
+    const pent=[0,1,2,4,5];
+    const motif=Array.from({length:8},()=>pent[Math.floor(charRand()*pent.length)]);
+    // Keep stepwise movements and gentle downward endings, never a defeat drone.
+    for(let i=1;i<motif.length;i++){
+      if(Math.abs(motif[i]-motif[i-1])>2)motif[i]=pent[(pent.indexOf(motif[i-1])+ (charRand()>.5?1:4))%pent.length];
+    }
+    const upper=tonic+12,shift=Math.floor(sceneRand()*3)-1;
+    for(let bar=0;bar<bars;bar++){
+      const start=bar*meter,variation=bar%4;
+      const chordDegree=[0,3,4,0][variation];
+      for(let j=0;j<8;j++){
+        const t=start+j*2*step;
+        if(t>=duration||(j===3&&variation%2===1)||(j===6&&sceneRand()>.75))continue;
+        const index=(j+variation*2)%8;
+        const degree=Math.max(0,motif[index]+shift+(j===7?-1:0));
+        notes.push({t,d:Math.min(step*(j===7?2.2:1.4),duration-t),
+          midi:clamp(midi(upper,MAJOR,degree),60,86),voice:'lead',
+          role:'lead',timbre:expressive[0],volume:.067});
       }
-      // Friendly, brief answers rather than ominous sustained strings.
-      const replyT=start+11*step;
-      if(replyT<duration)notes.push({t:replyT,d:Math.min(step*1.6,duration-replyT),
-        midi:midi(upper,MAJOR,variation===3?2:1),voice:'counter',
-        role:'counter',timbre:'musicbox',volume:.016});
-      // Major triads lightly plucked in the middle register.
+      const reply=start+(10+variation%3)*step;
+      if(reply<duration)notes.push({t:reply,d:Math.min(step*1.6,duration-reply),
+        midi:midi(upper,MAJOR,motif[(variation+3)%8]),voice:'counter',
+        role:'counter',timbre:expressive[1],volume:.015});
       for(const interval of [0,2,4]){
-        const t=start+step*(interval===4?8:0);
-        if(t<duration)notes.push({t,d:Math.min(step*3.4,duration-t),
+        const t=start+(interval===4?8:0)*step;
+        if(t<duration)notes.push({t,d:Math.min(step*3.3,duration-t),
           midi:midi(tonic,MAJOR,chordDegree+interval),
-          voice:'chords',role:'chords',timbre:'softpiano',volume:.013});
+          voice:'chords',role:'chords',timbre:'softpiano',volume:.012});
       }
-      if(start<duration)notes.push({t:start,d:Math.min(step*2.7,duration-start),
+      if(start<duration)notes.push({t:start,d:Math.min(step*2.4,duration-start),
         midi:midi(tonic-12,MAJOR,chordDegree),voice:'bass',
-        role:'bass',timbre:'kalimba',volume:.012});
+        role:'bass',timbre:'kalimba',volume:.011});
     }
     for(const key of Object.keys(voices))
       voices[key]=key==='drums'?0:notes.filter(n=>n.voice===key).length;
