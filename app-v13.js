@@ -67,10 +67,10 @@ for(const group of handheld.GROUPS.filter(g=>!g.label.includes('物語を彩る�
 }
 gameSelect.value=handheld.STYLES[existing]&&!handheld.STORY_INSTRUMENTS[existing]?existing:'auto';
 bandPanel();
-$('runtimeVersion').textContent='実行中：v1.9｜選んだDS曲調をシーンに合わせて再編曲';
+$('runtimeVersion').textContent='実行中：v2.0｜悲しさの高まり・崩壊・余韻を作曲';
 if(typeof document.querySelector==='function'){
  const badge=document.querySelector('header h1 small');
- if(badge)badge.textContent='v1.9';
+ if(badge)badge.textContent='v2.0';
 }
 function addRow(parent,title,value){
  const el=document.createElement('div');el.className='report-row';
@@ -106,6 +106,10 @@ function analyze(){
    if(base.genre==='game'){
     addRow(report,'選択したBGM',styleName(base));
     if(base.gameAutoChoice)addRow(report,'自動選択の理由',base.gameAutoChoice.reason);
+    if(base.emotionalArc){
+      addRow(report,'感情の展開',base.emotionalArc.stages.map(s=>s.name).join(' → '));
+      addRow(report,'感情曲線を使う理由',base.emotionalArc.reason);
+    }
     if(base.instrumentChoice){
       addRow(report,'楽器編成',base.instrumentChoice.palette.role+' ＋ '+(base.instrumentChoice.palette.secondary||'伴奏')+' ＋ '+(base.instrumentChoice.palette.padTone||'パッド'));
       addRow(report,'楽器を選んだ理由',base.instrumentChoice.reason);
