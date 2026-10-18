@@ -31,7 +31,7 @@ function bandPanel(){$('bandOptions').hidden=$('style').value!=='band';$('gameOp
 function ready(){
  $('play').disabled=$('wav').disabled=!current;
  $('reroll').disabled=!current;
- $('zeta').disabled=!current||zetaBusy||!zetaEncoder.supported();
+ $('zeta').disabled=!current||zetaBusy||!zetaEncoder.supported()||!zetaEncoder.checkTrack(current).ok;
  for(const id of ['classicPlay','resonarePlay'])$(id).disabled=!tracks;
  for(const id of ['classicClip','resonareClip'])$(id).disabled=!tracks||!selected;
  $('cueSelect').disabled=!tracks||!events.length;
