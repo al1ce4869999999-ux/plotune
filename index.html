@@ -56,20 +56,22 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 .dual-tracks button{min-height:53px;padding:11px 6px;font-size:15px}
 #runtimeVersion{font-size:12px;margin:4px 0 7px;color:#aea7cc}
 #playerHint{margin:11px 0}
+.comparison-quality{font-size:13px;line-height:1.65;color:#e2d9ff;background:#151729;
+ border:1px solid #514669;border-radius:12px;padding:12px;margin:12px 0 16px}
 .footer{font-size:12px;color:#aca6bf;line-height:1.7;padding:0 2px}
 @media(max-width:380px){.two{grid-template-columns:1fr}.card{padding:16px}.actions button{flex:1}}
 </style>
 <script defer src="analyzer.js"></script>
 <script defer src="resonare.js"></script>
 <script defer src="composer-v04.js"></script>
-<script defer src="band-v05.js"></script>
+<script defer src="band-v07.js"></script>
 <script defer src="comparison-v06.js"></script>
-<script defer src="app-v062.js"></script>
+<script defer src="app-v07.js"></script>
 </head>
 <body>
 <main>
 <header>
-<h1>🎼 Plotune <small style="font-size:13px;color:#c0aaff;vertical-align:middle">v0.6.2</small></h1>
+<h1>🎼 Plotune <small style="font-size:13px;color:#c0aaff;vertical-align:middle">v0.7</small></h1>
 <p class="lead">物語のシーンを、キャラクターらしい音楽に。</p>
 </header>
 <section class="card">
@@ -123,6 +125,9 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <button id="classicPlay" class="alt" disabled type="button">▶ 基準版</button>
 <button id="resonarePlay" class="alt" disabled type="button">▶ Resonare版</button>
 </div>
+<p id="contrastAssessment" class="comparison-quality" role="status" aria-live="polite">
+作曲後に「どれくらい編曲が変わったか」を表示します。
+</p>
 <div class="actions">
 <button id="play" disabled type="button">▶ 再生</button>
 <button id="stop" class="alt" disabled type="button">■ 停止</button>
@@ -151,7 +156,7 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 </div>
 </div>
 </section>
-<p class="footer">作曲に外部API・ログインは不要。Resonare型は実験的な数値モデルで、心情や事実を確定するものではありません。3ピースバンドは生演奏の録音ではなくブラウザ内の合成音です。v0.6.2では2曲の再生ボタンを常時表示し、曲の同じ再生位置を維持してA/B比較でき、場面別の楽器差分も確認できます。端末内で文章を簡易解析し、メロディー・和音・伴奏を合成します。文章の理解はキーワードとルールに基づく推定で、AIによる意味理解とは異なります。保存済みの設定はこのブラウザに残ります。</p>
+<p class="footer">作曲に外部API・ログインは不要。Resonare型は実験的な数値モデルで、心情や事実を確定するものではありません。3ピースバンドは生演奏の録音ではなくブラウザ内の合成音です。v0.7では物語の変化によって複数小節のバンド編曲が変わり、根拠が薄い文章では違いを無理に作りません。2曲の再生ボタンを常時表示し、同じ再生位置を維持してA/B比較でき、場面別の楽器差分も確認できます。端末内で文章を簡易解析し、メロディー・和音・伴奏を合成します。文章の理解はキーワードとルールに基づく推定で、AIによる意味理解とは異なります。保存済みの設定はこのブラウザに残ります。</p>
 </main>
 </body>
 </html>
