@@ -55,7 +55,7 @@ gameSelect.replaceChildren();
 const automatic=document.createElement('option');
 automatic.value='auto';automatic.textContent='✨ シーンから自動選択';
 gameSelect.append(automatic);
-for(const group of handheld.GROUPS){
+for(const group of handheld.GROUPS.filter(g=>!g.label.includes('物語を彩る楽器')&&!g.label.includes('オカリナ・シンセ'))){
  const section=document.createElement('optgroup');
  section.label=group.label;
  for(const id of group.ids){
@@ -65,12 +65,12 @@ for(const group of handheld.GROUPS){
  }
  gameSelect.append(section);
 }
-gameSelect.value=handheld.STYLES[existing]?existing:'auto';
+gameSelect.value=handheld.STYLES[existing]&&!handheld.STORY_INSTRUMENTS[existing]?existing:'auto';
 bandPanel();
-$('runtimeVersion').textContent='実行中：v1.8｜シーンでオカリナ・シンセなどの楽器を自動編成';
+$('runtimeVersion').textContent='実行中：v1.9｜選んだDS曲調をシーンに合わせて再編曲';
 if(typeof document.querySelector==='function'){
  const badge=document.querySelector('header h1 small');
- if(badge)badge.textContent='v1.8';
+ if(badge)badge.textContent='v1.9';
 }
 function addRow(parent,title,value){
  const el=document.createElement('div');el.className='report-row';
