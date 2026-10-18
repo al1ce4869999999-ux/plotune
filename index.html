@@ -52,6 +52,10 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 .event{display:flex;flex-direction:column;gap:5px;padding:10px;margin:7px 0;background:#161929;border-radius:10px}
 .event-cue{font-weight:700;color:#dccbff;font-size:13px}.event-text{font-size:13px}
 #comparison{padding:12px;border-top:1px solid #45405d;margin-top:14px}
+.dual-tracks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:10px 0}
+.dual-tracks button{min-height:53px;padding:11px 6px;font-size:15px}
+#runtimeVersion{font-size:12px;margin:4px 0 7px;color:#aea7cc}
+#playerHint{margin:11px 0}
 .footer{font-size:12px;color:#aca6bf;line-height:1.7;padding:0 2px}
 @media(max-width:380px){.two{grid-template-columns:1fr}.card{padding:16px}.actions button{flex:1}}
 </style>
@@ -60,12 +64,12 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <script defer src="composer-v04.js"></script>
 <script defer src="band-v05.js"></script>
 <script defer src="comparison-v06.js"></script>
-<script defer src="app-v06.js"></script>
+<script defer src="app-v062.js"></script>
 </head>
 <body>
 <main>
 <header>
-<h1>🎼 Plotune <small style="font-size:13px;color:#c0aaff;vertical-align:middle">v0.6.1</small></h1>
+<h1>🎼 Plotune <small style="font-size:13px;color:#c0aaff;vertical-align:middle">v0.6.2</small></h1>
 <p class="lead">物語のシーンを、キャラクターらしい音楽に。</p>
 </header>
 <section class="card">
@@ -113,6 +117,12 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <section class="card">
 <h2>🎶 プレイヤー</h2>
 <p id="summary">まだ曲を作成していません。作曲すると基準版とResonare版の2曲ができます。</p>
+<p id="runtimeVersion" class="note">作曲プログラムを読み込み中…</p>
+<p id="playerHint" class="compare-help">「✨ 2曲まとめて作曲」を押すと、下の2つのボタンが使えるようになるよ。</p>
+<div class="actions dual-tracks">
+<button id="classicPlay" class="alt" disabled type="button">▶ 基準版</button>
+<button id="resonarePlay" class="alt" disabled type="button">▶ Resonare版</button>
+</div>
 <div class="actions">
 <button id="play" disabled type="button">▶ 再生</button>
 <button id="stop" class="alt" disabled type="button">■ 停止</button>
@@ -124,11 +134,7 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <h3>🎧 A/B聴き比べ（同じ位置で切り替え）</h3>
 <p id="comparisonInfo" class="explain"></p>
 <h4>曲全体を聴き比べ</h4>
-<div class="actions">
-<button id="classicPlay" class="alt" disabled type="button">▶ 基準版</button>
-<button id="resonarePlay" class="alt" disabled type="button">▶ Resonare版</button>
-</div>
-<p class="compare-help">再生中にもう一方を押すと、曲の同じ位置から続けて再生するよ。</p>
+<p class="compare-help">プレイヤー上部の「基準版」「Resonare版」を再生中に切り替えると、同じ位置から続くよ。</p>
 <div id="eventCompare" hidden>
 <h4>変化した場面だけを聴き比べ</h4>
 <label for="cueSelect">比較する出来事を選ぶ（差が大きい順）</label>
@@ -145,7 +151,7 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 </div>
 </div>
 </section>
-<p class="footer">作曲に外部API・ログインは不要。Resonare型は実験的な数値モデルで、心情や事実を確定するものではありません。3ピースバンドは生演奏の録音ではなくブラウザ内の合成音です。v0.6では曲の同じ再生位置を維持してA/B比較でき、場面別の楽器差分も確認できます。端末内で文章を簡易解析し、メロディー・和音・伴奏を合成します。文章の理解はキーワードとルールに基づく推定で、AIによる意味理解とは異なります。保存済みの設定はこのブラウザに残ります。</p>
+<p class="footer">作曲に外部API・ログインは不要。Resonare型は実験的な数値モデルで、心情や事実を確定するものではありません。3ピースバンドは生演奏の録音ではなくブラウザ内の合成音です。v0.6.2では2曲の再生ボタンを常時表示し、曲の同じ再生位置を維持してA/B比較でき、場面別の楽器差分も確認できます。端末内で文章を簡易解析し、メロディー・和音・伴奏を合成します。文章の理解はキーワードとルールに基づく推定で、AIによる意味理解とは異なります。保存済みの設定はこのブラウザに残ります。</p>
 </main>
 </body>
 </html>
