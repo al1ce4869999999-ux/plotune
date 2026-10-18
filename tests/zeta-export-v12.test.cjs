@@ -27,7 +27,7 @@ class FakeAudio{
  constructor(){this.sampleRate=44100;this.currentTime=0;this.destination={}}
  createMediaStreamDestination(){return{stream:{getTracks(){return[{stop(){}}]}}}}
  createBuffer(c,n,r){const floats=new Float32Array(n);return{copyToChannel(src){floats.set(src)},getChannelData(){return floats}}}
- createBufferSource(){const source={connect(){},disconnect(){},stop(){},start:()=>{ if(source.onended)queueMicrotask(source.onended)}};return source}
+ createBufferSource(){const source={connect(){},disconnect(){},stop(){},start:()=>queueMicrotask(()=>{if(source.onended)source.onended()})};return source}
  async resume(){}
  async close(){}
 }
