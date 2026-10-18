@@ -7,7 +7,7 @@ const IDs=Object.keys(H.STYLES);
 assert.equal(IDs.length,30);
 const grouped=H.GROUPS.flatMap(g=>g.ids);
 assert.equal(new Set(grouped).size,30);
-assert.deepEqual(grouped.slice().sort(),IDs.slice().sort());
+assert.deepEqual(Array.from(grouped).sort(),Array.from(IDs).sort());
 for(const [term,expected] of [
  ['うれしい、やったー！','joy'],['ぷんぷん、怒っちゃった','anger'],
  ['しょんぼり、悲しい','sadness'],['楽しい、るんるん','fun'],
