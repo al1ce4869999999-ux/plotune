@@ -20,7 +20,7 @@ for(const duration of [15,30,60])for(const style of ['indie','rock','punk','ball
   assert.equal(score.details.loopBars*240/duration,score.bpm);
   const piano=score.notes.filter(n=>n.instrument==='piano');
   const guitar=score.notes.filter(n=>n.instrument==='guitar');
-  assert.ok(piano.length>8,'piano must contribute throughout, not a one-time cue');
+  assert.ok(piano.length>8,'piano density '+duration+'/'+style+' count='+piano.length+' expected >8');
   assert.ok(guitar.length>piano.length,'one main guitar with piano accents');
   assert.ok(score.details.pianoUnisonNotes>5);
   assert.ok(piano.every(n=>n.t>=0&&n.t+n.d<=duration+.001&&n.v>0));
