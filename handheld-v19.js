@@ -130,7 +130,12 @@ function chooseInstrumentPalette(scene,chosenStyle){
   farewell:'stringsmemory',retry:'ocarinacourage',fear:'synthmystery',
   anxiety:'synthmystery',wonder:'celestadream',discovery:'celestadream',
   prank:'marimbapranks',failure:'marimbapranks',daily:'kalimbadaily',
-  sleep:'harpnight',joy:'synthhope',victory:'synthhope',journey:'ocarinacourage'}[chosenStyle]||'kalimbadaily');
+  sleep:'harpnight',joy:'synthhope',victory:'synthhope',journey:'ocarinacourage',
+  battle:'synthmystery',anger:'synthmystery',suspense:'synthmystery',
+  mystery:'synthmystery',rain:'ocarinalament',affection:'harpnight',
+  reunion:'synthhope',festival:'marimbapranks',proud:'marimbapranks',
+  village:'kalimbadaily',mischief:'marimbapranks',frustration:'stringsmemory',
+  shyness:'harpnight',chase:'synthhope'}[chosenStyle]||'kalimbadaily');
  return {style:chosen,palette:STORY_INSTRUMENTS[chosen],reason:best?
   '場面の「'+best.evidence+'」に合わせて楽器編成を選択':
   '曲調「'+(STYLES[chosenStyle]?.name||'日常')+'」から楽器編成を選択',
