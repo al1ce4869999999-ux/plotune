@@ -501,6 +501,42 @@ function score(plan){
    for(const key of Object.keys(voices))
      voices[key]=key==='drums'?drums.length:notes.filter(n=>n.voice===key).length;
  }
+  // Gentle "shonbori": a small, recoverable disappointment, NOT defeat.
+  // Run after scene instrument selection so heavy arrangements cannot override it.
+  if(plan.gameStyle==='sadness' && !plan.emotionalArc){
+    notes.length=0;drums.length=0;
+    const little=[4,3,2,1,2,0,1,2,3,2,1,0,1,2,1,0];
+    const upper=tonic+12;
+    for(let b=0;b<bars;b++){
+      const start=b*meter,variation=b%4;
+      for(let j=0;j<8;j++){
+        const slot=j*2,t=start+slot*step;
+        if(t>=duration||(variation===1&&j===3)||(variation===3&&j===5))continue;
+        const degree=little[(slot+variation*2)%16]+(variation===2&&j>4?1:0);
+        notes.push({t,d:Math.min(step*(j%4===3?2.7:1.65),duration-t),
+          midi:clamp(midi(upper,MINOR,degree),57,83),
+          voice:'lead',role:'lead',timbre:'ocarina',volume:.076});
+      }
+      const replyT=start+10*step;
+      if(replyT<duration)notes.push({t:replyT,d:Math.min(step*2.4,duration-replyT),
+        midi:midi(upper,MINOR,variation%2?2:4),voice:'counter',
+        role:'counter',timbre:'musicbox',volume:.023});
+      const chordDegree=[0,3,4,0][variation];
+      for(const interval of [0,2,4]){
+        notes.push({t:start,d:Math.min(meter*.85,duration-start),
+          midi:midi(tonic,MINOR,chordDegree+interval),
+          voice:'pad',role:'pad',timbre:'softpiano',volume:.012});
+      }
+      for(const slot of [0,8]){
+        const t=start+slot*step;
+        if(t<duration)notes.push({t,d:Math.min(step*3.1,duration-t),
+          midi:midi(tonic,MINOR,chordDegree),voice:'bass',
+          role:'bass',timbre:'kalimba',volume:.020});
+      }
+    }
+    for(const key of Object.keys(voices))
+      voices[key]=key==='drums'?0:notes.filter(n=>n.voice===key).length;
+  }
  // A musically structural emotional arc, not an arbitrary volume fade:
  // hopeful ascent -> unresolved minor-second clash -> descending bass/lead
  // -> near-silence. The unresolved tone is intentionally brief and never
