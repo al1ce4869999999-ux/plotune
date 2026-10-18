@@ -397,31 +397,35 @@ function score(plan){
  if(palette){
    const originalNotes=notes.slice();
    notes.length=0;drums.length=0;
-   const isFlute=palette.family==='flute';
+   const isFlute=['flute','ocarina'].includes(palette.family);
+   const isSynth=palette.family==='synthlead';
+   const isSoft=['strings','softpiano'].includes(palette.family);
+   const isPluck=['harp','kalimba','marimba','celesta'].includes(palette.family);
+   const isBreath=isFlute;
    const isBox=palette.family==='musicbox';
    const isBell=palette.family==='bell';
    const phrase=[0,2,4,3,1,2,0,-1],hero=[0,2,4,5,4,2,6,4];
-   const line=isFlute?hero:phrase;
-   const cadence=isFlute?[0,4,5,3]:[5,3,1,4];
+   const line=isFlute||isSynth?hero:phrase;
+   const cadence=isFlute||isSynth?[0,4,5,3]:[5,3,1,4];
    for(let b=0;b<bars;b++){
      const start=b*meter,degree=prog[b%prog.length];
      const basis=midi(tonic+12,scale,degree);
-     const unit=isFlute?2:4; // flute breath phrases vs long ringing bells
+     const unit=isBreath||isSynth?2:isPluck?3:4; // independent phrase rates
      for(let slot=0;slot<16;slot+=unit){
        const t=start+slot*step;if(t>=duration)continue;
        const ordinal=Math.floor(slot/unit);
        // Silent gaps and phrase resolution are intentional.
-       if(!isFlute&&slot===12&&b%2===1)continue;
-       const move=line[(ordinal+b%4)%8]+(isFlute&&b%4===3?2:0);
-       const midiValue=clamp(basis+move+(isBell?-12:0),46,92);
-       const len=step*(isFlute?(ordinal%4===3?3.1:1.7):(isBox?3.55:7.2));
+       if(!isBreath&&!isSynth&&slot>=12&&b%2===1)continue;
+       const move=line[(ordinal+b%4)%8]+((isBreath||isSynth)&&b%4===3?2:0);
+       const midiValue=clamp(basis+move+(isBell?-12:0)+(palette.family==='strings'?-7:0),46,92);
+       const len=step*(isBreath?(ordinal%4===3?3.2:1.8):isSynth?(ordinal%4===3?3.3:1.95):isSoft?7.5:isPluck?2.8:isBox?3.55:7.2);
        notes.push({t,d:Math.min(len,duration-t),midi:midiValue,
-         voice:'lead',role:'lead',volume:isFlute?.124:isBell?.09:.096});
-       if(isFlute&&ordinal%4===1){
+         voice:'lead',role:'lead',timbre:palette.family,volume:isBreath?.124:isSynth?.115:isBell?.09:isSoft?.069:.096});
+       if((isBreath||isSynth)&&ordinal%4===1){
          // A quiet counter-line supports resolve without busy pop arpeggios.
          notes.push({t,d:Math.min(step*2.2,duration-t),
            midi:clamp(basis+move-12,40,79),
-           voice:'counter',role:'counter',volume:.026});
+           voice:'counter',role:'counter',timbre:palette.secondary||'kalimba',volume:.033});
        }
      }
      // Very light chord/pad accompaniment. Small ringing gestures for bells;
@@ -429,9 +433,9 @@ function score(plan){
      for(const offset of [0,2,4]){
        const tone=midi(tonic-12,scale,degree+offset);
        notes.push({t:start,d:Math.min(meter*.94,duration-start),midi:tone,
-         voice:'pad',role:'pad',volume:isFlute?.026:.013});
+         voice:'pad',role:'pad',timbre:palette.padTone||'synthpad',volume:(isBreath||isSynth)?.028:.016});
      }
-     if(isFlute){
+     if(isBreath||isSynth){
        for(const i of [0,8]){
          const t=start+i*step;
          notes.push({t,d:Math.min(step*6.6,duration-t),
@@ -439,15 +443,17 @@ function score(plan){
          if(palette.drums==='pulse')drums.push({t,kind:'kick',volume:.22});
        }
        if(palette.drums==='pulse')drums.push({t:start+step*12,kind:'rim',volume:.14});
+       if(palette.drums==='suspense')drums.push({t:start,kind:'kick',volume:.13});
+       if(palette.drums==='soft')drums.push({t:start+step*8,kind:'rim',volume:.12});
      }else{
        notes.push({t:start,d:Math.min(meter*.95,duration-start),
          midi:midi(tonic-24,scale,degree),voice:'bass',role:'bass',volume:.027});
      }
-     if((isBox||isBell)&&b%2===0){
+     if((isBox||isBell||isPluck)&&b%2===0){
        const t=start+step*10;
        notes.push({t,d:Math.min(step*5,duration-t),
          midi:clamp(basis+12,59,103),
-         voice:'sparkle',role:'sparkle',volume:palette.bell*.019});
+         voice:'sparkle',role:'sparkle',timbre:palette.secondary||'celesta',volume:Math.max(.024,palette.bell*.019)});
      }
    }
    for(const key of Object.keys(voices))
