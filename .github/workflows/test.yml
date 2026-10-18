@@ -19,6 +19,7 @@ jobs:
           node --check composer-v04.js
           node --check app.js
           node --check app-v03.js
+          node --check app-v04.js
       - name: Run no-API engine tests
         run: |
           node tests/engine.test.cjs
