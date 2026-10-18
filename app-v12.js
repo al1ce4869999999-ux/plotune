@@ -17,6 +17,7 @@ let ctx=null,node=null,transport=null,request=0,current=null,tracks=null,variant
 const buffers=new WeakMap();
 const zetaEncoder=window.PlotuneZetaExport;
 let zetaBusy=false;
+let zetaFileUrl=null;
 function stop(silent=false){
  request++;
  if(node){const old=node;node=null;try{old.stop()}catch{}try{old.disconnect()}catch{}}
@@ -305,6 +306,8 @@ async function exportForZeta(){
   return;
  }
  stop(true);
+ if(zetaFileUrl){URL.revokeObjectURL(zetaFileUrl);zetaFileUrl=null;}
+ $('zetaDownload').hidden=true;
  zetaBusy=true;ready();
  $('zeta').textContent='変換中… 0%';
  $('zetaProgress').hidden=false;
@@ -326,13 +329,11 @@ async function exportForZeta(){
     catch(e){if(e.name==='AbortError'){status('保存をキャンセルしました');return;}}
    }
   }
-  if(!shared){
-   const url=URL.createObjectURL(result.blob);
-   const link=document.createElement('a');
-   link.href=url;link.download=title;
-   document.body.append(link);link.click();link.remove();
-   setTimeout(()=>URL.revokeObjectURL(url),30000);
-  }
+  zetaFileUrl=URL.createObjectURL(result.blob);
+  const saved=$('zetaDownload');
+  saved.href=zetaFileUrl;saved.download=title;saved.hidden=false;
+  if(!shared)status('変換完了！下の「完成したZeta用ファイルを保存」を押してね。');
+
   $('zetaHelp').textContent='保存形式：'+result.extension.toUpperCase()+' ／ '+(result.blob.size/1048576).toFixed(2)+'MB ／ '+result.duration.toFixed(1)+'秒。Zetaのファイル選択画面からこの音声を選んでね。';
   status(shared?'Zeta用ファイルの共有メニューを開きました！':'Zeta用ファイルを保存したよ！Safariのダウンロードを確認してね。');
  }catch(e){
