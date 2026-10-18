@@ -1,0 +1,30 @@
+name: Zeta M4A smoke tests
+on:
+  pull_request:
+    paths:
+      - 'zeta-export-v12.js'
+      - 'app-v12.js'
+      - 'tests/zeta-export-v12.test.cjs'
+      - 'tests/ui-v12.test.cjs'
+      - '.github/workflows/zeta-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'zeta-export-v12.js'
+      - 'app-v12.js'
+      - 'tests/zeta-export-v12.test.cjs'
+      - 'tests/ui-v12.test.cjs'
+      - '.github/workflows/zeta-smoke.yml'
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          node --check zeta-export-v12.js
+          node --check app-v12.js
+          node tests/zeta-export-v12.test.cjs
+          node tests/ui-v12.test.cjs
