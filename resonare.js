@@ -44,6 +44,11 @@ function matchScore(text, list){
   while((m=re.exec(text))!==null){
    const tail=text.slice(m.index+m[0].length,m.index+m[0].length+9);
    if(NEGATION.test(tail))continue;
+   // A wish or plan is an expectation, not an observed outcome.
+   const forward=text.slice(m.index,m.index+24);
+   if(weight>0 && /(?:褒め|ほめ|認め)(?:て)?(?:もらおう|もらいたい|てほしい|られたい|られれば)/.test(forward))continue;
+   if(weight>0 && /^(?:成功(?:したい|するつもり|するはず)|達成したい|できたら|うまくいくはず)/.test(forward))continue;
+   if(weight<0 && /^(?:失敗したくない|失敗するはず|転ばないよう|落ちないよう)/.test(forward))continue;
    sum+=weight;
    if(evidence.length<5)evidence.push(m[0]);
    kind=type;
@@ -129,7 +134,8 @@ function analyze(input){
   const deltaPsi=limit(.65*Math.abs(e.outcome-prev)+.22*e.action+.20*e.transition);
   const surprise=limit(1-resonance);
   const tension=limit(.12+.44*surprise+.36*deltaPsi+(e.tone==='danger'?.15:0));
-  const prevEvent=events[events.length-1];
+  // Ignore neutral filler between a setback and the eventual recovery.
+  const prevEvent=events.slice().reverse().find(p=>p.evidence.length&&Math.abs(p.outcome)>.26);
   const cue=cueFor(e,prevEvent,goal);
   events.push({...e,index,expectation:expected,deltaPhi,deltaPsi,resonance,
     surprise,tension,cue,position:chunks.length<=1?.5:(index+.5)/chunks.length});
