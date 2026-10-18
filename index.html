@@ -71,15 +71,16 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <script defer src="composer-v04.js"></script>
 <script defer src="loop-arranger-v09.js"></script>
 <script defer src="band-v09.js"></script>
-<script defer src="comparison-v10.js"></script>
+<script defer src="band-piano-v13.js"></script>
+<script defer src="comparison-v13.js"></script>
 <script defer src="handheld-v10.js"></script>
 <script defer src="zeta-export-v12.js"></script>
-<script defer src="app-v12.js"></script>
+<script defer src="app-v13.js"></script>
 </head>
 <body>
 <main>
 <header>
-<h1>🎼 Plotune <small style="font-size:13px;color:#c0aaff;vertical-align:middle">v1.2</small></h1>
+<h1>🎼 Plotune <small style="font-size:13px;color:#c0aaff;vertical-align:middle">v1.3</small></h1>
 <p class="lead">物語のシーンを、キャラクターらしい音楽に。</p>
 </header>
 <section class="card">
@@ -102,6 +103,7 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <option value="pop">✨ ポップ</option>
 <option value="fantasy">🪄 ファンタジー</option>
 <option value="band">🎸 3ピースバンド</option>
+<option value="bandpiano">🎹 3ピース＋ピアノユニゾン</option>
 <option value="ambient">🌙 アンビエント</option>
 </select></div>
 <div><label for="duration">長さ</label><select id="duration"><option value="15">15秒</option><option value="30" selected>30秒</option><option value="60">60秒</option></select></div>
@@ -114,7 +116,7 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <option value="punk">疾走パンク（速い8ビート）</option>
 <option value="ballad">バンドバラード（静かな導入からサビへ）</option>
 </select>
-<p class="note">ギター1本・ベース1本・ドラム1セットのインスト曲。音はiPhone内で合成します。</p>
+<p class="note">3ピースはギター・ベース・ドラム。ピアノユニゾン版はギターの主旋律にピアノを重ね、合間にピアノの短いフレーズも入れます。どちらもiPhone内で合成します。</p>
 </div>
 <div id="gameOptions" hidden>
 <label for="gameStyle">🎮 携帯ゲーム風の音楽性</label>
