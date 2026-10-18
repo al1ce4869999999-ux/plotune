@@ -672,7 +672,31 @@ function score(plan){
    voices[key]=key==='drums'?drums.length:notes.filter(n=>n.voice===key).length;
   arcDynamics.forEach((stage,i)=>{stage.start=stages[i].from/duration;stage.end=stages[i].to/duration;});
  }
+ // Research-informed expressive adjustment, preserving the style's tonal identity.
+ // Body-to-melody rules are explicitly treated as hypotheses.
+ const expression=plan.expression||null;
+ if(expression){
+   const m=expression.motif||{},e=expression.emotion||{},o=expression.orchestration||{};
+   for(const n of notes){
+     if(n.voice==='lead'){
+       if(m.bounce>.45){
+         const pos=Math.round(n.t/step)%8;
+         if(pos===2||pos===6)n.midi=clamp(n.midi+Math.round(2*m.bounce+1),36,100);
+         if(pos===4)n.d=Math.max(.055,n.d*.73);
+       }
+       if(m.hesitation>.3){
+         const pos=Math.round(n.t/step)%16;
+         if(pos>=10&&pos<13)n.volume*=.48;
+         else n.d=Math.min(duration-n.t,n.d*1.18);
+       }
+       if(m.register)n.midi=clamp(n.midi+m.register,36,100);
+     }
+     if(e.mildSadness&&!e.grief && n.voice==='bass')n.volume*=.78;
+     if(o.family&&n.voice==='lead'&&!n.timbre)n.timbre=o.family;
+   }
+ }
  const details={
+  musicPsychology:expression,structuredStory:plan.structure||null,
   genre:'game',gameStyle:plan.gameStyle||'journey',gameName:game.name,emotionMode:game.mode,groove:game.drums,shape,
   loopMode:true,loopBars:bars,bpm,theme:motif,parts:voices,
   emotionalProfile:emotional?.kind||null,
