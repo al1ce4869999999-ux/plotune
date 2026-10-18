@@ -67,10 +67,10 @@ for(const group of handheld.GROUPS){
 }
 gameSelect.value=handheld.STYLES[existing]?existing:'auto';
 bandPanel();
-$('runtimeVersion').textContent='実行中：v1.4｜透明感・メロディックロックを追加';
+$('runtimeVersion').textContent='実行中：v1.5｜透明感を残して音の厚みを強化';
 if(typeof document.querySelector==='function'){
  const badge=document.querySelector('header h1 small');
- if(badge)badge.textContent='v1.4';
+ if(badge)badge.textContent='v1.5';
 }
 function addRow(parent,title,value){
  const el=document.createElement('div');el.className='report-row';

@@ -2,8 +2,8 @@ name: Melodic rock smoke
 on:
   pull_request:
     paths:
-      - 'band-piano-v14.js'
-      - 'tests/melodic-rock-v14.test.cjs'
+      - 'band-piano-v15.js'
+      - 'tests/melodic-rock-v15.test.cjs'
       - 'index.html'
       - 'app-v13.js'
       - '.github/workflows/melodic-rock-smoke.yml'
@@ -16,5 +16,6 @@ jobs:
         with:
           node-version: '22'
       - run: |
-          node --check band-piano-v14.js
+          node --check band-piano-v15.js
           node tests/melodic-rock-v14.test.cjs
+          node tests/melodic-rock-v15.test.cjs
