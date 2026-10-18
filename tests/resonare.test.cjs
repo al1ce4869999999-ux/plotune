@@ -59,7 +59,9 @@ assert.ok(diff>500,'A/B needs audible signal changes');
 assert.ok(wet.details.cues.includes('stumble'),'stumble should reach score');
 assert.equal(C.wavBlob(wet.samples,wet.sampleRate).size,44+wet.samples.length*2);
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-const assets=html.includes('src="app-v12.js"')
+const assets=html.includes('src="app-v13.js"')
+ ? ['analyzer.js','resonare-v08.js','composer-v04.js','loop-arranger-v09.js','band-v09.js','band-piano-v13.js','comparison-v13.js','handheld-v10.js','zeta-export-v12.js','app-v13.js']
+ : html.includes('src="app-v12.js"')
  ? ['analyzer.js','resonare-v08.js','composer-v04.js','loop-arranger-v09.js','band-v09.js','comparison-v10.js','handheld-v10.js','zeta-export-v12.js','app-v12.js']
  : html.includes('src="app-v10.js"')
  ? ['analyzer.js','resonare-v08.js','composer-v04.js','loop-arranger-v09.js','band-v09.js','comparison-v10.js','handheld-v10.js','app-v10.js']
