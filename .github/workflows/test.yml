@@ -17,6 +17,7 @@ jobs:
           node --check resonare.js
           node --check composer.js
           node --check composer-v04.js
+          node --check band-v05.js
           node --check app.js
           node --check app-v03.js
           node --check app-v04.js
@@ -25,4 +26,5 @@ jobs:
           node tests/engine.test.cjs
           node tests/resonare.test.cjs
           node tests/structural.test.cjs
+          node tests/band.test.cjs
           node tests/ui-v04.test.cjs
