@@ -49,7 +49,7 @@ const long=H.render(plan('sadness',sad,false,60));
 assert.equal(long.samples.length,60*22050);
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const ui=fs.readFileSync(path.join(root,'app-v13.js'),'utf8');
-assert.ok((html.includes('src="handheld-v19.js"')||html.includes('src="handheld-v20.js"')));
+assert.ok((html.includes('src="handheld-v19.js"')||(html.includes('src="handheld-v20.js"')||html.includes('src="handheld-v21.js"'))));
 assert.ok(ui.includes("g.label.includes('物語を彩る楽器')"),'instrument-only presets should be hidden from new DS chooser');
 assert.ok(ui.includes("if(base.instrumentChoice)"),'user can inspect instrument reason');
 console.log('PASS v1.9: same DS style + three scenes = different instruments/melody; manual style preserved; 15/60s WAV');
