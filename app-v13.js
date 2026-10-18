@@ -67,10 +67,10 @@ for(const group of handheld.GROUPS){
 }
 gameSelect.value=handheld.STYLES[existing]?existing:'auto';
 bandPanel();
-$('runtimeVersion').textContent='実行中：v1.6｜悲しさ・不安まで旋律とリズムで表現';
+$('runtimeVersion').textContent='実行中：v1.7｜神秘のオルゴール・勇気の笛を追加';
 if(typeof document.querySelector==='function'){
  const badge=document.querySelector('header h1 small');
- if(badge)badge.textContent='v1.6';
+ if(badge)badge.textContent='v1.7';
 }
 function addRow(parent,title,value){
  const el=document.createElement('div');el.className='report-row';
