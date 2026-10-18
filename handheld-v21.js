@@ -534,6 +534,24 @@ function score(plan){
       ['kalimba','musicbox'];
     const pent=[0,1,2,4,5],motif=Array.from({length:8},()=>pent[Math.floor(charRand()*pent.length)]);
     const upper=tonic+12+(dna.small?2:0),shift=Math.floor(sceneRand()*3)-1;
+    // Distinct melodic grammars: contour is generated before choosing timing or timbre.
+    // Playful: leaps, repeated peaks, little falls and recovery.
+    // Reserved: narrow stepwise line, suspended notes, descent and withheld resolution.
+    const contour={
+      playful:[0,3,5,2,6,4,5,1],
+      reserved:[4,4,3,2,2,1,1,0],
+      neutral:[1,2,3,2,4,3,2,1]
+    };
+    const contourDegrees=contour[type];
+    const contourIdentity=Math.floor(charRand()*3);
+    const degreeFor=(index,bar)=>{
+      const phraseShift=bar%4===0?0:bar%4===1?1:bar%4===2?-1:0;
+      const base=contourDegrees[index%contourDegrees.length];
+      const identity=type==='playful'?(contourIdentity===2&&index%3===0?1:0):
+        type==='reserved'?(contourIdentity===1&&index%4===0?-1:0):
+        (contourIdentity===0&&index%3===0?1:0);
+      return Math.max(0,base+identity+phraseShift+(bar%4===3&&index===contourDegrees.length-1?-1:0));
+    };
     // Different rhythmic grammars, not small offsets to one shared 8-note grid.
     // The slots are sixteenth-note units within a 16-slot bar.
     const phrases={
@@ -552,15 +570,14 @@ function score(plan){
       for(let j=0;j<phrase.length;j++){
         const n=phrase[j],t=start+(n.p+(bar%4===2&&j%3===1?.25:0))*unit;
         if(t>=duration)continue;
-        const raw=motif[(n.k+variation)%8]+shift;
-        const pitch=type==='playful'?raw+(j%3===1?2:0):type==='reserved'?Math.max(0,raw-1):raw;
+        const pitch=degreeFor(j,bar)+shift;
         notes.push({t,d:Math.min(duration-t,n.d*unit),midi:clamp(midi(upper,MAJOR,pitch),60,86),
           voice:'lead',role:'lead',timbre:expressive[0],volume:type==='reserved'?.052:.070});
       }
       // Companion phrases and accompaniment must reflect the same grammar.
       const reply=start+(type==='playful'?7.7:type==='reserved'?12.2:9.7)*unit;
       if(reply<duration)notes.push({t:reply,d:Math.min(duration-reply,(type==='reserved'?3:1.2)*unit),
-        midi:midi(upper,MAJOR,motif[(variation+3)%8]),voice:'counter',role:'counter',
+        midi:midi(upper,MAJOR,degreeFor(type==='playful'?5:2,bar)),voice:'counter',role:'counter',
         timbre:expressive[1],volume:.016});
       const chordPositions=type==='playful'?[0,7,12]:type==='reserved'?[0]:[0,8];
       for(const p of chordPositions){
