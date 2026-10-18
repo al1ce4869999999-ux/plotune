@@ -31,6 +31,7 @@ jobs:
           node --check handheld-v16.js
           node --check handheld-v17.js
           node --check handheld-v18.js
+          node --check handheld-v19.js
           node --check app-v11.js
           node --check comparison-v10.js
           node --check app-v10.js
@@ -65,6 +66,7 @@ jobs:
           node tests/game-expression-v16.test.cjs
           node tests/storybook-v17.test.cjs
           node tests/instrument-auto-v18.test.cjs
+          node tests/ds-arrangement-v19.test.cjs
           node tests/ui-v10.test.cjs
           node tests/zeta-export-v12.test.cjs
           node tests/ui-v12.test.cjs
