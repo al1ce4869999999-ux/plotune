@@ -42,7 +42,13 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 .arc-item{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:12px;color:#e0d8f6}
 .arc-bar{background:#131526;border:1px solid #49415c;border-radius:10px;height:77px;width:100%;display:flex;align-items:flex-end;overflow:hidden}
 .arc-fill{width:100%;background:linear-gradient(0deg,#8671e9,#d3bfff);border-radius:7px 7px 0 0}
-#analysis[hidden],#comparison[hidden],#bandOptions[hidden]{display:none}
+#analysis[hidden],#comparison[hidden],#bandOptions[hidden],#eventCompare[hidden]{display:none}
+#eventCompare{padding-top:10px;border-top:1px solid #4d4865;margin-top:20px}
+#changeDiagnosis{font-size:13px;line-height:1.7;color:#ded2ff;margin:13px 0}
+#trackDiff{display:grid;gap:7px;margin-top:10px}
+.track-line{background:#151728;border:1px solid #46425c;border-radius:9px;padding:10px;font-size:13px}
+.compare-help{font-size:13px;color:#c2bcdb}
+#cueSelect{margin-bottom:8px}
 .event{display:flex;flex-direction:column;gap:5px;padding:10px;margin:7px 0;background:#161929;border-radius:10px}
 .event-cue{font-weight:700;color:#dccbff;font-size:13px}.event-text{font-size:13px}
 #comparison{padding:12px;border-top:1px solid #45405d;margin-top:14px}
@@ -53,12 +59,13 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <script defer src="resonare.js"></script>
 <script defer src="composer-v04.js"></script>
 <script defer src="band-v05.js"></script>
-<script defer src="app-v05.js"></script>
+<script defer src="comparison-v06.js"></script>
+<script defer src="app-v06.js"></script>
 </head>
 <body>
 <main>
 <header>
-<h1>🎼 Plotune <small style="font-size:13px;color:#c0aaff;vertical-align:middle">v0.5</small></h1>
+<h1>🎼 Plotune <small style="font-size:13px;color:#c0aaff;vertical-align:middle">v0.6</small></h1>
 <p class="lead">物語のシーンを、キャラクターらしい音楽に。</p>
 </header>
 <section class="card">
@@ -113,10 +120,32 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <button id="wav" class="alt" disabled type="button">↓ WAV保存</button>
 </div>
 <p id="status" role="status" aria-live="polite"></p>
-<div id="comparison" hidden><h3>A/B聴き比べ</h3><p id="comparisonInfo"></p>
-<div class="actions"><button id="classicPlay" class="alt" disabled>▶ 基準版</button><button id="resonarePlay" class="alt" disabled>▶ Resonare版</button></div></div>
+<div id="comparison" hidden>
+<h3>🎧 A/B聴き比べ（同じ位置で切り替え）</h3>
+<p id="comparisonInfo" class="explain"></p>
+<h4>曲全体を聴き比べ</h4>
+<div class="actions">
+<button id="classicPlay" class="alt" disabled type="button">▶ 基準版</button>
+<button id="resonarePlay" class="alt" disabled type="button">▶ Resonare版</button>
+</div>
+<p class="compare-help">再生中にもう一方を押すと、曲の同じ位置から続けて再生するよ。</p>
+<div id="eventCompare" hidden>
+<h4>変化した場面だけを聴き比べ</h4>
+<label for="cueSelect">比較する出来事を選ぶ（差が大きい順）</label>
+<select id="cueSelect" disabled></select>
+<p id="clipPosition" class="compare-help"></p>
+<div class="actions">
+<button id="classicClip" class="alt" disabled type="button">▶ この場面・基準版</button>
+<button id="resonareClip" class="alt" disabled type="button">▶ この場面・Resonare版</button>
+</div>
+<p class="compare-help">出来事の前後5秒を再生。再生中の切り替えも同じ位置を維持するよ。</p>
+<h4>この場面の変化</h4>
+<p id="changeDiagnosis"></p>
+<div id="trackDiff"></div>
+</div>
+</div>
 </section>
-<p class="footer">作曲に外部API・ログインは不要。Resonare型は実験的な数値モデルで、心情や事実を確定するものではありません。3ピースバンドは生演奏の録音ではなくブラウザ内の合成音です。端末内で文章を簡易解析し、メロディー・和音・伴奏を合成します。文章の理解はキーワードとルールに基づく推定で、AIによる意味理解とは異なります。保存済みの設定はこのブラウザに残ります。</p>
+<p class="footer">作曲に外部API・ログインは不要。Resonare型は実験的な数値モデルで、心情や事実を確定するものではありません。3ピースバンドは生演奏の録音ではなくブラウザ内の合成音です。v0.6では曲の同じ再生位置を維持してA/B比較でき、場面別の楽器差分も確認できます。端末内で文章を簡易解析し、メロディー・和音・伴奏を合成します。文章の理解はキーワードとルールに基づく推定で、AIによる意味理解とは異なります。保存済みの設定はこのブラウザに残ります。</p>
 </main>
 </body>
 </html>
