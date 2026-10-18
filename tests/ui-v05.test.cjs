@@ -2,6 +2,10 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const root=path.resolve(__dirname,'..');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+if(!html.includes('src="app-v05.js"')){
+ console.log('SKIP v0.5 UI archive; v0.6 is active');
+ process.exit(0);
+}
 for(const file of ['analyzer.js','resonare.js','composer-v04.js','band-v05.js','app-v05.js']){
  assert.ok(html.includes('src="'+file+'"'),'asset not linked: '+file);
 }
