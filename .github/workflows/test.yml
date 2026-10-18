@@ -16,9 +16,11 @@ jobs:
           node --check analyzer.js
           node --check resonare.js
           node --check composer.js
+          node --check composer-v04.js
           node --check app.js
           node --check app-v03.js
       - name: Run no-API engine tests
         run: |
           node tests/engine.test.cjs
           node tests/resonare.test.cjs
+          node tests/structural.test.cjs
