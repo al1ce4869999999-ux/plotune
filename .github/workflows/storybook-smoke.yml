@@ -1,0 +1,19 @@
+name: Storybook instrument smoke
+on:
+  pull_request:
+    paths:
+      - 'handheld-v17.js'
+      - 'tests/storybook-v17.test.cjs'
+      - 'index.html'
+      - '.github/workflows/storybook-smoke.yml'
+jobs:
+  score:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          node --check handheld-v17.js
+          node tests/storybook-v17.test.cjs
