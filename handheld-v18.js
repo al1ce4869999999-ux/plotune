@@ -482,7 +482,28 @@ function render(plan){
  const leadTone=STYLES[plan.gameStyle]?.lead||'bright';
  const emotional=MOODS[plan.gameStyle]||null;
  const palette=plan.instrumentChoice?.palette||STORY_INSTRUMENTS[plan.gameStyle]||null;
- function wave(voice,phase){
+ function timbreWave(name,phase){
+  const s=Math.sin(TAU*phase),s2=Math.sin(TAU*phase*2),s3=Math.sin(TAU*phase*3);
+  const x=phase-Math.floor(phase),tri=1-4*Math.abs(x-.5);
+  switch(name){
+   case 'ocarina':return .92*s+.055*s2+.025*s3;
+   case 'synthlead':return .35*s+.31*tri+.23*Math.sin(TAU*phase*1.006)+.11*s2;
+   case 'synthpad':return .46*s+.28*Math.sin(TAU*phase*.997)+.18*Math.sin(TAU*phase*1.005)+.08*tri;
+   case 'kalimba':return .74*s+.17*Math.sin(TAU*phase*2.01)+.09*Math.sin(TAU*phase*4.13);
+   case 'harp':return .76*s+.15*s2+.07*s3+.02*Math.sin(TAU*phase*4);
+   case 'marimba':return .76*s+.17*Math.sin(TAU*phase*3.96)+.07*Math.sin(TAU*phase*9.12);
+   case 'strings':return .47*s+.31*Math.sin(TAU*phase*1.007)+.16*s2+.06*s3;
+   case 'celesta':return .66*s+.21*Math.sin(TAU*phase*2.98)+.13*Math.sin(TAU*phase*5.37);
+   case 'musicbox':return .79*s+.15*Math.sin(TAU*phase*2.01)+.06*Math.sin(TAU*phase*3.96);
+   case 'bell':return .49*s+.26*Math.sin(TAU*phase*2.42)+.17*Math.sin(TAU*phase*3.8)+.08*Math.sin(TAU*phase*5.4);
+   case 'flute':return .88*s+.09*s2+.03*s3;
+   case 'softpiano':return .72*s+.20*s2+.08*Math.sin(TAU*phase*3.01);
+   default:return null;
+  }
+ }
+ function wave(voice,phase,timbre){
+  const special=timbre?timbreWave(timbre,phase):null;
+  if(special!==null)return special;
   const x=phase-Math.floor(phase),sin=Math.sin(TAU*phase),sin2=Math.sin(TAU*phase*2);
   switch(voice){
    case 'lead':
@@ -506,21 +527,26 @@ function render(plan){
  // Keep event generation deterministic and stable across A/B.
  for(const n of s.notes){
   const start=Math.floor(n.t*SR),length=Math.min(N-start,Math.floor(n.d*SR));
-  const freq=440*Math.pow(2,(n.midi-69)/12),attack=n.voice==='pad'?.08:
-    palette&&n.voice==='lead'?(palette.family==='flute'?.085:.002):.007;
-  const release=palette&&n.voice==='lead'?
-      (palette.family==='flute'?.20:.19):
-      n.voice==='pad'?.23:n.voice==='sparkle'?.17:emotional?.kind==='melancholy'?.26:.08;
-  const decay=palette&&n.voice==='lead'?
-      (palette.family==='musicbox'?1.65:palette.family==='bell'?.86:palette.family==='softpiano'?.95:.085):
-      n.voice==='pad'?.12:n.voice==='arp'?.9:n.voice==='sparkle'?1.8:emotional?.kind==='melancholy'?.12:.34;
+  const freq=440*Math.pow(2,(n.midi-69)/12);
+  const timbre=n.timbre||(palette&&n.voice==='lead'?palette.family:null);
+  const wind=['flute','ocarina'].includes(timbre);
+  const bowed=['strings','synthpad'].includes(timbre);
+  const struck=['musicbox','bell','kalimba','harp','marimba','celesta','softpiano'].includes(timbre);
+  const attack=wind?.08:bowed?.18:struck?.003:n.voice==='pad'?.08:.007;
+  const release=wind?.24:bowed?.39:struck?.18:n.voice==='pad'?.23:.08;
+  const decay=wind?.07:bowed?.04:
+     timbre==='marimba'?2.7:timbre==='kalimba'?1.5:
+     timbre==='harp'?1.12:timbre==='celesta'?.82:
+     timbre==='musicbox'?1.65:timbre==='bell'?.86:
+     timbre==='softpiano'?.95:
+     n.voice==='pad'?.12:n.voice==='arp'?.9:n.voice==='sparkle'?1.8:emotional?.kind==='melancholy'?.12:.34;
   let phase=0,prev=0;
   for(let i=0;i<length;i++){
    const x=i/SR,env=Math.min(1,x/attack,(n.d-x)/release)*Math.exp(-decay*x);
    phase+=freq/SR;
-   let y=wave(n.voice,phase);
+   let y=wave(n.voice,phase,timbre);
    // One-pole filter emulates a small sample-ROM / FM-style mellowing.
-   const smoothing=palette?.family==='flute'?.24:palette?.family==='musicbox'?.49:palette?.family==='bell'?.62:
+   const smoothing=wind?.23:bowed?.17:timbre==='marimba'?.72:timbre==='synthlead'?.61:timbre==='harp'?.47:timbre==='kalimba'?.55:palette?.family==='musicbox'?.49:palette?.family==='bell'?.62:
      emotional?.kind==='melancholy'?.23:emotional?.kind==='uneasy'?.38:n.voice==='chords'?.50:n.voice==='pad'?.28:.74;
    prev=prev*(1-smoothing)+y*smoothing;
    out[start+i]+=prev*n.volume*clamp(env,0,1);
