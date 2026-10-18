@@ -64,6 +64,10 @@ for(const group of handheld.GROUPS){
 gameSelect.value=handheld.STYLES[existing]?existing:'auto';
 bandPanel();
 $('runtimeVersion').textContent='実行中：v1.1｜喜怒哀楽と全30曲調・シーン自動選択';
+if(typeof document.querySelector==='function'){
+ const badge=document.querySelector('header h1 small');
+ if(badge)badge.textContent='v1.1';
+}
 function addRow(parent,title,value){
  const el=document.createElement('div');el.className='report-row';
  el.append(textNode('span',title,'muted'),textNode('strong',value));parent.append(el);
