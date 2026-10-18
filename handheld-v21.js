@@ -208,19 +208,19 @@ function midi(root,scale,index){return root+scale[((index%7)+7)%7]+12*Math.floor
 // Emotional arcs express the sequence of musical tension and release.
 // A grief cue requests a dynamic arc even if the user chose "adventure".
 function analyzeEmotionalArc(scene,style){
- const text=String(scene||'').slice(0,10000);
- const explicit=/泣|涙|悲し|失っ|亡くな|死ん|別れ|さよなら|ひとりぼっち|誰も来ない|寂し|会えない|しょんぼり|胸が苦し|崩れ落ち|見送った/;
- const griefStyles=['sadness','lonely','farewell','ocarinalament','farewellpiano'];
- if(!explicit.test(text)&&!griefStyles.includes(style))return null;
- const cinematic=/泣き崩|こらえ|堪え|涙があふ|涙が溢|救われ|もう会え|届かな|失って|失っ|永遠|最後|さよなら|ひとりぼっち|誰も来ない|悲し|しょんぼり|泣/;
- const strength=cinematic.test(text)?'full':'quiet';
- return {type:'grief',strength,stages:[
-  {name:'抑える',start:0,end:.25},
-  {name:'期待が高まる',start:.25,end:.55},
-  {name:'崩れる',start:.55,end:.77},
-  {name:'余韻',start:.77,end:1}
- ],reason:explicit.test(text)?'喪失・涙・別れなどの描写を根拠に悲しみの展開を作曲':'選択曲調の悲しみを、静かな起伏として作曲'};
-}
+  const text=String(scene||'').slice(0,10000);
+  // Everyday disappointment and mild tears never trigger the
+  // catastrophic grief engine. The selected gentle melancholy
+  // arrangement remains intact instead.
+  const catastrophic=/亡くなった|亡くして|死んでしま|死んだ|息を引き取|永遠の別れ|二度と会えない|二度と戻らない|取り返しがつかない|全滅|絶望|世界が崩れ|全てを失|すべてを失|泣き崩れ|崩れ落ちて泣|最期を看取|帰らぬ人|最後の別れ/;
+  if(!catastrophic.test(text))return null;
+  return {type:'grief',strength:'full',stages:[
+   {name:'抑える',start:0,end:.25},
+   {name:'期待が高まる',start:.25,end:.55},
+   {name:'崩れる',start:.55,end:.77},
+   {name:'余韻',start:.77,end:1}
+  ],reason:'明確な喪失・絶望の描写を根拠に重い悲劇的展開を作曲'};
+ }
 function prepare(plan,style,appraisal=null,reactive=false,scene=''){
  const picked=style==='auto'?chooseStyle(scene):null;
  const type=STYLES[picked?.style||style]?picked?.style||style:'mischief';
