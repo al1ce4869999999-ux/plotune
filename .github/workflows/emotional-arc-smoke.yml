@@ -1,0 +1,19 @@
+name: Emotional BGM smoke
+on:
+  pull_request:
+    paths:
+      - 'handheld-v20.js'
+      - 'tests/emotional-arc-v20.test.cjs'
+      - 'index.html'
+      - '.github/workflows/emotional-arc-smoke.yml'
+jobs:
+  score:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          node --check handheld-v20.js
+          node tests/emotional-arc-v20.test.cjs
