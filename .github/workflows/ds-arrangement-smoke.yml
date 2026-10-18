@@ -1,0 +1,21 @@
+name: DS dynamic arrangement smoke
+on:
+  pull_request:
+    paths:
+      - 'handheld-v19.js'
+      - 'tests/ds-arrangement-v19.test.cjs'
+      - 'app-v13.js'
+      - 'index.html'
+      - '.github/workflows/ds-arrangement-smoke.yml'
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          node --check handheld-v19.js
+          node --check app-v13.js
+          node tests/ds-arrangement-v19.test.cjs
