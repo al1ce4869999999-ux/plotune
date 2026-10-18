@@ -269,23 +269,14 @@ function score(plan){
  }
  for(let barNum=0;barNum<(loopMode?bars:Math.ceil(duration/bar));barNum++){
   const beatAt=barNum*bar;
-  const guitarAnchor=notes.find(n=>n.instrument==='guitar'&&n.t>=Math.max(0,beatAt-eighth*.18)&&n.t<beatAt+eighth*.30);
-  if(guitarAnchor&&!mutedAt(beatAt)){
-   // Actual guitar + piano paired phrase from the first downbeat.
-   const melodyMidi=clamp(guitarAnchor.midi+12,50,86);
-   note(beatAt,Math.min(eighth*1.55,duration-beatAt),melodyMidi,.103,'piano','unison','unison','piano');
-   note(beatAt,Math.min(eighth*1.55,duration-beatAt),melodyMidi,.064,'guitar','lead','riff','guitar');
-  }
-  // The midpoint answers the opening phrase so quiet ballads retain
-  // a continuous two-instrument theme rather than an occasional piano hit.
-  const middle=beatAt+eighth*4;
-  if(middle<duration&&!mutedAt(middle)){
-   const first=notes.find(n=>n.instrument==='guitar'&&n.t>=Math.max(0,beatAt-eighth*.18)&&n.t<beatAt+eighth*.30);
-   if(first){
-    const pitchNote=clamp(first.midi+7,50,86),len=Math.min(eighth*1.3,duration-middle);
-    note(middle,len,pitchNote,.081,'piano','unison','unison','piano');
-    note(middle,len,pitchNote,.054,'guitar','lead','riff','guitar');
-   }
+  const degree=(global?.progression||progression)[barNum%4];
+  for(const hit of [0,4]){
+   const t=beatAt+hit*eighth;
+   const len=Math.min((hit===0?1.6:1.25)*eighth,duration-t);
+   if(t>=duration||len<=.018||mutedAt(t))continue;
+   const midi=clamp(pitch(root,key,degree+(hit===0?0:2))+12,50,86);
+   note(t,len,midi,.091,'piano','unison','unison','piano');
+   note(t,len,midi,.064,'guitar','lead','riff','guitar');
   }
   if(barNum%2===1){
    const t=beatAt+eighth*5;
