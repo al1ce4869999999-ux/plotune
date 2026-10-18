@@ -59,6 +59,9 @@ assert.ok(diff>500,'A/B needs audible signal changes');
 assert.ok(wet.details.cues.includes('stumble'),'stumble should reach score');
 assert.equal(C.wavBlob(wet.samples,wet.sampleRate).size,44+wet.samples.length*2);
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-for(const asset of ['analyzer.js','resonare.js','composer.js','app-v03.js'])assert.ok(html.includes('src="'+asset+'"'),'missing script '+asset);
+const assets=html.includes('src="app-v04.js"')
+ ? ['analyzer.js','resonare.js','composer-v04.js','app-v04.js']
+ : ['analyzer.js','resonare.js','composer.js','app-v03.js'];
+for(const asset of assets)assert.ok(html.includes('src="'+asset+'"'),'missing script '+asset);
 for(const id of ['engine','compare','classicPlay','resonarePlay'])assert.ok(html.includes('id="'+id+'"'),'missing control '+id);
 console.log('PASS: goal grounding, no mind-reading, B, Δφ/Δψ/R, event cues, stable motif, A/B PCM, WAV, assets');
