@@ -45,6 +45,23 @@ try{
  const saved=JSON.parse(localStorage.getItem('plotune')||'{}');
  fields.forEach(k=>{if(saved[k]!=null)$(k).value=saved[k]});
 }catch{}
+const gameSelect=$('gameStyle');
+const existing=gameSelect.value;
+gameSelect.replaceChildren();
+const automatic=document.createElement('option');
+automatic.value='auto';automatic.textContent='✨ シーンから自動選択';
+gameSelect.append(automatic);
+for(const group of handheld.GROUPS){
+ const section=document.createElement('optgroup');
+ section.label=group.label;
+ for(const id of group.ids){
+  const option=document.createElement('option');
+  option.value=id;option.textContent=handheld.STYLES[id].name;
+  section.append(option);
+ }
+ gameSelect.append(section);
+}
+gameSelect.value=handheld.STYLES[existing]?existing:'auto';
 bandPanel();
 $('runtimeVersion').textContent='実行中：v1.1｜喜怒哀楽と全30曲調・シーン自動選択';
 function addRow(parent,title,value){
