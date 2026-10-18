@@ -62,7 +62,7 @@ function chooseGoal(character,world,scene){
    {id:'mastery',re:/上手になりたい|できるようになりたい|成功したい/}
   ];
   const explicit=explicitWishes.some(w=>w.id===g.id&&w.re.test(character))?5:0;
-  return {...g,score:fromProfile*3+fromScene*1.1+fromWorld*.25+explicit,fromProfile,fromScene};
+  return {...g,score:fromProfile*3+fromScene*.45+fromWorld*.15+explicit*1.3,fromProfile,fromScene};
  }).sort((a,b)=>b.score-a.score);
  const top=scores[0];
  if(!top||top.score<=0)return {id:'unknown',label:'未特定',evidence:[],confidence:'low',weight:0};
