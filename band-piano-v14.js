@@ -287,6 +287,35 @@ function score(plan){
    }
   }
  }
+ if(style==='glassrock'){
+  notes.length=0;percussion.length=0;rests.length=0;harmony.length=0;
+  const prog=global?.progression||[5,3,0,4];
+  const nBars=loopMode?bars:Math.ceil(duration/bar);
+  for(let b=0;b<nBars;b++){
+   const ch=prog[b%4]%7,t0=b*bar;
+   harmony.push({t:t0,degree:ch,section:'Melodic loop',cue:'neutral'});
+   const g=pitch(root+12,key,ch),bass=pitch(root,key,ch)-24;
+   for(let beat=0;beat<8;beat++){
+    const t=t0+beat*eighth;if(t>=duration)continue;
+    const melody=clamp(g+[0,4,7,9,7,4,2,7][(beat+b)%8],55,86);
+    if(beat!==6||b%2)note(t,eighth*1.25,melody,.070,'guitar','open','riff','guitar');
+    note(t,eighth*.94,clamp(bass+[0,7,12,7,4,7,12,11][beat],32,60),
+      .12,'bass',beat===0?'accent':'normal','bass','bass');
+    if(beat%2===0)drum(t,'hat',.18);
+    if([0,3,5].includes(beat))drum(t,'kick',beat===0?.58:.32);
+    if(beat===2||beat===6)drum(t,'snare',.47);
+    if(beat===5&&b%2)drum(t,'sidestick',.11);
+    if(beat===7&&b%4===3)drum(t,'tom',.18);
+    if((beat===0||beat===4)&&b%2===0){
+     const len=eighth*1.2;
+     note(t,len,melody,.030,'piano','unison','unison','piano');
+     note(t,len,melody,.062,'guitar','lead','riff','guitar');
+    }
+    if(beat===5&&b%2===1)
+     note(t,eighth*.7,clamp(g+7,55,86),.022,'piano','passing','passing','piano');
+   }
+  }
+ }
  notes.sort((a,b)=>a.t-b.t);
  percussion.sort((a,b)=>a.t-b.t);
  const instruments=['guitar','piano','bass','drums'];
