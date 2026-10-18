@@ -1,0 +1,24 @@
+name: Piano-unison smoke
+on:
+  pull_request:
+    paths:
+      - 'band-piano-v13.js'
+      - 'app-v13.js'
+      - 'comparison-v13.js'
+      - 'tests/band-piano-v13.test.cjs'
+      - 'tests/ui-v13.test.cjs'
+      - '.github/workflows/piano-smoke.yml'
+jobs:
+  piano:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          node --check band-piano-v13.js
+          node --check comparison-v13.js
+          node --check app-v13.js
+          node tests/band-piano-v13.test.cjs
+          node tests/ui-v13.test.cjs
