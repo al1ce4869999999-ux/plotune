@@ -42,7 +42,7 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 .arc-item{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:12px;color:#e0d8f6}
 .arc-bar{background:#131526;border:1px solid #49415c;border-radius:10px;height:77px;width:100%;display:flex;align-items:flex-end;overflow:hidden}
 .arc-fill{width:100%;background:linear-gradient(0deg,#8671e9,#d3bfff);border-radius:7px 7px 0 0}
-#analysis[hidden],#comparison[hidden]{display:none}
+#analysis[hidden],#comparison[hidden],#bandOptions[hidden]{display:none}
 .event{display:flex;flex-direction:column;gap:5px;padding:10px;margin:7px 0;background:#161929;border-radius:10px}
 .event-cue{font-weight:700;color:#dccbff;font-size:13px}.event-text{font-size:13px}
 #comparison{padding:12px;border-top:1px solid #45405d;margin-top:14px}
@@ -52,12 +52,13 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <script defer src="analyzer.js"></script>
 <script defer src="resonare.js"></script>
 <script defer src="composer-v04.js"></script>
-<script defer src="app-v04.js"></script>
+<script defer src="band-v05.js"></script>
+<script defer src="app-v05.js"></script>
 </head>
 <body>
 <main>
 <header>
-<h1>🎼 Plotune <small style="font-size:13px;color:#c0aaff;vertical-align:middle">v0.4</small></h1>
+<h1>🎼 Plotune <small style="font-size:13px;color:#c0aaff;vertical-align:middle">v0.5</small></h1>
 <p class="lead">物語のシーンを、キャラクターらしい音楽に。</p>
 </header>
 <section class="card">
@@ -78,9 +79,20 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <option value="horror">🌘 ホラー・不穏</option>
 <option value="pop">✨ ポップ</option>
 <option value="fantasy">🪄 ファンタジー</option>
+<option value="band">🎸 3ピースバンド</option>
 <option value="ambient">🌙 アンビエント</option>
 </select></div>
 <div><label for="duration">長さ</label><select id="duration"><option value="15">15秒</option><option value="30" selected>30秒</option><option value="60">60秒</option></select></div>
+</div>
+<div id="bandOptions" hidden>
+<label for="bandStyle">🎸 バンドの音楽性</label>
+<select id="bandStyle">
+<option value="indie">インディーロック（軽快なギター）</option>
+<option value="rock">ギターロック（力強いコード）</option>
+<option value="punk">疾走パンク（速い8ビート）</option>
+<option value="ballad">バンドバラード（静かな導入からサビへ）</option>
+</select>
+<p class="note">ギター1本・ベース1本・ドラム1セットのインスト曲。音はiPhone内で合成します。</p>
 </div>
 <label for="engine">解析エンジン</label><select id="engine"><option value="resonare">Resonare型（実験版）</option><option value="classic">基準アレンジ（出来事に反応しない）</option></select>
 <div class="actions">
@@ -104,7 +116,7 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <div id="comparison" hidden><h3>A/B聴き比べ</h3><p id="comparisonInfo"></p>
 <div class="actions"><button id="classicPlay" class="alt" disabled>▶ 基準版</button><button id="resonarePlay" class="alt" disabled>▶ Resonare版</button></div></div>
 </section>
-<p class="footer">作曲に外部API・ログインは不要。Resonare型は実験的な数値モデルで、心情や事実を確定するものではありません。端末内で文章を簡易解析し、メロディー・和音・伴奏を合成します。文章の理解はキーワードとルールに基づく推定で、AIによる意味理解とは異なります。保存済みの設定はこのブラウザに残ります。</p>
+<p class="footer">作曲に外部API・ログインは不要。Resonare型は実験的な数値モデルで、心情や事実を確定するものではありません。3ピースバンドは生演奏の録音ではなくブラウザ内の合成音です。端末内で文章を簡易解析し、メロディー・和音・伴奏を合成します。文章の理解はキーワードとルールに基づく推定で、AIによる意味理解とは異なります。保存済みの設定はこのブラウザに残ります。</p>
 </main>
 </body>
 </html>
