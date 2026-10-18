@@ -335,7 +335,7 @@ async function exportForZeta(){
   if(!shared)status('変換完了！下の「完成したZeta用ファイルを保存」を押してね。');
 
   $('zetaHelp').textContent='保存形式：'+result.extension.toUpperCase()+' ／ '+(result.blob.size/1048576).toFixed(2)+'MB ／ '+result.duration.toFixed(1)+'秒。Zetaのファイル選択画面からこの音声を選んでね。';
-  status(shared?'Zeta用ファイルの共有メニューを開きました！':'Zeta用ファイルを保存したよ！Safariのダウンロードを確認してね。');
+  status(shared?'共有メニューを開きました。保存用リンクも使えます。':'M4Aへの変換完了！「完成したZeta用ファイルを保存」を押してね。');
  }catch(e){
   console.error(e);status(e.message||'Zeta用の変換に失敗しました',true);
   $('zetaHelp').textContent='この端末で対応していなければWAV保存→ショートカットの「メディアをエンコード」でも変換できます。';
