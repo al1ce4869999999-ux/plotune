@@ -13,6 +13,15 @@ function render(plan){
  const theme=Array.from({length:8},(_,i)=>i===7?0:Math.floor(motifR()*7));
  const interval=Array.from({length:8},(_,i)=>i%2?0:motifR()>.72?7:0);
  const variation=r(),bright=genre==='chip'||genre==='pop';
+ // Resonare-derived events are cues, not inferred emotions: preserve the
+ // original theme and harmony, modifying only specific musical gestures.
+ const cues=new Map();
+ const eventList=(plan.resonare&&Array.isArray(plan.resonare.events))?plan.resonare.events:[];
+ for(const event of eventList){
+  const at=clamp(Math.round(event.position*duration/eighth),0,Math.ceil(duration/eighth)-1);
+  const existing=cues.get(at);
+  if(!existing||event.tension>existing.tension||event.cue==='recovery')cues.set(at,event);
+ }
  const color={chip:'chip',pop:'pluck',piano:'piano',fantasy:'bell',ambient:'flute',horror:'ghost'}[genre]||'pluck';
  function env(x,d,attack,release){return Math.min(1,x/attack,Math.max(0,(d-x)/release));}
  function oscillator(type,phase,x){
@@ -60,7 +69,8 @@ function render(plan){
     seg=section(t),energy=clamp(.30+seg.intensity*.7,.25,.95),
     chord=[0,2,4].map(offset=>degreeNote(rootNote,scale,chordDegree+offset)),
     lastSection=t>duration-bar*1.05,
-    heavy=(genre==='horror');
+    heavy=(genre==='horror'),
+    cue=cues.get(step);
   if(position===0){
     const level=heavy?.09:genre==='ambient'?.08:.11;
     const pad=(heavy||genre==='ambient'||genre==='fantasy')?'pad':genre==='piano'?'piano':'pluck';
@@ -75,7 +85,7 @@ function render(plan){
     if(position%2===1&&seg.intensity>.25&&!lastSection) addNote(t,Math.min(eighth*.7,duration-t),chord[(position>>1)%3]+12,.048*energy,genre==='chip'?'chip':'bell');
   }
   const rhythmic=position===0||position===2||position===3||position===5||position===7;
-  const silent=(position===7&&measure%4===3)||(!rhythmic&&r()>.28);
+  const silent=(cue&&cue.cue==='stumble')||(position===7&&measure%4===3)||(!rhythmic&&r()>.28);
   if(!silent){
    let deg=theme[position]+interval[position];
    if(position===0||position===4){
@@ -88,6 +98,26 @@ function render(plan){
    const note=degreeNote(rootNote,scale,deg)+((genre==='piano'||genre==='ambient')?-12:0);
    const length=position===7?eighth*1.4:eighth*(genre==='ambient'?1.85:position%2===0?1.5:.80);
    addNote(t,Math.min(length,duration-t),note,.12*energy*(position===0?1.17:1),color);
+  }
+  // The same character motif survives a stumble and returns after recovery.
+  if(cue){
+   const strength=clamp(.50+cue.deltaPsi*.5,.45,1);
+   if(cue.cue==='stumble'){
+    const note=degreeNote(rootNote,scale,4);
+    addNote(t,eighth*.43,note,.18*strength,color);
+    addNote(t+eighth*.40,eighth*.43,note-3,.15*strength,color);
+   }else if(cue.cue==='recovery'){
+    addNote(t,eighth*.9,degreeNote(rootNote,scale,0)+12,.17*strength,'bell');
+    addNote(t+eighth*.9,eighth*.75,degreeNote(rootNote,scale,theme[1])+12,.12*strength,color);
+   }else if(cue.cue==='success'){
+    addNote(t,eighth*.75,degreeNote(rootNote,scale,4)+12,.12*strength,'bell');
+   }else if(cue.cue==='danger'||cue.cue==='loss'){
+    addNote(t,eighth*1.45,degreeNote(rootNote,scale,1)-12,.16*strength,'ghost');
+   }else if(cue.cue==='turn'){
+    addNote(t,eighth*.43,degreeNote(rootNote,scale,5),.10*strength,'pluck');
+   }else if(cue.cue==='anticipation'){
+    addNote(t,eighth*.9,degreeNote(rootNote,scale,4),.10*strength,'bell');
+   }
   }
   if(!lastSection&&['chip','pop','fantasy'].includes(genre)){
    if(position===0||position===4)drum(t,'kick',energy);
@@ -107,7 +137,7 @@ function render(plan){
   const fade=Math.min(1,(duration-i/SR)/.28);
   out[i]=Math.tanh(out[i]*gain)*Math.max(0,fade);
  }
- return {samples:out,sampleRate:SR,details:{theme,genre,mode,bpm,sections}};
+ return {samples:out,sampleRate:SR,details:{theme,genre,mode,bpm,sections,cues:[...cues.values()].map(c=>c.cue)}};
 }
 function wavBlob(samples,sampleRate=SR){
  const bytes=new ArrayBuffer(44+samples.length*2),v=new DataView(bytes);
