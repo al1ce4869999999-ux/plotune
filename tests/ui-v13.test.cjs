@@ -33,13 +33,13 @@ window.MediaRecorder=class{static isTypeSupported(t){return t==='audio/mp4'}};
 const context={window,document:{getElementById:id=>elems[id],createElement:element,body:element('body')},
  localStorage:{getItem:k=>memory.get(k)||null,setItem:(k,v)=>memory.set(k,v)},
  Blob,URL,console,setTimeout,clearTimeout,navigator:{}};
-for(const f of ['analyzer.js','resonare-v08.js','loop-arranger-v09.js','composer-v04.js','band-v09.js','band-piano-v13.js','handheld-v10.js','comparison-v13.js','zeta-export-v12.js'])
+for(const f of ['analyzer.js','resonare-v08.js','loop-arranger-v09.js','composer-v04.js','band-v09.js','band-piano-v14.js','handheld-v10.js','comparison-v13.js','zeta-export-v12.js'])
  vm.runInNewContext(fs.readFileSync(root+'/'+f,'utf8'),context,{filename:f});
 Object.assign(context,{PlotuneAnalysis:window.PlotuneAnalysis,PlotuneResonare:window.PlotuneResonare,
  PlotuneLoop:window.PlotuneLoop,PlotuneComposerV4:window.PlotuneComposerV4,PlotuneBand:window.PlotuneBand,PlotuneBandPiano:window.PlotuneBandPiano,PlotuneHandheld:window.PlotuneHandheld});
 vm.runInNewContext(fs.readFileSync(root+'/app-v13.js','utf8'),context,{filename:'app-v13.js'});
 (async()=>{
- assert.ok(elems.runtimeVersion.textContent.includes('v1.3'));
+ assert.ok(elems.runtimeVersion.textContent.includes('v1.4'));
  assert.equal(elems.bandOptions.hidden,false);
  assert.equal(elems.gameOptions.hidden,true);
  await elems.make.handlers.click();
