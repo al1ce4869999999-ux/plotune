@@ -67,10 +67,10 @@ for(const group of handheld.GROUPS){
 }
 gameSelect.value=handheld.STYLES[existing]?existing:'auto';
 bandPanel();
-$('runtimeVersion').textContent='実行中：v1.7｜神秘のオルゴール・勇気の笛を追加';
+$('runtimeVersion').textContent='実行中：v1.8｜シーンでオカリナ・シンセなどの楽器を自動編成';
 if(typeof document.querySelector==='function'){
  const badge=document.querySelector('header h1 small');
- if(badge)badge.textContent='v1.7';
+ if(badge)badge.textContent='v1.8';
 }
 function addRow(parent,title,value){
  const el=document.createElement('div');el.className='report-row';
@@ -106,6 +106,10 @@ function analyze(){
    if(base.genre==='game'){
     addRow(report,'選択したBGM',styleName(base));
     if(base.gameAutoChoice)addRow(report,'自動選択の理由',base.gameAutoChoice.reason);
+    if(base.instrumentChoice){
+      addRow(report,'楽器編成',base.instrumentChoice.palette.role+' ＋ '+(base.instrumentChoice.palette.secondary||'伴奏')+' ＋ '+(base.instrumentChoice.palette.padTone||'パッド'));
+      addRow(report,'楽器を選んだ理由',base.instrumentChoice.reason);
+    }
    }
    box.append(textNode('p','ループBGMでは文章全体を先に分析し、冒頭から一貫した曲調で演奏します。携帯ゲーム風は主旋律・対旋律・コード・アルペジオ・ベース・ドラム・装飾音を別々に作曲します。','explain'));
  }
