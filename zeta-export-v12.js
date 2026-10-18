@@ -45,11 +45,12 @@ function encode(track,{AudioContextClass=root.AudioContext||root.webkitAudioCont
  if(!selected)return Promise.reject(new Error('このSafariはM4A/AACの録音に対応していません。WAV保存とiPhoneショートカットで変換してね。'));
  if(!AudioContextClass)return Promise.reject(new Error('このブラウザでは音声変換を開始できません。'));
  return new Promise(async(resolve,reject)=>{
-  let ctx=null,stream=null,source=null,recorder=null,progress=null,settled=false;
+  let ctx=null,stream=null,source=null,recorder=null,progress=null,timeout=null,settled=false;
   const chunks=[];
   function finish(err,blob){
    if(settled)return;settled=true;
    if(progress)clearInterval(progress);
+   if(timeout)clearTimeout(timeout);
    if(signal)signal.removeEventListener('abort',abort);
    if(source){try{source.stop()}catch{}try{source.disconnect()}catch{}}
    if(stream){for(const t of stream.stream.getTracks()){try{t.stop()}catch{}}}
@@ -65,7 +66,6 @@ function encode(track,{AudioContextClass=root.AudioContext||root.webkitAudioCont
    ctx=new AudioContextClass();
    stream=ctx.createMediaStreamDestination();
    const pad=fit.duration<30.5?.85:.25;
-   const n=Math.ceil((fit.duration+pad)*ctx.sampleRate);
    // Resample once through AudioBuffer: sample-rate differs between Plotune
    // and the Safari hardware. Repeat the first samples during the short tail
    // rather than introducing silence at the loop boundary.
@@ -77,7 +77,6 @@ function encode(track,{AudioContextClass=root.AudioContext||root.webkitAudioCont
    source=ctx.createBufferSource();source.buffer=buffer;
    const tailSource=ctx.createBufferSource();tailSource.buffer=tail;
    source.connect(stream);tailSource.connect(stream);
-   let actualMime=selected.mime;
    try{recorder=new Recorder(stream.stream,{mimeType:selected.mime,audioBitsPerSecond:128000});}
    catch(e){throw new Error('この端末では選択した音声形式を録音できません。別の形式またはショートカットで変換してね。');}
    recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
@@ -104,10 +103,7 @@ function encode(track,{AudioContextClass=root.AudioContext||root.webkitAudioCont
    progress=setInterval(()=>onProgress(Math.min(99,Math.floor((ctx.currentTime-started)/(fit.duration+pad)*100))),900);
    // Avoid a stuck wait if browser stops audio in background.
    // setTimeout is a safety timeout, never used to determine duration.
-   const timeout=setTimeout(()=>{if(!settled)finish(new Error('エンコードが中断されました。Safariを開いたまま再試行してね。'));},(fit.duration+pad+25)*1000);
-   const oldFinish=finish;
-   // Track the timeout independently through onstop or abort.
-   recorder.addEventListener('stop',()=>clearTimeout(timeout),{once:true});
+   timeout=setTimeout(()=>{if(!settled)finish(new Error('エンコードが中断されました。Safariを開いたまま再試行してね。'));},(fit.duration+pad+25)*1000);
   }catch(e){finish(e)}
  });
 }
