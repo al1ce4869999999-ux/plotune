@@ -6,7 +6,7 @@ const schema={
  scene:{participants:[['named',/[ぁ-んァ-ヶ一-龥]{2,8}は/]],eventTimeline:[['transition',/ところが|突然|そのとき/]],action:[['fall',/落とし|落ちた|転ん/],['run',/走っ|駆け/]],stakes:[['minor',/おやつ|クッキー|しょんぼり/],['severe',/全滅|二度と会えない|亡くなった/]],emotionCues:[['sad',/しょんぼり|悲し|泣|涙/],['happy',/うれし|笑顔/]],relationshipChange:[['closer',/仲直り|抱きしめ/],['separate',/別れ|離れてい/]],resolution:[['recovery',/もう一度|立ち上が|顔を上げ/],['unresolved',/そのまま|戻らな/]],localEnvironment:[['rain',/雨が降|雨音/]],musicalArc:[['pause',/立ち止ま|うつむ|黙り込/]]}
 };
 const fields={world:['period','culturalContext','technology','magicSystem','location','geography','climate','timeLight','society','scale','materials','aesthetic','ambientSounds','constraints'],character:['identity','body','motion','speech','attention','decision','values','emotionExpression','relationships','habits','stableTraits','temporaryState','themeIdentity'],scene:['participants','eventTimeline','action','stakes','emotionCues','relationshipChange','resolution','localEnvironment','musicalArc']};
-const neg=/^(ない|なかった|ではない|じゃない|ではなく|じゃなく|ず|ません|ぬ)/;
+const neg=/^(?:かない|かなかった|くない|くなかった|ない|なかった|ではない|じゃない|ではなく|じゃなく|ず|ません|ぬ)/;
 function field(text,patterns,source){
  const matches=[];
  for(const [value,re] of patterns){const m=re.exec(text);if(!m)continue;
