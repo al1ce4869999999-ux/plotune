@@ -55,7 +55,14 @@ function chooseGoal(character,world,scene){
  const scores=GOALS.map(g=>{
   function count(source){g.re.lastIndex=0;return [...source.matchAll(g.re)].length;}
   const fromProfile=count(character),fromWorld=count(world),fromScene=count(scene);
-  return {...g,score:fromProfile*3+fromScene*1.1+fromWorld*.25,fromProfile,fromScene};
+  const explicitWishes=[
+   {id:'recognition',re:/褒められたい|褒めてもらいたい|認められたい|認めてもらいたい|認めてほしい/},
+   {id:'connection',re:/一緒にいたい|離れたくない|そばにいたい/},
+   {id:'safety',re:/安全でいたい|怖いから逃げたい|守りたい/},
+   {id:'mastery',re:/上手になりたい|できるようになりたい|成功したい/}
+  ];
+  const explicit=explicitWishes.some(w=>w.id===g.id&&w.re.test(character))?5:0;
+  return {...g,score:fromProfile*3+fromScene*1.1+fromWorld*.25+explicit,fromProfile,fromScene};
  }).sort((a,b)=>b.score-a.score);
  const top=scores[0];
  if(!top||top.score<=0)return {id:'unknown',label:'未特定',evidence:[],confidence:'low',weight:0};
