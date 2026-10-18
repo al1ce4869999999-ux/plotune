@@ -1,0 +1,18 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plotune 構造化解析テスト</title><style>body{font:16px -apple-system,sans-serif;background:#171827;color:#fff;max-width:760px;padding:20px;margin:auto}section{background:#26283d;padding:16px;border-radius:14px;margin:12px 0}textarea{width:100%;height:100px;background:#111;color:#fff;font:inherit;box-sizing:border-box}button{padding:12px;background:#bcaaff;border:0;border-radius:10px;font:inherit}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}.pass{color:#87e6ad}.fail{color:#ff9aaa}</style><h1>Plotune 構造化解析ラボ</h1><section><h2>解析テスト</h2><button id="test">10条件を検証</button><div id="results"></div></section><section><h2>任意入力</h2><p>キャラクター</p><textarea id="character">元気な小さな男の子。ぴょんぴょん跳ねる。</textarea><p>世界観</p><textarea id="world">江戸時代の雪深い村。木造の家。</textarea><p>シーン</p><textarea id="scene">おやつを落としてしょんぼり。やがて顔を上げる。</textarea><button id="run">解析する</button><pre id="output"></pre></section><a style="color:#bcaaff" href="./">作曲アプリに戻る</a><script src="story-structure-v01.js"></script><script>
+const $=id=>document.getElementById(id),engine=window.PlotuneStoryStructure;
+const cases=[
+ ['世界の静けさはキャラに転写しない',{world:'静かな森',character:'元気な子'},r=>r.character.stableTraits.value==='lively'],
+ ['キャラの内気さは世界に転写しない',{world:'明るい村',character:'内気な子'},r=>r.character.stableTraits.value==='timid'&&r.world.location.value==='village'],
+ ['年齢・小ささ',{character:'三歳の小さな子'},r=>r.character.body.value==='small'],
+ ['否定された身体属性',{character:'小さくない子'},r=>r.character.body.value===null],
+ ['否定された感情',{scene:'泣かなかった'},r=>r.scene.emotionCues.value===null],
+ ['時代と魔法の混在',{world:'江戸時代の魔法都市'},r=>r.world.period.value==='edo'&&r.world.magicSystem.value==='magic'],
+ ['軽い落胆',{scene:'おやつを落としてしょんぼり'},r=>r.scene.stakes.value==='minor'],
+ ['不可逆的喪失',{scene:'もう二度と会えない'},r=>r.scene.stakes.value==='severe'],
+ ['未知の属性',{world:'',character:''},r=>r.world.period.status==='unknown'&&r.character.body.status==='unknown'],
+ ['異なる入力欄は独立',{world:'夜の森',character:'負けず嫌い',scene:'転んだ'},r=>r.world.timeLight.value==='night'&&r.character.values.value==='competitive'&&r.scene.action.value==='fall']
+];
+$('test').onclick=()=>{$('results').replaceChildren();let passed=0;for(const [name,input,test] of cases){let ok=false;try{ok=test(engine.analyze(input));}catch(e){}if(ok)passed++;const p=document.createElement('p');p.className=ok?'pass':'fail';p.textContent=(ok?'✓ ':'✗ ')+name;$('results').append(p);}const h=document.createElement('h3');h.textContent=passed+'/'+cases.length+' 通過';$('results').prepend(h);};
+$('run').onclick=()=>{$('output').textContent=JSON.stringify(engine.analyze({world:$('world').value,character:$('character').value,scene:$('scene').value}),null,2);};
+$('test').click();$('run').click();
+</script></html>
