@@ -27,6 +27,7 @@ jobs:
           node --check band-v09.js
           node --check app-v09.js
           node --check handheld-v10.js
+          node --check comparison-v10.js
           node --check app-v10.js
           node --check app.js
           node --check app-v03.js
