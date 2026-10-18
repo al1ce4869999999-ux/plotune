@@ -543,7 +543,6 @@ function score(plan){
       neutral:[1,2,3,2,4,3,2,1]
     };
     const dynamicGrammar=root.PlotuneMelodicGrammar?.grammar(plan.structure,plan.expression,plan.characterSeed||1)||null;
-    const generatedPhrases=dynamicGrammar?Array.from({length:bars},(_,b)=>root.PlotuneMelodicGrammar.phrase(dynamicGrammar,b,phrases[type].length)):null;
     const contourDegrees=contour[type];
     const contourIdentity=Math.floor(charRand()*3);
     const degreeFor=(index,bar)=>{
@@ -565,6 +564,7 @@ function score(plan){
       neutral:[{p:0,d:2.2,k:0},{p:3,d:2,k:1},{p:6,d:1.8,k:3},
         {p:10,d:2.4,k:2},{p:13,d:2.1,k:1}]
     };
+    const generatedPhrases=dynamicGrammar?Array.from({length:bars},(_,b)=>root.PlotuneMelodicGrammar.phrase(dynamicGrammar,b,phrases[type].length)):null;
     const chordSteps=type==='playful'?[0,4,3,0]:type==='reserved'?[0,5,3,0]:[0,3,4,0];
     for(let bar=0;bar<bars;bar++){
       const start=bar*meter,variation=bar%4,degree=chordSteps[variation];
