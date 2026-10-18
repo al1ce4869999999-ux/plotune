@@ -89,8 +89,10 @@ function analyze(){
   // Both compositions share the character's motif, register, tempo and
   // synthesizer palette. Resonare selects a global arrangement from t=0.
   const storyContext=[input.character,input.world,input.scene].filter(Boolean).join('\n');
-  base=handheld.prepare(original,input.gameStyle,appraisal,false,input.scene,storyContext);
-  enhanced=handheld.prepare(enhanced,input.gameStyle,appraisal,true,input.scene,storyContext);
+  const structure=window.PlotuneStoryStructure?.analyze(input);
+  const expression=window.PlotuneMusicPsychology?.derive(structure,input.gameStyle);
+  base={...handheld.prepare(original,input.gameStyle,appraisal,false,input.scene,storyContext),structure,expression};
+  enhanced={...handheld.prepare(enhanced,input.gameStyle,appraisal,true,input.scene,storyContext),structure,expression};
  }
  const box=$('analysis');box.replaceChildren();
  box.append(textNode('h3','物語の解析結果'));
