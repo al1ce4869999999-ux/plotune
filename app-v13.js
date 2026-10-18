@@ -67,10 +67,10 @@ for(const group of handheld.GROUPS.filter(g=>!g.label.includes('物語を彩る�
 }
 gameSelect.value=handheld.STYLES[existing]&&!handheld.STORY_INSTRUMENTS[existing]?existing:'auto';
 bandPanel();
-$('runtimeVersion').textContent='実行中：v2.3｜キャラの主題＋世界観・シーン別の変奏';
+$('runtimeVersion').textContent='実行中：v2.4｜キャラクター音楽DNA';
 if(typeof document.querySelector==='function'){
  const badge=document.querySelector('header h1 small');
- if(badge)badge.textContent='v2.3';
+ if(badge)badge.textContent='v2.4';
 }
 function addRow(parent,title,value){
  const el=document.createElement('div');el.className='report-row';
