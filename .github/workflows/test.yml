@@ -25,3 +25,4 @@ jobs:
           node tests/engine.test.cjs
           node tests/resonare.test.cjs
           node tests/structural.test.cjs
+          node tests/ui-v04.test.cjs
