@@ -39,7 +39,6 @@ const oldModule={};const oldContext={window:oldModule,Blob,console};
 vm.runInNewContext(fs.readFileSync(path.join(root,'band-piano-v14.js'),'utf8'),oldContext);
 const oldPlan=L.baseline(oldModule.PlotuneBandPiano.adaptPlan({...plan,duration:15},'glassrock'));
 const oldScore=oldModule.PlotuneBandPiano.score(oldPlan);
-const fresh=make('glassrock',15,false);
 const count=(score,role)=>score.notes.filter(n=>n.instrument===role).length;
 assert.ok(count(fresh,'guitar')>count(oldScore,'guitar')*1.3,'richer overlapping guitar harmony');
 assert.ok(count(fresh,'piano')>count(oldScore,'piano')*2,'soft piano chords replace rare single notes');
