@@ -542,6 +542,8 @@ function score(plan){
       reserved:[4,4,3,2,2,1,1,0],
       neutral:[1,2,3,2,4,3,2,1]
     };
+    const dynamicGrammar=root.PlotuneMelodicGrammar?.grammar(plan.structure,plan.expression,plan.characterSeed||1)||null;
+    const generatedPhrases=dynamicGrammar?Array.from({length:bars},(_,b)=>root.PlotuneMelodicGrammar.phrase(dynamicGrammar,b,phrases[type].length)):null;
     const contourDegrees=contour[type];
     const contourIdentity=Math.floor(charRand()*3);
     const degreeFor=(index,bar)=>{
@@ -570,8 +572,10 @@ function score(plan){
       for(let j=0;j<phrase.length;j++){
         const n=phrase[j],t=start+(n.p+(bar%4===2&&j%3===1?.25:0))*unit;
         if(t>=duration)continue;
-        const pitch=degreeFor(j,bar)+shift;
-        notes.push({t,d:Math.min(duration-t,n.d*unit),midi:clamp(midi(upper,MAJOR,pitch),60,86),
+        const generated=generatedPhrases?.[bar]?.[j];
+        if(generated?.rest)continue;
+        const pitch=(generated?generated.degree:degreeFor(j,bar))+shift;
+        notes.push({t,d:Math.min(duration-t,(generated?generated.durationUnits:n.d)*unit),midi:clamp(midi(upper,MAJOR,pitch),60,86),
           voice:'lead',role:'lead',timbre:expressive[0],volume:type==='reserved'?.052:.070});
       }
       // Companion phrases and accompaniment must reflect the same grammar.
