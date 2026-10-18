@@ -16,5 +16,6 @@ jobs:
         with:
           node-version: '22'
       - run: |
-          node --check band-piano-v14.js
+          node --check band-piano-v15.js
           node tests/melodic-rock-v14.test.cjs
+          node tests/melodic-rock-v15.test.cjs
