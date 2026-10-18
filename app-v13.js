@@ -67,10 +67,10 @@ for(const group of handheld.GROUPS.filter(g=>!g.label.includes('物語を彩る�
 }
 gameSelect.value=handheld.STYLES[existing]&&!handheld.STORY_INSTRUMENTS[existing]?existing:'auto';
 bandPanel();
-$('runtimeVersion').textContent='実行中：v2.2｜しょんぼり専用の軽い旋律（カリンバ）';
+$('runtimeVersion').textContent='実行中：v2.3｜キャラの主題＋世界観・シーン別の変奏';
 if(typeof document.querySelector==='function'){
  const badge=document.querySelector('header h1 small');
- if(badge)badge.textContent='v2.2';
+ if(badge)badge.textContent='v2.3';
 }
 function addRow(parent,title,value){
  const el=document.createElement('div');el.className='report-row';
@@ -88,8 +88,9 @@ function analyze(){
  }else if(input.style==='handheld'){
   // Both compositions share the character's motif, register, tempo and
   // synthesizer palette. Resonare selects a global arrangement from t=0.
-  base=handheld.prepare(original,input.gameStyle,appraisal,false,input.scene);
-  enhanced=handheld.prepare(enhanced,input.gameStyle,appraisal,true,input.scene);
+  const storyContext=[input.character,input.world,input.scene].filter(Boolean).join('\n');
+  base=handheld.prepare(original,input.gameStyle,appraisal,false,input.scene,storyContext);
+  enhanced=handheld.prepare(enhanced,input.gameStyle,appraisal,true,input.scene,storyContext);
  }
  const box=$('analysis');box.replaceChildren();
  box.append(textNode('h3','物語の解析結果'));
