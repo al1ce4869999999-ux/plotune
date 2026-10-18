@@ -533,20 +533,20 @@ function score(plan){
     for(let i=1;i<motif.length;i++){
       if(Math.abs(motif[i]-motif[i-1])>2)motif[i]=pent[(pent.indexOf(motif[i-1])+ (charRand()>.5?1:4))%pent.length];
     }
-    const upper=tonic+12,shift=Math.floor(sceneRand()*3)-1;
+    const upper=tonic+12+(dna.small?2:0),shift=Math.floor(sceneRand()*3)-1;
     for(let bar=0;bar<bars;bar++){
       const start=bar*meter,variation=bar%4;
       const chordDegree=[0,3,4,0][variation];
       for(let j=0;j<8;j++){
         const t=start+j*2*step;
-        if(t>=duration||(j===3&&variation%2===1)||(j===6&&sceneRand()>.75))continue;
+        if(t>=duration||(j===3&&variation%2===1&&dna.bounce<.4)||(j===6&&sceneRand()>.75)||(dna.hesitation>.4&&j===5))continue;
         const index=(j+variation*2)%8;
-        const degree=Math.max(0,motif[index]+shift+(j===7?-1:0));
+        const degree=Math.max(0,motif[index]+shift+(j===7?-1:0)+(dna.bounce>.4&&j%3===1?2:0));
         notes.push({t,d:Math.min(step*(j===7?2.2:1.4),duration-t),
           midi:clamp(midi(upper,MAJOR,degree),60,86),voice:'lead',
-          role:'lead',timbre:expressive[0],volume:.067});
+          role:'lead',timbre:expressive[0],volume:.067*(dna.attack>.4&&j%4===0?1.23:1)});
       }
-      const reply=start+(10+variation%3)*step;
+      const reply=start+(dna.bounce>.4?9:10+variation%3)*step;
       if(reply<duration)notes.push({t:reply,d:Math.min(step*1.6,duration-reply),
         midi:midi(upper,MAJOR,motif[(variation+3)%8]),voice:'counter',
         role:'counter',timbre:expressive[1],volume:.015});
