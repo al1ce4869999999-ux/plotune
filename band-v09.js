@@ -398,6 +398,15 @@ function render(plan){
    const alpha=(i+1)/span;
    output[n-span+i]=output[n-span+i]*(1-alpha)+output[i]*alpha;
   }
+  // A normal head crossfade ends at head[span], not head[0].
+  // That can leave a click at the wrap, so taper the final ~9ms
+  // to the *actual* first sample. This also avoids a large DC jump.
+  const guard=Math.min(Math.round(.009*SR),Math.floor(span/3));
+  for(let j=0;j<guard;j++){
+   const alpha=(j+1)/guard;
+   const at=n-guard+j;
+   output[at]=output[at]*(1-alpha)+output[0]*alpha;
+  }
  }
  return {samples:output,sampleRate:SR,details:arrangement.details,score:arrangement};
 }
