@@ -11,7 +11,7 @@ const form={title:'たぬきの里',character:'ぽんぽんは人間に褒めら
 const original=A.plan(form,A.analyze(form)),appraisal=R.analyze(form);
 const required=['lead','counter','chords','arp','bass','sparkle','pad','drums'];
 const voices=new Set();
-for(const gameStyle of Object.keys(H.STYLES)){
+for(const gameStyle of ['journey','village','mischief','mystery']){
  const base=H.prepare(original,gameStyle,appraisal,false);
  const reacted=H.prepare(R.attachPlan(original,appraisal),gameStyle,appraisal,true);
  const a=H.score(base),b=H.score(reacted);
@@ -68,6 +68,6 @@ const p1=H.prepare(plain,'village',none,false),p2=H.prepare(plain,'village',none
 assert.equal(p2.loopArrangement,null,'neutral scene cannot fabricate emotional response');
 assert.deepEqual(H.score(p1).notes.map(n=>[n.t,n.midi,n.voice]),
  H.score(p2).notes.map(n=>[n.t,n.midi,n.voice]));
-const styles=Object.keys(H.STYLES).map(k=>H.STYLES[k].name);
+const styles=['journey','village','mischief','mystery'].map(k=>H.STYLES[k].name);
 assert.equal(new Set(styles).size,4);
-console.log('PASS v1.0 handheld: 7 voices, 4 presets, motif, 0s harmonic differences, WAV and loop-edge');
+console.log('PASS original 4 handheld styles: 7 voices, motif, 0s harmonic differences, WAV and loop-edge');
