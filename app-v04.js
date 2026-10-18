@@ -31,7 +31,7 @@ function present(original,base,appraisal){
  row(meta,'目的の根拠',appraisal.goal.evidence.join('・')||'不明');
  row(meta,'根拠の確信度',appraisal.goal.confidence==='medium'?'中':'低');
  row(meta,'解析した出来事',appraisal.events.length+'件');
- row(meta,'構造的な作曲',data().engine==='classic'?'未適用（従来の演奏）':'音の密度・和音・無音・編成を変化');
+ row(meta,'構造的な作曲',data().engine==='classic'?'なし（基準アレンジ）':'音の密度・和音・無音・編成を変化');
  box.append(meta);
  box.append(txt('h4','出来事ごとの演出（実験モデル）'));
  if(!appraisal.events.length)box.append(txt('p','シーンを入力すると解析されます。','explain'));
@@ -63,7 +63,7 @@ async function generate(change=false){
  try{
   const a=analyze(),plan=a.input.engine==='classic'?a.base:a.experimental;
   current=composer.render(plan);
-  $('summary').textContent=(plan.resonare?'構造変化版':'従来版')+' · '+labels[plan.genre]+' · '+plan.bpm+' BPM · '+plan.duration+'秒';
+  $('summary').textContent=(plan.resonare?'構造変化版':'基準アレンジ')+' · '+labels[plan.genre]+' · '+plan.bpm+' BPM · '+plan.duration+'秒';
   save(true);status('生成できました！');
  }catch(err){console.error(err);status('作曲中にエラーが発生しました',true)}
  finally{busy(false);ready()}
@@ -104,7 +104,7 @@ async function play(which){
   const node=ctx.createBufferSource();node.buffer=buffer;node.connect(ctx.destination);playing=node;
   node.onended=()=>{if(playing===node){playing=null;status('再生終了')}};
   node.start();current=selected;$('stop').disabled=false;
-  status((which==='classic'?'従来版':which==='resonare'?'Resonare版':'曲')+'を再生中 🎵');
+  status((which==='classic'?'基準版':which==='resonare'?'Resonare版':'曲')+'を再生中 🎵');
  }catch(err){console.error(err);status('再生に失敗しました。音量を確認してね',true)}
 }
 async function exportWav(){
