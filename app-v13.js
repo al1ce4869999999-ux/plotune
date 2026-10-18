@@ -234,6 +234,10 @@ async function compare(){
     '小節内区間／休止 '+d.breaks+'回（'+totalRests.toFixed(1)+'秒）／旋律 '+oldNotes+
     '→'+newNotes+'音／演奏差分 '+changedNotes+'件／波形差 '+Math.round(relative*100)+
     '%。和音の変化は小節内の編曲単位で数えています。波形差だけでは聴感上の改善を証明できません。';
+  if(window.PlotuneGenerationTrace&&a.base.genre==='game'){
+    const logs=[['基準版',a.base,base],['Resonare版',a.enhanced,enhanced]].map(([label,plan,track])=>({label,...window.PlotuneGenerationTrace.trace(plan,track)}));
+    $('generationTrace').textContent=logs.map(log=>log.label+'\n'+log.entries.map(e=>'['+e.id+'] '+(e.evidence?.join('、')||'')+' → '+e.rule+' → '+e.parameter+' → '+e.effect+' ('+e.kind+')').join('\n')+'\n実測: 主旋律 '+log.notes.lead+'音 / 平均跳躍 '+log.notes.meanLeap.toFixed(2)+'半音 / 音色 '+log.notes.timbres.join('、')).join('\n\n');
+  }else $('generationTrace').textContent='DS風ゲームサウンドで利用できる生成判断ログです。';
   $('comparison').hidden=false;
   $('playerHint').textContent=global
     ? '0秒から編曲が違うよ。最初の10秒を「冒頭比較」ボタンで直接聴き比べてね。'
