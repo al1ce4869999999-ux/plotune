@@ -37,7 +37,7 @@ const STYLES={
  farewell:{name:'おわかれ・余韻',bpm:80,progression:[5,3,4,0],lead:'warm',bass:'sustain',drums:'ballad',mode:'minor',density:0.41,arpEvery:4,intensity:0.64,shape:'sigh'},
  daily:{name:'のんびり・日常',bpm:106,progression:[0,3,4,0],lead:'warm',bass:'walk',drums:'soft',mode:'major',density:0.66,arpEvery:2,intensity:0.75,shape:'gentle'},
  festival:{name:'おまつり・大騒ぎ',bpm:166,progression:[0,4,3,4],lead:'bright',bass:'running',drums:'festival',mode:'major',density:1.13,arpEvery:1,intensity:1.25,shape:'jump'},
- battle:{name:'勝負・対決',bpm:172,progression:[5,4,1,5],lead:'reed',bass:'running',drums:'heavy',mode:'minor',density:1.04,arpEvery:1,intensity:1.22,shape:'rush'}
+ battle:{name:'勝負・対決',bpm:172,progression:[5,4,1,5],lead:'reed',bass:'running',drums:'heavy',mode:'minor',density:1.04,arpEvery:1,intensity:1.22,shape:'rush'},
  // Character-driven, ORIGINAL instrumental palettes. No game ROM samples.
  musicbox:{name:'切ない・神秘のオルゴール',bpm:72,progression:[5,3,1,4],lead:'musicbox',bass:'sustain',drums:'ballad',mode:'minor',density:.28,arpEvery:4,intensity:.53,shape:'sigh'},
  starbox:{name:'星空・祈りのオルゴール',bpm:82,progression:[0,5,3,4],lead:'musicbox',bass:'sustain',drums:'light',mode:'major',density:.35,arpEvery:4,intensity:.61,shape:'mystery'},
