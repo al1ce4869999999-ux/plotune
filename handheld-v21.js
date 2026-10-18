@@ -523,43 +523,56 @@ function score(plan){
     const context=String(plan.storyContext||'');
     const charRand=random(((plan.characterSeed||1)^0x529a3d71)>>>0);
     const sceneRand=random(((plan.seed||1)^0x12b6a90f)>>>0);
+    const ex=plan.expression||null,cm=ex?.motif||{};
+    const playful=Math.max(dna.bounce,cm.bounce||0)>.45;
+    const reserved=!playful&&Math.max(dna.hesitation,cm.hesitation||0)>.3;
+    const type=playful?'playful':reserved?'reserved':'neutral';
     const expressive=/森|魔法|星|神秘|妖精/.test(context)?['ocarina','celesta']:
       /未来|宇宙|電子|機械|ロボット/.test(context)?['synthlead','kalimba']:
-      /内気|静か|無口|孤独/.test(context)?['softpiano','musicbox']:
+      reserved?['softpiano','musicbox']:
       /強気|勝負|負けず嫌い|悔し/.test(context)?['marimba','kalimba']:
       ['kalimba','musicbox'];
-    const pent=[0,1,2,4,5];
-    const motif=Array.from({length:8},()=>pent[Math.floor(charRand()*pent.length)]);
-    // Keep stepwise movements and gentle downward endings, never a defeat drone.
-    for(let i=1;i<motif.length;i++){
-      if(Math.abs(motif[i]-motif[i-1])>2)motif[i]=pent[(pent.indexOf(motif[i-1])+ (charRand()>.5?1:4))%pent.length];
-    }
+    const pent=[0,1,2,4,5],motif=Array.from({length:8},()=>pent[Math.floor(charRand()*pent.length)]);
     const upper=tonic+12+(dna.small?2:0),shift=Math.floor(sceneRand()*3)-1;
+    // Different rhythmic grammars, not small offsets to one shared 8-note grid.
+    // The slots are sixteenth-note units within a 16-slot bar.
+    const phrases={
+      playful:[{p:0,d:1.0,k:0},{p:1.5,d:.8,k:2},{p:3,d:1.1,k:4},
+        {p:5.5,d:.75,k:3},{p:6.5,d:1.1,k:5},{p:9,d:1.3,k:2},
+        {p:11.5,d:1,k:4},{p:13,d:2.2,k:1}],
+      reserved:[{p:1.0,d:3.0,k:0},{p:5.0,d:2.6,k:1},
+        {p:9.0,d:3.4,k:2},{p:14,d:1.7,k:1}],
+      neutral:[{p:0,d:2.2,k:0},{p:3,d:2,k:1},{p:6,d:1.8,k:3},
+        {p:10,d:2.4,k:2},{p:13,d:2.1,k:1}]
+    };
+    const chordSteps=type==='playful'?[0,4,3,0]:type==='reserved'?[0,5,3,0]:[0,3,4,0];
     for(let bar=0;bar<bars;bar++){
-      const start=bar*meter,variation=bar%4;
-      const chordDegree=[0,3,4,0][variation];
-      for(let j=0;j<8;j++){
-        const t=start+j*2*step;
-        if(t>=duration||(j===3&&variation%2===1&&dna.bounce<.4)||(j===6&&sceneRand()>.75)||(dna.hesitation>.4&&j===5))continue;
-        const index=(j+variation*2)%8;
-        const degree=Math.max(0,motif[index]+shift+(j===7?-1:0)+(dna.bounce>.4&&j%3===1?2:0));
-        notes.push({t,d:Math.min(step*(j===7?2.2:1.4),duration-t),
-          midi:clamp(midi(upper,MAJOR,degree),60,86),voice:'lead',
-          role:'lead',timbre:expressive[0],volume:.067*(dna.attack>.4&&j%4===0?1.23:1)});
+      const start=bar*meter,variation=bar%4,degree=chordSteps[variation];
+      const phrase=phrases[type],unit=meter/16;
+      for(let j=0;j<phrase.length;j++){
+        const n=phrase[j],t=start+(n.p+(bar%4===2&&j%3===1?.25:0))*unit;
+        if(t>=duration)continue;
+        const raw=motif[(n.k+variation)%8]+shift;
+        const pitch=type==='playful'?raw+(j%3===1?2:0):type==='reserved'?Math.max(0,raw-1):raw;
+        notes.push({t,d:Math.min(duration-t,n.d*unit),midi:clamp(midi(upper,MAJOR,pitch),60,86),
+          voice:'lead',role:'lead',timbre:expressive[0],volume:type==='reserved'?.052:.070});
       }
-      const reply=start+(dna.bounce>.4?9:10+variation%3)*step;
-      if(reply<duration)notes.push({t:reply,d:Math.min(step*1.6,duration-reply),
-        midi:midi(upper,MAJOR,motif[(variation+3)%8]),voice:'counter',
-        role:'counter',timbre:expressive[1],volume:.015});
-      for(const interval of [0,2,4]){
-        const t=start+(interval===4?8:0)*step;
-        if(t<duration)notes.push({t,d:Math.min(step*3.3,duration-t),
-          midi:midi(tonic,MAJOR,chordDegree+interval),
-          voice:'chords',role:'chords',timbre:'softpiano',volume:.012});
+      // Companion phrases and accompaniment must reflect the same grammar.
+      const reply=start+(type==='playful'?7.7:type==='reserved'?12.2:9.7)*unit;
+      if(reply<duration)notes.push({t:reply,d:Math.min(duration-reply,(type==='reserved'?3:1.2)*unit),
+        midi:midi(upper,MAJOR,motif[(variation+3)%8]),voice:'counter',role:'counter',
+        timbre:expressive[1],volume:.016});
+      const chordPositions=type==='playful'?[0,7,12]:type==='reserved'?[0]:[0,8];
+      for(const p of chordPositions){
+        for(const interval of [0,2,4]){
+          const t=start+p*unit;
+          if(t<duration)notes.push({t,d:Math.min(duration-t,(type==='reserved'?14:3.3)*unit),
+            midi:midi(tonic,MAJOR,degree+interval),voice:'chords',role:'chords',
+            timbre:'softpiano',volume:type==='playful'?.012:.009});
+        }
       }
-      if(start<duration)notes.push({t:start,d:Math.min(step*2.4,duration-start),
-        midi:midi(tonic-12,MAJOR,chordDegree),voice:'bass',
-        role:'bass',timbre:'kalimba',volume:.011});
+      if(start<duration)notes.push({t:start,d:Math.min(duration-start,(type==='reserved'?12:4)*unit),
+        midi:midi(tonic-12,MAJOR,degree),voice:'bass',role:'bass',timbre:'kalimba',volume:.011});
     }
     for(const key of Object.keys(voices))
       voices[key]=key==='drums'?0:notes.filter(n=>n.voice===key).length;
@@ -677,7 +690,7 @@ function score(plan){
  const expression=plan.expression||null;
  if(expression){
    const m=expression.motif||{},e=expression.emotion||{},o=expression.orchestration||{};
-   const lively=m.bounce>.45,careful=m.hesitation>.3;
+   const lively=plan.gameStyle!=='sadness'&&m.bounce>.45,careful=plan.gameStyle!=='sadness'&&m.hesitation>.3;
    const phraseStep=Math.max(.04,step);
    for(const n of notes){
      if(n.voice==='lead'){
