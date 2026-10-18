@@ -42,7 +42,7 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 .arc-item{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:12px;color:#e0d8f6}
 .arc-bar{background:#131526;border:1px solid #49415c;border-radius:10px;height:77px;width:100%;display:flex;align-items:flex-end;overflow:hidden}
 .arc-fill{width:100%;background:linear-gradient(0deg,#8671e9,#d3bfff);border-radius:7px 7px 0 0}
-#analysis[hidden],#comparison[hidden],#bandOptions[hidden],#eventCompare[hidden]{display:none}
+#analysis[hidden],#comparison[hidden],#bandOptions[hidden],#gameOptions[hidden],#eventCompare[hidden]{display:none}
 #eventCompare{padding-top:10px;border-top:1px solid #4d4865;margin-top:20px}
 #changeDiagnosis{font-size:13px;line-height:1.7;color:#ded2ff;margin:13px 0}
 #trackDiff{display:grid;gap:7px;margin-top:10px}
@@ -70,13 +70,14 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <script defer src="composer-v04.js"></script>
 <script defer src="loop-arranger-v09.js"></script>
 <script defer src="band-v09.js"></script>
-<script defer src="comparison-v08.js"></script>
-<script defer src="app-v09.js"></script>
+<script defer src="comparison-v10.js"></script>
+<script defer src="handheld-v10.js"></script>
+<script defer src="app-v10.js"></script>
 </head>
 <body>
 <main>
 <header>
-<h1>🎼 Plotune <small style="font-size:13px;color:#c0aaff;vertical-align:middle">v0.9</small></h1>
+<h1>🎼 Plotune <small style="font-size:13px;color:#c0aaff;vertical-align:middle">v1.0</small></h1>
 <p class="lead">物語のシーンを、キャラクターらしい音楽に。</p>
 </header>
 <section class="card">
@@ -93,6 +94,7 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <div><label for="style">曲調</label><select id="style">
 <option value="auto">🎭 物語から自動判定</option>
 <option value="chip">🎮 8bit・コミカル</option>
+<option value="handheld">🎹 DS風ゲームサウンド（多層アンサンブル）</option>
 <option value="piano">🎹 ピアノ風</option>
 <option value="horror">🌘 ホラー・不穏</option>
 <option value="pop">✨ ポップ</option>
@@ -111,6 +113,16 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <option value="ballad">バンドバラード（静かな導入からサビへ）</option>
 </select>
 <p class="note">ギター1本・ベース1本・ドラム1セットのインスト曲。音はiPhone内で合成します。</p>
+</div>
+<div id="gameOptions" hidden>
+<label for="gameStyle">🎮 携帯ゲーム風の音楽性</label>
+<select id="gameStyle">
+<option value="journey">🌄 冒険・フィールド（明るい電子オーケストラ）</option>
+<option value="village">🏘️ 街・タウン（温かなメロディー）</option>
+<option value="mischief">🎈 コミカル・ドタバタ（跳ねるリズム）</option>
+<option value="mystery">🔮 ふしぎ・探索（透明感のある音）</option>
+</select>
+<p class="note">7系統の独立したパートを端末内で合成。既存ゲームの曲や音源は使用しません。</p>
 </div>
 <label for="engine">解析エンジン</label><select id="engine"><option value="resonare">Resonare型（実験版）</option><option value="classic">基準アレンジ（出来事に反応しない）</option></select>
 <div class="actions">
@@ -139,7 +151,7 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <input id="loopPlayback" type="checkbox" checked>
 <label for="loopPlayback">曲を繰り返して再生</label>
 </div>
-<p class="loop-note">3ピースバンドは小節の長さを揃えて、曲の終わりから冒頭につながるように調整します。</p>
+<p class="loop-note">バンド・DS風ゲームサウンドは小節の長さを揃え、繰り返してもつながるように調整します。</p>
 <p id="contrastAssessment" class="comparison-quality" role="status" aria-live="polite">
 作曲後に「どれくらい編曲が変わったか」を表示します。
 </p>
@@ -167,7 +179,7 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 </div>
 </div>
 </section>
-<p class="footer">作曲に外部API・ログインは不要。Resonare型は実験的な数値モデルで、心情や事実を確定するものではありません。3ピースバンドは生演奏の録音ではなくブラウザ内の合成音です。v0.9の3ピースバンドは物語全体から最初の小節より編曲を決定。ループBGMとして曲調を一貫させ、練習や挑戦も評価対象に含めます。2曲の再生ボタンを常時表示し、同じ再生位置を維持してA/B比較でき、場面別の楽器差分も確認できます。端末内で文章を簡易解析し、メロディー・和音・伴奏を合成します。文章の理解はキーワードとルールに基づく推定で、AIによる意味理解とは異なります。保存済みの設定はこのブラウザに残ります。</p>
+<p class="footer">作曲に外部API・ログインは不要。Resonare型は実験的な数値モデルで、心情や事実を確定するものではありません。3ピースバンドは生演奏の録音ではなくブラウザ内の合成音です。v1.0ではDS風の多層アンサンブル音源を追加。バンドも物語全体から最初の小節より編曲を決定。ループBGMとして曲調を一貫させ、練習や挑戦も評価対象に含めます。2曲の再生ボタンを常時表示し、同じ再生位置を維持してA/B比較でき、場面別の楽器差分も確認できます。端末内で文章を簡易解析し、メロディー・和音・伴奏を合成します。文章の理解はキーワードとルールに基づく推定で、AIによる意味理解とは異なります。保存済みの設定はこのブラウザに残ります。</p>
 </main>
 </body>
 </html>
