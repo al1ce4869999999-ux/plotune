@@ -107,15 +107,9 @@ function showSelection(){
 async function generate(variation=false){
  if(!form().scene.trim()){status('シーンを入力してね',true);return;}
  if(variation)variant++;else variant=0;
- clearComparison();current=null;busy(true);status('物語を解析して作曲中…');
- await new Promise(resolve=>setTimeout(resolve,35));
- try{
-  const a=analyze(),plan=a.input.engine==='classic'?a.base:a.enhanced;
-  current=renderer(plan).render(plan);
-  $('summary').textContent=(plan.resonare?'Resonare版':'基準版')+' · '+styleName(plan)+' · '+plan.bpm+' BPM · '+plan.duration+'秒';
-  save(true);status('作曲できました！');
- }catch(e){console.error(e);status('作曲中にエラーが発生しました',true);}
- finally{busy(false);ready();}
+ // Always prepare BOTH versions from the same input and seed. Previously
+ // "自動作曲" quietly made only one track, hiding the A/B player.
+ await compare();
 }
 function allWaveDiff(a,b){
  const duration=Math.min(a.score.duration,b.score.duration);
@@ -142,10 +136,10 @@ async function compare(){
     '→'+newNotes+'音／全曲の波形差 '+Math.round(allWaveDiff(base,enhanced)*100)+
     '%。波形差だけでは聴感上の改善を証明できません。';
   $('comparison').hidden=false;
-  $('summary').textContent='A/B比較 · '+styleName(a.base)+' · '+a.base.bpm+' BPM · '+a.base.duration+'秒';
+  $('summary').textContent='2曲生成済み（基準版 ＋ Resonare版） · '+styleName(a.base)+' · '+a.base.bpm+' BPM · '+a.base.duration+'秒';
   save(true);
-  status(events.length?'聴き比べ準備OK！「この場面」で聴くと違いを探しやすいよ。':
-    '演奏を比較できます。今回の文章では場面変化が明確に見つかりませんでした。');
+  status(events.length?'2曲できました！下に「▶ 基準版」「▶ Resonare版」があるよ。場面別にも比較できます。':
+    '2曲できました！下の2つの再生ボタンで比較できます。今回は明確な場面転換を検出できませんでした。');
  }catch(e){console.error(e);status('比較用の作曲に失敗しました',true);}
  finally{busy(false);ready();}
 }
