@@ -34,6 +34,7 @@ jobs:
           node --check zeta-export-v12.js
           node --check app-v12.js
           node --check band-piano-v13.js
+          node --check band-piano-v14.js
           node --check comparison-v13.js
           node --check app-v13.js
           node --check app.js
@@ -61,6 +62,7 @@ jobs:
           node tests/zeta-export-v12.test.cjs
           node tests/ui-v12.test.cjs
           node tests/band-piano-v13.test.cjs
+          node tests/melodic-rock-v14.test.cjs
           node tests/ui-v13.test.cjs
           node tests/ui-v07.test.cjs
           node tests/ui-v05.test.cjs
