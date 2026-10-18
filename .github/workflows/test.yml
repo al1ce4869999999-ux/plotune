@@ -48,6 +48,7 @@ jobs:
           node tests/loop-v09.test.cjs
           node tests/ui-v09.test.cjs
           node tests/handheld-v10.test.cjs
+          node tests/ui-v10.test.cjs
           node tests/ui-v07.test.cjs
           node tests/ui-v05.test.cjs
           node tests/comparison-v06.test.cjs
