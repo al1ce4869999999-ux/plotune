@@ -5,7 +5,7 @@
 const $=id=>document.getElementById(id);
 const names={chip:'8bit・コミカル',pop:'ポップ',piano:'ピアノ風',horror:'ホラー',fantasy:'ファンタジー',ambient:'アンビエント',band:'3ピースバンド',bandpiano:'3ピース＋ピアノユニゾン',handheld:'DS風ゲームサウンド'};
 const cueNames={practice:'練習・試行',stumble:'つまずき',recovery:'回復',success:'成功',danger:'危険',loss:'喪失',turn:'転換',anticipation:'期待',neutral:'変化なし'};
-const roleNames={guitar:'ギター',bass:'ベース',drums:'ドラム',melody:'旋律',counter:'対旋律',chords:'コード',arp:'アルペジオ',pad:'パッド',sparkle:'装飾音'};
+const roleNames={guitar:'ギター',bass:'ベース',drums:'ドラム',piano:'ピアノ',melody:'旋律',counter:'対旋律',chords:'コード',arp:'アルペジオ',pad:'パッド',sparkle:'装飾音'};
 const fields=['title','character','world','scene','style','duration','engine','bandStyle','gameStyle'];
 const composer=window.PlotuneComposerV4,band=window.PlotuneBand,bandPiano=window.PlotuneBandPiano,handheld=window.PlotuneHandheld,compareTools=window.PlotuneCompare,loopComposer=window.PlotuneLoop;
 const renderer=plan=>plan.genre==='band'?band:plan.genre==='bandpiano'?bandPiano:plan.genre==='game'?handheld:composer;
