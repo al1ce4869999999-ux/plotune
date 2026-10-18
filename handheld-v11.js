@@ -208,7 +208,6 @@ function score(plan){
    }
    // Groove is selected from the entire plot, starting on the first beat.
    const drumMode=game.drums;
-   const beat=i%4;
    if(drumMode==='ballad'){
      if(i%4===0)drum(t,'hat',.10*energy);
      if(i===0||i===8)drum(t,'kick',.22*energy);
