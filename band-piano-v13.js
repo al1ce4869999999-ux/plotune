@@ -269,7 +269,7 @@ function score(plan){
  }
  for(let barNum=0;barNum<(loopMode?bars:Math.ceil(duration/bar));barNum++){
   const beatAt=barNum*bar;
-  const guitarAnchor=notes.find(n=>n.instrument==='guitar'&&n.t>=beatAt&&n.t<beatAt+eighth*.30);
+  const guitarAnchor=notes.find(n=>n.instrument==='guitar'&&n.t>=Math.max(0,beatAt-eighth*.18)&&n.t<beatAt+eighth*.30);
   if(guitarAnchor&&!mutedAt(beatAt)){
    // Actual guitar + piano paired phrase from the first downbeat.
    const melodyMidi=clamp(guitarAnchor.midi+12,50,86);
@@ -280,7 +280,7 @@ function score(plan){
   // a continuous two-instrument theme rather than an occasional piano hit.
   const middle=beatAt+eighth*4;
   if(middle<duration&&!mutedAt(middle)){
-   const first=notes.find(n=>n.instrument==='guitar'&&n.t>=beatAt&&n.t<beatAt+eighth*.30);
+   const first=notes.find(n=>n.instrument==='guitar'&&n.t>=Math.max(0,beatAt-eighth*.18)&&n.t<beatAt+eighth*.30);
    if(first){
     const pitchNote=clamp(first.midi+7,50,86),len=Math.min(eighth*1.3,duration-middle);
     note(middle,len,pitchNote,.081,'piano','unison','unison','piano');
