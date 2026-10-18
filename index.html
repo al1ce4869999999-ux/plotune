@@ -62,16 +62,16 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 @media(max-width:380px){.two{grid-template-columns:1fr}.card{padding:16px}.actions button{flex:1}}
 </style>
 <script defer src="analyzer.js"></script>
-<script defer src="resonare.js"></script>
+<script defer src="resonare-v08.js"></script>
 <script defer src="composer-v04.js"></script>
-<script defer src="band-v07.js"></script>
-<script defer src="comparison-v06.js"></script>
-<script defer src="app-v07.js"></script>
+<script defer src="band-v08.js"></script>
+<script defer src="comparison-v08.js"></script>
+<script defer src="app-v08.js"></script>
 </head>
 <body>
 <main>
 <header>
-<h1>🎼 Plotune <small style="font-size:13px;color:#c0aaff;vertical-align:middle">v0.7</small></h1>
+<h1>🎼 Plotune <small style="font-size:13px;color:#c0aaff;vertical-align:middle">v0.8</small></h1>
 <p class="lead">物語のシーンを、キャラクターらしい音楽に。</p>
 </header>
 <section class="card">
@@ -125,6 +125,11 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <button id="classicPlay" class="alt" disabled type="button">▶ 基準版</button>
 <button id="resonarePlay" class="alt" disabled type="button">▶ Resonare版</button>
 </div>
+<text class="note">変化する場面だけで聴き比べ</text>
+<div class="actions dual-tracks">
+<button id="classicClip" class="alt" disabled type="button">▶ 変化場面・基準版</button>
+<button id="resonareClip" class="alt" disabled type="button">▶ 変化場面・Resonare版</button>
+</div>
 <p id="contrastAssessment" class="comparison-quality" role="status" aria-live="polite">
 作曲後に「どれくらい編曲が変わったか」を表示します。
 </p>
@@ -145,18 +150,14 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <label for="cueSelect">比較する出来事を選ぶ（差が大きい順）</label>
 <select id="cueSelect" disabled></select>
 <p id="clipPosition" class="compare-help"></p>
-<div class="actions">
-<button id="classicClip" class="alt" disabled type="button">▶ この場面・基準版</button>
-<button id="resonareClip" class="alt" disabled type="button">▶ この場面・Resonare版</button>
-</div>
-<p class="compare-help">出来事の前後5秒を再生。再生中の切り替えも同じ位置を維持するよ。</p>
+<p class="compare-help">プレイヤー上部の「変化場面」ボタンで、この出来事の前後5秒を再生するよ。再生中の切り替えも同じ位置を維持。</p>
 <h4>この場面の変化</h4>
 <p id="changeDiagnosis"></p>
 <div id="trackDiff"></div>
 </div>
 </div>
 </section>
-<p class="footer">作曲に外部API・ログインは不要。Resonare型は実験的な数値モデルで、心情や事実を確定するものではありません。3ピースバンドは生演奏の録音ではなくブラウザ内の合成音です。v0.7では物語の変化によって複数小節のバンド編曲が変わり、根拠が薄い文章では違いを無理に作りません。2曲の再生ボタンを常時表示し、同じ再生位置を維持してA/B比較でき、場面別の楽器差分も確認できます。端末内で文章を簡易解析し、メロディー・和音・伴奏を合成します。文章の理解はキーワードとルールに基づく推定で、AIによる意味理解とは異なります。保存済みの設定はこのブラウザに残ります。</p>
+<p class="footer">作曲に外部API・ログインは不要。Resonare型は実験的な数値モデルで、心情や事実を確定するものではありません。3ピースバンドは生演奏の録音ではなくブラウザ内の合成音です。v0.8では「れんしゅう」「挑戦」なども物語の行動として解析し、ギター・ベース・ドラムの演奏を変えます。場面転換の言葉だけを出来事と数えません。2曲の再生ボタンを常時表示し、同じ再生位置を維持してA/B比較でき、場面別の楽器差分も確認できます。端末内で文章を簡易解析し、メロディー・和音・伴奏を合成します。文章の理解はキーワードとルールに基づく推定で、AIによる意味理解とは異なります。保存済みの設定はこのブラウザに残ります。</p>
 </main>
 </body>
 </html>
