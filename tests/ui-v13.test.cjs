@@ -41,7 +41,7 @@ vm.runInNewContext(fs.readFileSync(root+'/app-v13.js','utf8'),context,{filename:
 (async()=>{
  assert.ok(elems.runtimeVersion.textContent.includes('v1.3'));
  assert.equal(elems.bandOptions.hidden,false);
- assert.equal(elems.gameOptions.hidden,false);
+ assert.equal(elems.gameOptions.hidden,true);
  await elems.make.handlers.click();
  assert.equal(elems.comparison.hidden,false);
  assert.equal(elems.classicPlay.disabled,false);
