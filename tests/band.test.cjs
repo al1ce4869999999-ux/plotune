@@ -17,8 +17,8 @@ for(const style of modes){
  assert.equal(dry.genre,'band');assert.equal(wet.genre,'band');
  assert.equal(dry.bpm,wet.bpm);
  const baseline=B.score(dry),score=B.score(wet);
- assert.deepEqual(score.details.instruments,['guitar','bass','drums']);
- assert.deepEqual(score.details.theme,baseline.details.theme,'keep stable character riff');
+ assert.deepEqual(Array.from(score.details.instruments),['guitar','bass','drums']);
+ assert.deepEqual(Array.from(score.details.theme),Array.from(baseline.details.theme),'keep stable character riff');
  assert.equal(score.details.roles.drums,score.percussion.length);
  assert.ok(score.details.roles.guitar>10&&score.details.roles.bass>4);
  assert.ok(score.details.roles.drums>4,'drums are present');
