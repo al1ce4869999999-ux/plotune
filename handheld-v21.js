@@ -250,6 +250,7 @@ function prepare(plan,style,appraisal=null,reactive=false,scene='',context=''){
 }
 function score(plan){
  const game=STYLES[plan.gameStyle]||STYLES.journey;
+ const dna=plan.musicDNA||characterMusicDNA(plan.storyContext||'',plan.characterSeed||1);
  const duration=[15,30,60].includes(Number(plan.duration))?Number(plan.duration):30;
  const bars=Math.max(1,Math.round(game.bpm*duration/240));
  const bpm=bars*240/duration,step=duration/(bars*16),steps=bars*16;
