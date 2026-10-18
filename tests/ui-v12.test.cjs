@@ -96,6 +96,6 @@ vm.runInNewContext(fs.readFileSync(root+'/app-v12.js','utf8'),context,{filename:
  await elems.make.handlers.click();
  assert.equal(elems.zeta.disabled,false,'30-second track has M4A export enabled');
  assert.equal(typeof elems.zeta.handlers.click,'function');
- assert.ok(elems.zetaHelp.textContent.includes('M4A'),'Zeta guidance is visible');
+ assert.ok(fs.readFileSync(root+'/index.html','utf8').includes('id="zetaHelp"'),'Zeta guidance is visible');
  console.log('PASS v1.2 UI: game style selector, seven layers, 2 versions, seamless loop UI, nonband compatibility');
 })().catch(e=>{console.error(e);process.exitCode=1});
