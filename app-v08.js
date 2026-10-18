@@ -157,8 +157,10 @@ async function compare(){
     '→'+newNotes+'音／演奏差分 '+changedNotes+'件／波形差 '+Math.round(relative*100)+
     '%。和音の変化は小節内の編曲単位で数えています。波形差だけでは聴感上の改善を証明できません。';
   $('comparison').hidden=false;
-  $('playerHint').textContent='2曲完成！「▶ 基準版」「▶ Resonare版」で聴き比べられるよ。'+
-    (important.length?' 文章内の練習・試行・失敗・回復などに合わせて編曲しています。':' 大きく変わらない場合は下の判定も確認してね。');
+  $('playerHint').textContent=selected
+    ? '曲の冒頭は同じ演奏が多いよ。今回の変化候補は約'+Math.round(selected.window.center)+
+      '秒。下の「変化場面」ボタンで直接聴き比べてね。'
+    : '物語の変化を検出できなかったため、今回は曲全体の2方式を比較してね。';
   $('summary').textContent='2曲生成済み（基準版 ＋ Resonare版） · '+styleName(a.base)+' · '+a.base.bpm+' BPM · '+a.base.duration+'秒';
   save(true);
   status(events.length?'2曲できました！下に「▶ 基準版」「▶ Resonare版」があるよ。場面別にも比較できます。':
