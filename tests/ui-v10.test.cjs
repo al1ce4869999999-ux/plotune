@@ -31,7 +31,7 @@ window.AudioContext=FakeAudio;
 const context={window,document:{getElementById:id=>elems[id],createElement:element,body:element('body')},
  localStorage:{getItem:k=>memory.get(k)||null,setItem:(k,v)=>memory.set(k,v)},
  Blob,URL,console,setTimeout,clearTimeout,navigator:{}};
-for(const f of ['analyzer.js','resonare-v08.js','loop-arranger-v09.js','composer-v04.js','band-v09.js','handheld-v10.js','comparison-v08.js'])
+for(const f of ['analyzer.js','resonare-v08.js','loop-arranger-v09.js','composer-v04.js','band-v09.js','handheld-v10.js','comparison-v10.js'])
  vm.runInNewContext(fs.readFileSync(root+'/'+f,'utf8'),context,{filename:f});
 Object.assign(context,{PlotuneAnalysis:window.PlotuneAnalysis,PlotuneResonare:window.PlotuneResonare,
  PlotuneLoop:window.PlotuneLoop,PlotuneComposerV4:window.PlotuneComposerV4,PlotuneBand:window.PlotuneBand,PlotuneHandheld:window.PlotuneHandheld});
@@ -48,6 +48,8 @@ vm.runInNewContext(fs.readFileSync(root+'/app-v10.js','utf8'),context,{filename:
  assert.ok(elems.summary.textContent.includes('冒険・フィールド'));
  assert.ok(elems.contrastAssessment.textContent.includes('対旋律'));
  assert.ok(elems.contrastAssessment.textContent.includes('アルペジオ'));
+ assert.ok(elems.trackDiff.children.some(x=>x.textContent.includes('対旋律')));
+ assert.ok(elems.trackDiff.children.some(x=>x.textContent.includes('アルペジオ')));
  assert.ok(elems.cueSelect.children.some(e=>e.textContent.includes('冒頭')),'direct 0–10s A/B selection');
  assert.ok(elems.playerHint.textContent.includes('0秒から編曲が違う'));
  await elems.classicClip.handlers.click();
