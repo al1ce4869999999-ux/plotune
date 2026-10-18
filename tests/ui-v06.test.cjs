@@ -35,6 +35,16 @@ Object.assign(ctx,{PlotuneAnalysis:window.PlotuneAnalysis,PlotuneResonare:window
  PlotuneComposerV4:window.PlotuneComposerV4,PlotuneBand:window.PlotuneBand});
 vm.runInNewContext(fs.readFileSync(root+'/app-v06.js','utf8'),ctx);
 (async()=>{
+ // One tap on "作曲" must now generate TWO complete, selectable arrangements.
+ await elems.make.handlers.click();
+ assert.equal(elems.comparison.hidden,false,'one-tap compose reveals A/B panel');
+ assert.equal(elems.classicPlay.disabled,false,'baseline track generated');
+ assert.equal(elems.resonarePlay.disabled,false,'Resonare track generated');
+ assert.ok(elems.summary.textContent.includes('2曲生成済み'),'explicit paired generation status');
+ assert.ok(elems.status.textContent.includes('2曲できました'),'help user find both tracks');
+ await elems.reroll.handlers.click();
+ assert.equal(elems.comparison.hidden,false,'reroll also generates both versions');
+ assert.equal(elems.classicClip.disabled,false,'reroll retains event clips');
  await elems.compare.handlers.click();
  assert.equal(elems.comparison.hidden,false);
  assert.ok(elems.cueSelect.children.length>0);
