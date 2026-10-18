@@ -875,11 +875,25 @@ function render(plan){
      timbre==='musicbox'?1.65:timbre==='bell'?.86:
      timbre==='softpiano'?.95:
      n.voice==='pad'?.12:n.voice==='arp'?.9:n.voice==='sparkle'?1.8:emotional?.kind==='melancholy'?.12:.34;
-  let phase=0,prev=0;
+  let phase=0,prev=0,noiseState=(Math.imul(n.midi+17,2654435761)^Math.floor(n.t*1000))>>>0;
+  const expressiveTone=['ocarina','flute','strings','synthpad','softpiano','kalimba','celesta','musicbox','harp','marimba'].includes(timbre);
   for(let i=0;i<length;i++){
    const x=i/SR,env=Math.min(1,x/attack,(n.d-x)/release)*Math.exp(-decay*x);
-   phase+=freq/SR;
+   const vibrato=(wind&&x>.12?.0028*Math.sin(TAU*4.8*(x-.12)):bowed?.0018*Math.sin(TAU*5.1*x):0);
+   phase+=freq*(1+vibrato)/SR;
    let y=wave(n.voice,phase,timbre);
+   if(expressiveTone){
+     // Attacks contain a short nonperiodic transient; sustained notes gently darken.
+     noiseState^=noiseState<<13;noiseState^=noiseState>>>17;noiseState^=noiseState<<5;
+     const noise=((noiseState>>>0)/2147483648-1);
+     const transient=wind?.016:struck?.065:.009;
+     y+=noise*transient*Math.exp(-x*(wind?24:75));
+     const harmonics=struck?.20:wind?.07:bowed?.14:.12;
+     y+=harmonics*Math.sin(TAU*phase*2.012)*Math.exp(-x*(struck?8.3:1.2));
+     if(timbre==='softpiano'||timbre==='kalimba'||timbre==='marimba'){
+       y+=.095*Math.sin(TAU*phase*3.993)*Math.exp(-x*12);
+     }
+   }
    // One-pole filter emulates a small sample-ROM / FM-style mellowing.
    const smoothing=wind?.23:bowed?.17:timbre==='marimba'?.72:timbre==='synthlead'?.61:timbre==='harp'?.47:timbre==='kalimba'?.55:palette?.family==='musicbox'?.49:palette?.family==='bell'?.62:
      emotional?.kind==='melancholy'?.23:emotional?.kind==='uneasy'?.38:n.voice==='chords'?.50:n.voice==='pad'?.28:.74;
@@ -905,7 +919,13 @@ function render(plan){
  }
  // A single delay makes the counter/lead/chord layers sound cohesive.
  const d1=Math.floor(.093*SR),d2=Math.floor(.17*SR);
- for(let i=d2;i<N;i++)out[i]+=.058*out[i-d1]+.03*out[i-d2];
+ for(let i=d2;i<N;i++)out[i]+=.042*out[i-d1]+.023*out[i-d2];
+ // Soft early-reflection tail; distinct from a loud 8-bit delay.
+ const reflections=[{delay:.031,gain:.055},{delay:.067,gain:.045},{delay:.143,gain:.032},{delay:.281,gain:.018}];
+ for(const reflect of reflections){
+   const offset=Math.floor(reflect.delay*SR);
+   for(let i=offset;i<N;i++)out[i]+=out[i-offset]*reflect.gain;
+ }
  let peak=0;
  for(let i=0;i<N;i++)peak=Math.max(peak,Math.abs(out[i]));
  const gain=Math.min(2.4,.79/Math.max(peak,.11));
