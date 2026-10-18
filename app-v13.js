@@ -67,10 +67,10 @@ for(const group of handheld.GROUPS.filter(g=>!g.label.includes('物語を彩る�
 }
 gameSelect.value=handheld.STYLES[existing]&&!handheld.STORY_INSTRUMENTS[existing]?existing:'auto';
 bandPanel();
-$('runtimeVersion').textContent='実行中：v2.1｜悲しい場面に沈む低音と重い余韻を追加';
+$('runtimeVersion').textContent='実行中：v2.2｜しょんぼり専用の軽い旋律（カリンバ）';
 if(typeof document.querySelector==='function'){
  const badge=document.querySelector('header h1 small');
- if(badge)badge.textContent='v2.1';
+ if(badge)badge.textContent='v2.2';
 }
 function addRow(parent,title,value){
  const el=document.createElement('div');el.className='report-row';
