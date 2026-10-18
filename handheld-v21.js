@@ -672,28 +672,50 @@ function score(plan){
    voices[key]=key==='drums'?drums.length:notes.filter(n=>n.voice===key).length;
   arcDynamics.forEach((stage,i)=>{stage.start=stages[i].from/duration;stage.end=stages[i].to/duration;});
  }
- // Research-informed expressive adjustment, preserving the style's tonal identity.
- // Body-to-melody rules are explicitly treated as hypotheses.
+ // Character-specific rhythmic phrasing: distinct onsets, rests and durations.
+ // These body/temperament mappings are creative hypotheses, not universal laws.
  const expression=plan.expression||null;
  if(expression){
    const m=expression.motif||{},e=expression.emotion||{},o=expression.orchestration||{};
+   const lively=m.bounce>.45,careful=m.hesitation>.3;
+   const phraseStep=Math.max(.04,step);
    for(const n of notes){
      if(n.voice==='lead'){
-       if(m.bounce>.45){
-         const pos=Math.round(n.t/step)%8;
-         if(pos===2||pos===6)n.midi=clamp(n.midi+Math.round(2*m.bounce+1),36,100);
-         if(pos===4)n.d=Math.max(.055,n.d*.73);
-       }
-       if(m.hesitation>.3){
-         const pos=Math.round(n.t/step)%16;
-         if(pos>=10&&pos<13)n.volume*=.48;
-         else n.d=Math.min(duration-n.t,n.d*1.18);
+       const pos=Math.round(n.t/phraseStep);
+       if(lively){
+         // Light syncopation and short pickups instead of identical even eighth notes.
+         const pattern=[0,-.40,0,.25,-.30,0,.35,-.20];
+         n.t=Math.max(0,Math.min(duration-.04,n.t+pattern[pos%8]*phraseStep));
+         n.d=Math.max(.07,Math.min(duration-n.t,n.d*(pos%3===0?.62:.83)));
+         if(pos%8===2||pos%8===6)n.midi=clamp(n.midi+Math.round(2*m.bounce+1),36,100);
+         n.volume*=pos%4===0?1.10:.96;
+       }else if(careful){
+         // Long breaths: fewer lead attacks, late entries, connected sustained notes.
+         if(pos%8===3||pos%8===6){n.volume=0;n.d=.06;}
+         else{
+           n.t=Math.max(0,Math.min(duration-.04,n.t+(pos%8===0?.55:.22)*phraseStep));
+           n.d=Math.max(.07,Math.min(duration-n.t,n.d*(pos%8===1?1.95:1.55)));
+           n.volume*=pos%8===0?.73:.92;
+         }
        }
        if(m.register)n.midi=clamp(n.midi+m.register,36,100);
      }
-     if(e.mildSadness&&!e.grief && n.voice==='bass')n.volume*=.78;
+     if(n.voice==='counter'&&lively){
+       n.t=Math.max(0,Math.min(duration-.04,n.t-.30*phraseStep));
+       n.d=Math.min(n.d*.72,duration-n.t);
+     }
+     if(n.voice==='chords'){
+       if(lively){
+         if(Math.round(n.t/phraseStep)%8===0)n.d=Math.max(.09,Math.min(n.d*.64,duration-n.t));
+       }else if(careful){
+         n.d=Math.min(duration-n.t,n.d*1.45);
+         n.volume*=.82;
+       }
+     }
+     if(e.mildSadness&&!e.grief&&n.voice==='bass')n.volume*=.78;
      if(o.family&&n.voice==='lead'&&!n.timbre)n.timbre=o.family;
    }
+   notes.sort((a,b)=>a.t-b.t);
  }
  const details={
   musicPsychology:expression,structuredStory:plan.structure||null,
