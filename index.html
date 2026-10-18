@@ -1,7 +1,102 @@
-<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plotune</title><style>body{font:16px -apple-system,sans-serif;background:#111321;color:#f6f3ff;margin:0}main{max-width:650px;margin:auto;padding:22px}section{background:#202337;border-radius:16px;padding:18px;margin:15px 0}label{display:block;margin:15px 0 5px}textarea,input,select{box-sizing:border-box;width:100%;background:#121625;color:white;border:1px solid #626579;border-radius:10px;padding:12px;font:inherit}textarea{height:95px}button{background:#b2a0ff;border:0;border-radius:12px;padding:12px;margin:8px 5px 0 0;font-weight:700;font-size:15px}p{color:#c6c2d7}</style><main><h1>🎼 Plotune</h1><p>プロフィール・世界観・シーンからBGMを自動生成</p><section><label>作品名</label><input id="title" placeholder="作品名"><label>キャラクターのプロフィール</label><textarea id="character" placeholder="性格、行動、関係性など"></textarea><label>世界観・設定</label><textarea id="world" placeholder="舞台、時代、雰囲気など"></textarea><label>今回のシーン</label><textarea id="scene" placeholder="シーンの展開を入力"></textarea><label>曲調</label><select id="style"><option value="auto">自動選択</option><option value="chip">8bit コミカル</option><option value="piano">ピアノ風</option><option value="horror">ホラー</option><option value="pop">ポップ</option></select><label>長さ</label><select id="duration"><option>15</option><option selected>30</option><option>60</option></select><button id="make">✨ 自動作曲</button><button id="save">設定を保存</button></section><section><h2>🎵 プレイヤー</h2><p id="info">まだ曲は生成されていません。</p><button id="play" disabled>▶ 再生</button><button id="stop" disabled>■ 停止</button><button id="wav" disabled>↓ WAV保存</button><p id="status"></p></section><p>無料のブラウザ内作曲エンジンです。文章の解析はキーワードに基づく簡易方式です。</p></main><script>
-const $=id=>document.getElementById(id),keys=['title','character','world','scene','style','duration'];try{const o=JSON.parse(localStorage.getItem('plotune')||'{}');keys.forEach(k=>{if(o[k]!=null)$(k).value=o[k]})}catch{}$('save').onclick=()=>{localStorage.setItem('plotune',JSON.stringify(Object.fromEntries(keys.map(k=>[k,$(k).value]))));$('status').textContent='設定を保存しました'};
-let audio=null,source=null,pcm=null,mood='chip';const rate=22050;function stop(){if(source){try{source.stop()}catch{}source=null}}$('stop').onclick=stop;
-function make(){stop();const txt=keys.slice(0,4).map(k=>$(k).value).join(' ');mood=$('style').value;if(mood==='auto')mood=/怖|不穏|恐怖|幽霊|暗闇/.test(txt)?'horror':/悲|寂|泣|孤独|別れ/.test(txt)?'piano':/たぬき|転|失敗|コミカル|かわい|愉快/.test(txt)?'chip':'pop';const duration=Number($('duration').value),tempo=mood==='horror'?82:mood==='piano'?94:mood==='chip'?148:125,step=30/tempo,scale=mood==='horror'?[0,1,3,5,6,8,10]:mood==='piano'?[0,2,3,5,7,8,10]:[0,2,4,5,7,9,11],n=Math.ceil((duration+.2)*rate),data=new Float32Array(n),seed=(Date.now()^txt.length*7123)>>>0;let state=seed;function rnd(){state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296}const motif=Array.from({length:8},()=>Math.floor(rnd()*7));function add(t,length,midi,vol,type){const start=Math.floor(t*rate),end=Math.min(n,start+Math.floor(length*rate)),f=440*Math.pow(2,(midi-69)/12);for(let i=start;i<end;i++){let x=(i-start)/rate,phase=x*f,env=Math.min(1,x*80)*Math.min(1,(length-x)*45)*Math.exp(-x*(type==='bass'?2:3)),v=type==='bass'?2*(phase%1)-1:mood==='piano'?Math.sin(phase*Math.PI*2)+.2*Math.sin(phase*Math.PI*4):mood==='horror'?Math.sin(phase*Math.PI*2):phase%1<.5?1:-1;data[i]+=v*env*vol}}for(let i=0,t=0;t<duration;i++,t+=step){let b=Math.floor(i/8),p=i%8,degree=motif[p];if(p!==6||rnd()>.4)add(t,step*.85,60+scale[degree]+(b%8===7?-12:0),.2,'lead');if(i%4===0)add(t,step*3.5,36+scale[[0,5,3,4][Math.floor(b/2)%4]],.14,'bass');if(mood!=='piano'&&i%2===0){let a=Math.floor(t*rate);for(let j=0;j<Math.min(rate*.1,n-a);j++){let x=j/rate;data[a+j]+=(rnd()*2-1)*Math.exp(-x*(i%4===0?28:65))*.085}}}let peak=0;for(const v of data)peak=Math.max(peak,Math.abs(v));for(let i=0;i<data.length;i++)data[i]*=.82/Math.max(peak,.82);pcm=data;$('play').disabled=$('stop').disabled=$('wav').disabled=false;$('info').textContent=({chip:'8bit コミカル',piano:'ピアノ風',horror:'ホラー',pop:'ポップ'})[mood]+' / '+tempo+' BPM / '+duration+'秒';$('status').textContent='曲を生成しました'}
-$('make').onclick=make;$('play').onclick=async()=>{if(!pcm)return;stop();audio=audio||new(window.AudioContext||window.webkitAudioContext)();await audio.resume();const buf=audio.createBuffer(1,pcm.length,rate);buf.copyToChannel(pcm,0);source=audio.createBufferSource();source.buffer=buf;source.connect(audio.destination);source.start();$('status').textContent='再生中';source.onended=()=>{$('status').textContent='再生終了'}};
-$('wav').onclick=()=>{if(!pcm)return;const buf=new ArrayBuffer(44+pcm.length*2),v=new DataView(buf);function s(p,t){for(let i=0;i<t.length;i++)v.setUint8(p+i,t.charCodeAt(i))}s(0,'RIFF');v.setUint32(4,36+pcm.length*2,true);s(8,'WAVE');s(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,rate,true);v.setUint32(28,rate*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);s(36,'data');v.setUint32(40,pcm.length*2,true);for(let i=0;i<pcm.length;i++)v.setInt16(44+i*2,Math.max(-32768,Math.min(32767,Math.round(pcm[i]*32767))),true);const url=URL.createObjectURL(new Blob([buf],{type:'audio/wav'})),a=document.createElement('a');a.href=url;a.download=($('title').value||'plotune')+'.wav';a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);$('status').textContent='WAVを書き出しました'};
-</script></html>
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#121420">
+<meta name="description" content="キャラクターのプロフィール、世界観、シーンからブラウザだけでBGMを作るPlotune。API不要、無料の作曲ツール。">
+<title>Plotune — 物語からBGMを作る</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;color-scheme:dark;background:#111320;color:#f7f3ff;font-size:16px}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at top,#302548 0,#171a2b 45%,#111320 90%);min-height:100vh}
+main{max-width:740px;padding:24px 17px calc(45px + env(safe-area-inset-bottom));margin:auto}
+h1{font-size:clamp(30px,7vw,42px);margin:4px 0 6px;letter-spacing:-1px}
+h2{font-size:20px;margin:0 0 12px}
+h3{font-size:17px;margin:0 0 14px}
+h4{font-size:14px;margin:15px 0 8px}
+p{line-height:1.65}
+.lead{color:#c8c2da;margin:0 0 25px}
+.card{background:#212337;border:1px solid #403c53;border-radius:19px;padding:20px;margin:16px 0;box-shadow:0 12px 35px #05061020}
+label{display:block;font-weight:650;font-size:14px;margin:15px 0 7px}
+textarea,input,select{width:100%;font:inherit;color:#fff;background:#121522;border:1px solid #5c5970;border-radius:11px;padding:13px;outline:none}
+textarea:focus,input:focus,select:focus{border-color:#b39fff;box-shadow:0 0 0 2px #a796ff22}
+textarea{min-height:94px;resize:vertical;line-height:1.55}
+select{appearance:auto}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px}
+button{touch-action:manipulation;border:1px solid transparent;border-radius:12px;background:#b3a0ff;color:#161326;padding:12px 15px;font:inherit;font-weight:700;cursor:pointer}
+button.alt{background:#32344c;border-color:#59556c;color:#f7f3ff}
+button:disabled{opacity:.38;cursor:default}
+button:focus-visible{outline:3px solid white;outline-offset:2px}
+.note,.muted{color:#bcb7d0}
+.note{font-size:13px}
+#summary{color:#e1d8ff;font-size:14px;margin:4px 0 10px}
+#status{min-height:26px;color:#d3c6ff;font-size:14px;margin-top:12px}
+#status.error{color:#ff9caa}
+.report{display:grid;gap:12px}
+.report-row{display:flex;justify-content:space-between;gap:20px;font-size:14px;align-items:baseline}
+.report-row strong{text-align:right}
+.explain{color:#bbb8cd;font-size:13px;margin:10px 0}
+.arc{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.arc-item{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:12px;color:#e0d8f6}
+.arc-bar{background:#131526;border:1px solid #49415c;border-radius:10px;height:77px;width:100%;display:flex;align-items:flex-end;overflow:hidden}
+.arc-fill{width:100%;background:linear-gradient(0deg,#8671e9,#d3bfff);border-radius:7px 7px 0 0}
+#analysis[hidden]{display:none}
+.footer{font-size:12px;color:#aca6bf;line-height:1.7;padding:0 2px}
+@media(max-width:380px){.two{grid-template-columns:1fr}.card{padding:16px}.actions button{flex:1}}
+</style>
+<script defer src="analyzer.js"></script>
+<script defer src="composer.js"></script>
+<script defer src="app.js"></script>
+</head>
+<body>
+<main>
+<header>
+<h1>🎼 Plotune <small style="font-size:13px;color:#c0aaff;vertical-align:middle">v0.2</small></h1>
+<p class="lead">物語のシーンを、キャラクターらしい音楽に。</p>
+</header>
+<section class="card">
+<h2>✍️ 物語の設定</h2>
+<label for="title">作品名</label>
+<input id="title" placeholder="たぬきの里 など">
+<label for="character">キャラクターのプロフィール</label>
+<textarea id="character" placeholder="性格、口調、行動、関係性、印象的な特徴など"></textarea>
+<label for="world">世界観・設定</label>
+<textarea id="world" placeholder="舞台、季節、時代、物語の雰囲気など"></textarea>
+<label for="scene">今回のシーン</label>
+<textarea id="scene" style="min-height:145px" placeholder="例：ぽんぽんは得意げにほうきを持ち上げた。ところが畳に引っかかり、ころんと転ぶ。しばらくして、もう一度そっと挑戦する。"></textarea>
+<div class="two">
+<div><label for="style">曲調</label><select id="style">
+<option value="auto">🎭 物語から自動判定</option>
+<option value="chip">🎮 8bit・コミカル</option>
+<option value="piano">🎹 ピアノ風</option>
+<option value="horror">🌘 ホラー・不穏</option>
+<option value="pop">✨ ポップ</option>
+<option value="fantasy">🪄 ファンタジー</option>
+<option value="ambient">🌙 アンビエント</option>
+</select></div>
+<div><label for="duration">長さ</label><select id="duration"><option value="15">15秒</option><option value="30" selected>30秒</option><option value="60">60秒</option></select></div>
+</div>
+<div class="actions">
+<button id="analyze" class="alt" type="button">🔍 文章を解析</button>
+<button id="make" type="button">✨ 自動作曲</button>
+<button id="save" class="alt" type="button">設定を保存</button>
+</div>
+</section>
+<section class="card" id="analysis" hidden aria-live="polite"></section>
+<section class="card">
+<h2>🎶 プレイヤー</h2>
+<p id="summary">まだ曲を作成していません。</p>
+<div class="actions">
+<button id="play" disabled type="button">▶ 再生</button>
+<button id="stop" class="alt" disabled type="button">■ 停止</button>
+<button id="reroll" class="alt" disabled type="button">↻ 別アレンジ</button>
+<button id="wav" class="alt" disabled type="button">↓ WAV保存</button>
+</div>
+<p id="status" role="status" aria-live="polite"></p>
+</section>
+<p class="footer">外部API・ログイン・通信での曲生成は不要。端末内で文章を簡易解析し、メロディー・和音・伴奏を合成します。文章の理解はキーワードとルールに基づく推定で、AIによる意味理解とは異なります。保存済みの設定はこのブラウザに残ります。</p>
+</main>
+</body>
+</html>
