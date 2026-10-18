@@ -415,7 +415,14 @@ function score(plan){
    // Phrase contour belongs to the dramatic style, while timbre belongs to
   // the chosen scene. This preserves the selected preset's emotion.
   const phrase=[0,2,4,3,1,2,0,-1],hero=[0,2,4,5,4,2,6,4];
-   const line=isFlute||isSynth?hero:phrase;
+   const sorrow=[0,-1,-3,-2,-4,-3,-5,-2];
+   const mystic=[0,1,-2,3,-1,2,-3,1];
+   const playful=[0,3,1,4,2,5,1,3];
+   const line=palette.rhythm==='sparse'?sorrow:
+     palette.rhythm==='mystery'?mystic:
+     palette.rhythm==='playful'?playful:
+     palette.rhythm==='hero'?hero:
+     isFlute||isSynth?hero:phrase;
    const cadence=isFlute||isSynth?[0,4,5,3]:[5,3,1,4];
    for(let b=0;b<bars;b++){
      const start=b*meter,degree=prog[b%prog.length];
