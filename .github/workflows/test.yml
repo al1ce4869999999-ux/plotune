@@ -27,6 +27,8 @@ jobs:
           node --check band-v09.js
           node --check app-v09.js
           node --check handheld-v10.js
+          node --check handheld-v11.js
+          node --check app-v11.js
           node --check comparison-v10.js
           node --check app-v10.js
           node --check app.js
@@ -49,6 +51,7 @@ jobs:
           node tests/loop-v09.test.cjs
           node tests/ui-v09.test.cjs
           node tests/handheld-v10.test.cjs
+          node tests/ponpon-v11.test.cjs
           node tests/ui-v10.test.cjs
           node tests/ui-v07.test.cjs
           node tests/ui-v05.test.cjs
