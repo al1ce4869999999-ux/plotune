@@ -221,6 +221,20 @@ function analyzeEmotionalArc(scene,style){
    {name:'余韻',start:.77,end:1}
   ],reason:'明確な喪失・絶望の描写を根拠に重い悲劇的展開を作曲'};
  }
+function characterMusicDNA(context,seed){
+ const t=String(context||'');
+ const small=/小さな|小さい|幼い|幼児|子ども|子供|三歳|3歳|四歳|4歳|五歳|5歳|ちび|ちいさ|ちょこちょこ/.test(t);
+ const lively=/元気|活発|おてんば|やんちゃ|好奇心|走り回|跳ね|ぴょん|せっかち/.test(t);
+ const timid=/内気|おとなしい|臆病|慎重|無口|静か|人見知り/.test(t);
+ const proud=/強気|負けず嫌い|生意気|意地っ張り|自信家|ぷんぷん/.test(t);
+ const gentle=/優しい|穏やか|のんびり|柔らか|おっとり/.test(t);
+ const r=random((seed^0x6d2b79f5)>>>0);
+ return {small,lively,timid,proud,gentle,
+   bounce:clamp((small?.48:0)+(lively?.34:0)+(proud?.12:0)-(timid?.22:0),0,.95),
+   hesitation:clamp((timid?.55:0)+(gentle?.13:0),0,.8),
+   attack:clamp((proud?.48:0)+(lively?.18:0),0,.8),
+   variation:Math.floor(r()*4)};
+}
 function prepare(plan,style,appraisal=null,reactive=false,scene='',context=''){
  const picked=style==='auto'?chooseStyle(scene):null;
  const type=STYLES[picked?.style||style]?picked?.style||style:'mischief';
@@ -232,7 +246,7 @@ function prepare(plan,style,appraisal=null,reactive=false,scene='',context=''){
  const knowledge=root.PlotuneLoop?.analyzeWhole(appraisal);
  return {...plan,genre:'game',gameStyle:type,loopMode:true,
   loopArrangement:reactive&&knowledge?.active?knowledge:null,gameAutoChoice:picked,
-  instrumentChoice,emotionalArc,storyContext:context||scene,arrangementSource:style==='auto'?'automatic-style':'manual-style'};
+  instrumentChoice,emotionalArc,storyContext:context||scene,musicDNA:characterMusicDNA(context||scene,plan.characterSeed||1),arrangementSource:style==='auto'?'automatic-style':'manual-style'};
 }
 function score(plan){
  const game=STYLES[plan.gameStyle]||STYLES.journey;
@@ -247,7 +261,7 @@ function score(plan){
  const prog=change.map((v,i)=>((v+(kind==='mystery'?1:0))%7+7)%7);
  const meter=step*16,seed=plan.seed>>>0;
  const themeRand=random(plan.characterSeed>>>0);
- const motif=[0,2,4,2,3,5,4,1].map((x,i)=>x+(themeRand()>.6?(i%3===0?2:1):0));
+ const motif=[0,2,4,2,3,5,4,1].map((x,i)=>x+(themeRand()>.6?(i%3===0?2:1):0)+(dna.bounce>.4&&i%3===0?2:0)-(dna.hesitation>.4&&i%4===3?1:0));
  const notes=[],drums=[],rests=[],harmony=[];
  const voices={lead:0,counter:0,chords:0,arp:0,bass:0,sparkle:0,pad:0,drums:0};
  const roleLimits={lead:850,counter:390,chords:850,arp:700,bass:480,sparkle:180,pad:100};
