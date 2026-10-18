@@ -53,14 +53,12 @@ assert.deepEqual(Array.from(neutralA.samples),Array.from(neutralB.samples),
 const turn=pair('静かな部屋にいた。でも、外で音がした。');
 assert.ok(turn.appraisal.events.some(e=>e.cue==='turn'));
 assert.ok(turn.b.details.shiftedChords>0,'scene turn changes harmony for a phrase');
-const result=R.analyze({character:'',world:'',scene:'しかし、'});
-const plan=A.plan({title:'t',character:'',world:'',scene:'しかし、',style:'band',duration:15},A.analyze({scene:'しかし、'}));
-const enhanced=B.adaptPlan(R.attachPlan(plan,result),'indie');
-const low=B.score(enhanced);
-const modified={...enhanced,resonare:{...enhanced.resonare,
- events:enhanced.resonare.events.map(e=>({...e,deltaPsi:1,tension:1}))}};
+const low=B.score(story.reactive);
+const modified={...story.reactive,resonare:{...story.reactive.resonare,
+ events:story.reactive.resonare.events.map(e=>({...e,deltaPsi:1,tension:1}))}};
 const high=B.score(modified);
-assert.ok(high.rests[0].end-high.rests[0].start>low.rests[0].end-low.rests[0].start,
+const pauseLength=s=>s.rests.filter(x=>x.cue==='stumble')[0]?.end-s.rests.filter(x=>x.cue==='stumble')[0]?.start;
+assert.ok(pauseLength(high)>pauseLength(low),
  'numeric state change and tension must influence real silence duration');
 assert.deepEqual(Array.from(B.score(story.normal).details.theme),Array.from(story.a.details.theme));
 for(const seconds of [15,30,60]){
