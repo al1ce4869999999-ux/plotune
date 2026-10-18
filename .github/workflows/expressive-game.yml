@@ -1,0 +1,19 @@
+name: Expressive game soundtrack smoke
+on:
+  pull_request:
+    paths:
+      - 'handheld-v16.js'
+      - 'tests/game-expression-v16.test.cjs'
+      - 'index.html'
+      - '.github/workflows/expressive-game.yml'
+jobs:
+  score:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          node --check handheld-v16.js
+          node tests/game-expression-v16.test.cjs
