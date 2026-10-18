@@ -65,7 +65,7 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <body>
 <main>
 <header>
-<h1>🎼 Plotune <small style="font-size:13px;color:#c0aaff;vertical-align:middle">v0.6</small></h1>
+<h1>🎼 Plotune <small style="font-size:13px;color:#c0aaff;vertical-align:middle">v0.6.1</small></h1>
 <p class="lead">物語のシーンを、キャラクターらしい音楽に。</p>
 </header>
 <section class="card">
@@ -103,20 +103,20 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 </div>
 <label for="engine">解析エンジン</label><select id="engine"><option value="resonare">Resonare型（実験版）</option><option value="classic">基準アレンジ（出来事に反応しない）</option></select>
 <div class="actions">
-<button id="compare" class="alt" type="button">⚖️ 2方式を比較</button>
+<button id="compare" class="alt" type="button">⚖️ 2曲を作り直す</button>
 <button id="analyze" class="alt" type="button">🔍 文章を解析</button>
-<button id="make" type="button">✨ 自動作曲</button>
+<button id="make" type="button">✨ 2曲まとめて作曲</button>
 <button id="save" class="alt" type="button">設定を保存</button>
 </div>
 </section>
 <section class="card" id="analysis" hidden aria-live="polite"></section>
 <section class="card">
 <h2>🎶 プレイヤー</h2>
-<p id="summary">まだ曲を作成していません。</p>
+<p id="summary">まだ曲を作成していません。作曲すると基準版とResonare版の2曲ができます。</p>
 <div class="actions">
 <button id="play" disabled type="button">▶ 再生</button>
 <button id="stop" class="alt" disabled type="button">■ 停止</button>
-<button id="reroll" class="alt" disabled type="button">↻ 別アレンジ</button>
+<button id="reroll" class="alt" disabled type="button">↻ 2曲とも別アレンジ</button>
 <button id="wav" class="alt" disabled type="button">↓ WAV保存</button>
 </div>
 <p id="status" role="status" aria-live="polite"></p>
