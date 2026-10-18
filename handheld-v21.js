@@ -595,6 +595,47 @@ function score(plan){
       if(start<duration)notes.push({t:start,d:Math.min(duration-start,(type==='reserved'?12:4)*unit),
         midi:midi(tonic-12,MAJOR,degree),voice:'bass',role:'bass',timbre:'kalimba',volume:.011});
     }
+    // Sparse orchestral colours, independent of the lead melody.
+    // The number of layers is bounded to preserve the gentle sadness preset.
+    const world=plan.structure?.world||{};
+    const worldHas=(key,val)=>Array.isArray(world[key]?.value)?world[key].value.includes(val):world[key]?.value===val;
+    const mystic=worldHas('magicSystem','magic')||worldHas('location','forest');
+    const indoors=worldHas('location','room');
+    const textureLead=mystic?'ocarina':indoors?'softpiano':expressive[0];
+    for(const n of notes){
+      if(n.voice==='lead'){
+        n.timbre=textureLead;
+        // Slightly varied articulation and dynamics by phrase position.
+        const place=Math.round((n.t%meter)/(meter/16));
+        n.volume*=place<3?1.06:place>12?.81:.94;
+      }
+    }
+    for(let bar=0;bar<bars;bar++){
+      const start=bar*meter,degree=chordSteps[bar%4],unit=meter/16;
+      // Contrasting sustained background texture, below the melody.
+      if(bar%2===0){
+        for(const offset of [0,4]){
+          const t=start;
+          if(t<duration)notes.push({t,d:Math.min(duration-t,meter*1.67),
+            midi:midi(tonic-12,MAJOR,degree+offset),voice:'pad',role:'pad',
+            timbre:mystic?'synthpad':'strings',volume:.009});
+        }
+      }
+      // Gentle replies on alternate bars, not a constant second melody.
+      if(bar%2===1){
+        const t=start+(type==='playful'?10:11)*unit;
+        if(t<duration)notes.push({t,d:Math.min(duration-t,2.8*unit),
+          midi:midi(tonic+12,MAJOR,degree+2),voice:'counter',role:'counter',
+          timbre:indoors?'celesta':'musicbox',volume:.018});
+      }
+      // Very light sparkling pickup only where the phrasing has room.
+      if((bar%4===1||bar%4===3)){
+        const t=start+14*unit;
+        if(t<duration)notes.push({t,d:Math.min(duration-t,1.6*unit),
+          midi:midi(tonic+24,MAJOR,degree+4),voice:'sparkle',role:'sparkle',
+          timbre:mystic?'celesta':'kalimba',volume:.009});
+      }
+    }
     for(const key of Object.keys(voices))
       voices[key]=key==='drums'?0:notes.filter(n=>n.voice===key).length;
   }
