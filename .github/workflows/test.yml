@@ -22,6 +22,8 @@ jobs:
           node --check app-v03.js
           node --check app-v04.js
           node --check app-v05.js
+          node --check comparison-v06.js
+          node --check app-v06.js
       - name: Run no-API engine tests
         run: |
           node tests/engine.test.cjs
@@ -29,4 +31,6 @@ jobs:
           node tests/structural.test.cjs
           node tests/band.test.cjs
           node tests/ui-v05.test.cjs
+          node tests/comparison-v06.test.cjs
+          node tests/ui-v06.test.cjs
           node tests/ui-v04.test.cjs
