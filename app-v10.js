@@ -1,4 +1,4 @@
-/* Plotune v1.0 — original layered handheld soundtrack + loop-first band music.
+/* Plotune v1.1 — emotional and scene-aware game soundtracks.
    Works entirely inside Safari/Web Audio; no network calls or paid APIs. */
 (function(){
 'use strict';
@@ -45,8 +45,25 @@ try{
  const saved=JSON.parse(localStorage.getItem('plotune')||'{}');
  fields.forEach(k=>{if(saved[k]!=null)$(k).value=saved[k]});
 }catch{}
+const gameSelect=$('gameStyle');
+const existing=gameSelect.value;
+gameSelect.replaceChildren();
+const automatic=document.createElement('option');
+automatic.value='auto';automatic.textContent='✨ シーンから自動選択';
+gameSelect.append(automatic);
+for(const group of handheld.GROUPS){
+ const section=document.createElement('optgroup');
+ section.label=group.label;
+ for(const id of group.ids){
+  const option=document.createElement('option');
+  option.value=id;option.textContent=handheld.STYLES[id].name;
+  section.append(option);
+ }
+ gameSelect.append(section);
+}
+gameSelect.value=handheld.STYLES[existing]?existing:'auto';
 bandPanel();
-$('runtimeVersion').textContent='実行中：v1.0｜重層サウンド・携帯ゲーム音楽に対応';
+$('runtimeVersion').textContent='実行中：v1.1｜喜怒哀楽と全30曲調・シーン自動選択';
 function addRow(parent,title,value){
  const el=document.createElement('div');el.className='report-row';
  el.append(textNode('span',title,'muted'),textNode('strong',value));parent.append(el);
@@ -62,8 +79,8 @@ function analyze(){
  }else if(input.style==='handheld'){
   // Both compositions share the character's motif, register, tempo and
   // synthesizer palette. Resonare selects a global arrangement from t=0.
-  base=handheld.prepare(original,input.gameStyle,appraisal,false);
-  enhanced=handheld.prepare(enhanced,input.gameStyle,appraisal,true);
+  base=handheld.prepare(original,input.gameStyle,appraisal,false,input.scene);
+  enhanced=handheld.prepare(enhanced,input.gameStyle,appraisal,true,input.scene);
  }
  const box=$('analysis');box.replaceChildren();
  box.append(textNode('h3','物語の解析結果'));
@@ -77,6 +94,10 @@ function analyze(){
    const whole=loopComposer.analyzeWhole(appraisal);
    addRow(report,'曲全体の編曲',whole.active?whole.label:'基準編曲を維持');
    addRow(report,'編曲の根拠',whole.reason);
+   if(base.genre==='game'){
+    addRow(report,'選択したBGM',styleName(base));
+    if(base.gameAutoChoice)addRow(report,'自動選択の理由',base.gameAutoChoice.reason);
+   }
    box.append(textNode('p','ループBGMでは文章全体を先に分析し、冒頭から一貫した曲調で演奏します。携帯ゲーム風は主旋律・対旋律・コード・アルペジオ・ベース・ドラム・装飾音を別々に作曲します。','explain'));
  }
  box.append(report);

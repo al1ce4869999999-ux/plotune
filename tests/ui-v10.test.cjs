@@ -37,7 +37,7 @@ Object.assign(context,{PlotuneAnalysis:window.PlotuneAnalysis,PlotuneResonare:wi
  PlotuneLoop:window.PlotuneLoop,PlotuneComposerV4:window.PlotuneComposerV4,PlotuneBand:window.PlotuneBand,PlotuneHandheld:window.PlotuneHandheld});
 vm.runInNewContext(fs.readFileSync(root+'/app-v10.js','utf8'),context,{filename:'app-v10.js'});
 (async()=>{
- assert.ok(elems.runtimeVersion.textContent.includes('v1.0'));
+ assert.ok(elems.runtimeVersion.textContent.includes('v1.1'));
  assert.equal(elems.gameOptions.hidden,false);
  await elems.make.handlers.click();
  assert.equal(elems.comparison.hidden,false);
@@ -89,5 +89,5 @@ vm.runInNewContext(fs.readFileSync(root+'/app-v10.js','utf8'),context,{filename:
  assert.ok(elems.contrastAssessment.textContent.includes('基準版と同じループ編曲'));
  assert.equal(elems.classicPlay.disabled,false);
  assert.equal(elems.resonarePlay.disabled,false);
- console.log('PASS v1.0 UI: game style selector, seven layers, 2 versions, seamless loop UI, nonband compatibility');
+ console.log('PASS v1.1 UI: game style selector, seven layers, 2 versions, seamless loop UI, nonband compatibility');
 })().catch(e=>{console.error(e);process.exitCode=1});
