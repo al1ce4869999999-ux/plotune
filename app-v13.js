@@ -241,7 +241,7 @@ async function compare(){
   save(true);
   status(global?'2曲完成！冒頭から異なるループ編曲で比較できます。':
     '2曲完成！根拠のない音楽の違いは作りません。');
- }catch(e){console.error(e);status('比較用の作曲に失敗しました',true);}
+ }catch(e){console.error(e);status('作曲エラー：'+(e?.message||String(e)),true);}
  finally{busy(false);ready();}
 }
 function playhead(){
@@ -259,7 +259,8 @@ function bufferFor(track){
 }
 async function play(which=null,scope='full'){
  const track=which&&tracks?tracks[which]:current;
- if(!track||scope==='clip'&&!selected)return;
+ if(!track){status('再生できる曲がありません。先に「2曲まとめて作曲」を押してね',true);return;}
+  if(scope==='clip'&&!selected){status('比較する場面が未選択です。通常の再生を試してね',true);return;}
  const duration=Math.min(track.score?.duration||track.samples.length/track.sampleRate,
     track.samples.length/track.sampleRate);
  const part=scope==='clip'?selected.window:{start:0,end:duration};
@@ -292,7 +293,7 @@ async function play(which=null,scope='full'){
   status((synced?'同じ再生位置で切り替え：':'再生中：')+
     (which==='classic'?'基準版':which==='resonare'?'Resonare版':'曲')+
     ' · '+offset.toFixed(1)+'秒'+(scope==='clip'?'（冒頭／場面だけ）':looping?'（ループ再生）':'')+' 🎵');
- }catch(e){console.error(e);node=null;transport=null;status('再生に失敗しました。音量を確認してね',true);}
+ }catch(e){console.error(e);node=null;transport=null;status('再生エラー：'+(e?.message||String(e)),true);}
 }
 async function exportWav(){
  if(!current)return;
