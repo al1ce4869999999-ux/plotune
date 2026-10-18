@@ -51,9 +51,9 @@ const GROUPS=[
 // A melancholic score needs its own phrasing, instrumental activity
 // and timbre, not a slower version of the pop backing track.
 const MOODS={
- sadness:{register:-5,phrase:7,lead:.74,drum:.22,kind:'melancholy'},
+ sadness:{register:-5,phrase:9,lead:.74,drum:.22,kind:'melancholy'},
  lonely:{register:-7,phrase:9,lead:.68,drum:.16,kind:'melancholy'},
- farewell:{register:-5,phrase:7,lead:.76,drum:.23,kind:'melancholy'},
+ farewell:{register:-5,phrase:9,lead:.76,drum:.23,kind:'melancholy'},
  rain:{register:-3,phrase:6,lead:.72,drum:.18,kind:'melancholy'},
  anxiety:{register:-3,phrase:5,lead:.79,drum:.32,kind:'uneasy'},
  fear:{register:-7,phrase:6,lead:.65,drum:.30,kind:'uneasy'}
