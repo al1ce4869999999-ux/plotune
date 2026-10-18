@@ -51,13 +51,13 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 </style>
 <script defer src="analyzer.js"></script>
 <script defer src="resonare.js"></script>
-<script defer src="composer.js"></script>
-<script defer src="app-v03.js"></script>
+<script defer src="composer-v04.js"></script>
+<script defer src="app-v04.js"></script>
 </head>
 <body>
 <main>
 <header>
-<h1>🎼 Plotune <small style="font-size:13px;color:#c0aaff;vertical-align:middle">v0.3</small></h1>
+<h1>🎼 Plotune <small style="font-size:13px;color:#c0aaff;vertical-align:middle">v0.4</small></h1>
 <p class="lead">物語のシーンを、キャラクターらしい音楽に。</p>
 </header>
 <section class="card">
@@ -82,7 +82,7 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 </select></div>
 <div><label for="duration">長さ</label><select id="duration"><option value="15">15秒</option><option value="30" selected>30秒</option><option value="60">60秒</option></select></div>
 </div>
-<label for="engine">解析エンジン</label><select id="engine"><option value="resonare">Resonare型（実験版）</option><option value="classic">従来版（感情キーワード）</option></select>
+<label for="engine">解析エンジン</label><select id="engine"><option value="resonare">Resonare型（実験版）</option><option value="classic">基準アレンジ（出来事に反応しない）</option></select>
 <div class="actions">
 <button id="compare" class="alt" type="button">⚖️ 2方式を比較</button>
 <button id="analyze" class="alt" type="button">🔍 文章を解析</button>
@@ -102,7 +102,7 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 </div>
 <p id="status" role="status" aria-live="polite"></p>
 <div id="comparison" hidden><h3>A/B聴き比べ</h3><p id="comparisonInfo"></p>
-<div class="actions"><button id="classicPlay" class="alt" disabled>▶ 従来版</button><button id="resonarePlay" class="alt" disabled>▶ Resonare版</button></div></div>
+<div class="actions"><button id="classicPlay" class="alt" disabled>▶ 基準版</button><button id="resonarePlay" class="alt" disabled>▶ Resonare版</button></div></div>
 </section>
 <p class="footer">作曲に外部API・ログインは不要。Resonare型は実験的な数値モデルで、心情や事実を確定するものではありません。端末内で文章を簡易解析し、メロディー・和音・伴奏を合成します。文章の理解はキーワードとルールに基づく推定で、AIによる意味理解とは異なります。保存済みの設定はこのブラウザに残ります。</p>
 </main>
