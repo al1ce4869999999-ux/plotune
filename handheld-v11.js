@@ -39,13 +39,77 @@ const STYLES={
  festival:{name:'おまつり・大騒ぎ',bpm:166,progression:[0,4,3,4],lead:'bright',bass:'running',drums:'festival',mode:'major',density:1.13,arpEvery:1,intensity:1.25,shape:'jump'},
  battle:{name:'勝負・対決',bpm:172,progression:[5,4,1,5],lead:'reed',bass:'running',drums:'heavy',mode:'minor',density:1.04,arpEvery:1,intensity:1.22,shape:'rush'}
 };
+const GROUPS=[
+ {label:'🌈 喜怒哀楽',ids:['joy','anger','sadness','fun']},
+ {label:'🐾 ぽんぽんの気持ち',ids:['proud','victory','frustration','shyness','affection','lonely','anxiety','fear']},
+ {label:'🎭 プロットの出来事',ids:['failure','retry','prank','chase','discovery','wonder','suspense','reunion','farewell']},
+ {label:'🏡 日常・情景',ids:['daily','sleep','rain','festival','battle']},
+ {label:'🎮 ゲーム音楽の基本',ids:['journey','village','mischief','mystery']}
+];
+// The classifier uses explicit, observable language. If no cue occurs,
+// fall back to familiar whimsical game music; do not assert hidden emotions.
+const RULES=[
+ ['fear',/怖い|こわい|怖が|恐怖|怯|おびえ|びくびく|お化け|幽霊|恐ろし|震え/g,4],
+ ['anger',/怒っ|怒り|ぷんぷん|激怒|腹を立て|かんかん|むかつ|むっとした|怒鳴/g,4],
+ ['sadness',/悲し|しょんぼり|泣い|涙|落ち込|悲嘆|うつむ|かなしい/g,4],
+ ['joy',/うれしい|嬉しい|喜ん|大喜び|にこにこ|にっこり|笑顔|わーい/g,4],
+ ['fun',/楽しい|たのしい|わくわく|るんるん|はしゃ|浮かれ|遊びまわ/g,4],
+ ['proud',/得意げ|どや顔|えっへん|自慢げ|胸を張|ふんぞり|じまん/g,5],
+ ['victory',/成功|大成功|勝利|優勝|やったー|できた|完成|達成|褒められた/g,4],
+ ['frustration',/悔し|くやし|負けず嫌い|むむむ|歯ぎしり|不満|納得でき/g,4],
+ ['shyness',/照れ|恥ずかし|もじもじ|顔を赤らめ|赤面/g,4],
+ ['affection',/なかよし|仲良し|なでなで|ぎゅっと抱|大好き|甘え|寄り添|あったか|ほっこり/g,4],
+ ['lonely',/さびし|寂し|ひとりぼっち|孤独|置いていかれ|会えない/g,4],
+ ['anxiety',/不安|心配|おろおろ|そわそわ|どうしよう|落ち着かない/g,4],
+ ['failure',/失敗|ずっこけ|つまず|転ん|ころんと|落とした|間違え|ひっくり返/g,4],
+ ['retry',/やり直|再挑戦|もう一度|もういっかい|れんしゅう|練習|挑戦|諦めず|がんば/g,4],
+ ['prank',/いたずら|こっそり|忍び込|悪だくみ|隠して|しめしめ|企み/g,4],
+ ['chase',/追いかけっこ|追いかけ|逃げ回|鬼ごっこ|おにごっこ|全速力|猛ダッシュ/g,5],
+ ['discovery',/発見|見つけた|ひらめ|気づいた|きらり|宝物を発見/g,4],
+ ['wonder',/不思議|ふしぎ|夢みたい|幻想|魔法|きらきら|星空/g,4],
+ ['suspense',/見つかりそう|ばれる|バレる|隠れ|忍び足|秘密|ひみつ|緊迫/g,4],
+ ['sleep',/おやすみ|すやすや|寝息|眠っ|お昼寝|ねんね|うとうと/g,4],
+ ['rain',/雨|あめ|雨音|雨粒|しとしと|霧雨/g,3],
+ ['reunion',/再会|会えた|久しぶり|帰ってきた|ただいま|おかえり/g,4],
+ ['farewell',/お別れ|別れ|さようなら|さよなら|旅立ち|見送/g,4],
+ ['festival',/祭り|まつり|花火|お祝い|宴|大騒ぎ|パーティー/g,4],
+ ['battle',/対決|戦い|勝負|決闘|強敵|ライバル|バトル/g,4],
+ ['daily',/日常|いつもの|のんびり|おさんぽ|散歩|朝ごはん|昼ごはん|お掃除/g,2],
+ ['journey',/冒険|旅|出発|フィールド|遠征/g,3],
+ ['village',/街|町|村|お店|おうち|里|タウン/g,2],
+ ['mischief',/ドタバタ|大慌て|あわて|大失敗|こけた/g,2],
+ ['mystery',/探索|迷い込|謎|ミステリー|洞窟/g,2]
+];
+function chooseStyle(scene){
+ const text=String(scene||'').slice(0,10000);
+ if(!text.trim())return {style:'mischief',confidence:'low',evidence:[],reason:'文章がないためコミカル曲を使用'};
+ const found=[];
+ for(const [style,regex,weight] of RULES){
+  regex.lastIndex=0;let match,score=0,evidence=[];
+  while((match=regex.exec(text))!==null){
+   const tail=text.slice(match.index+match[0].length,match.index+match[0].length+8);
+   // Explicit negation prevents treating "怖くない" as fear.
+   if(/^(?:くない|ではない|じゃない|なかった|しない|ない|ずに)/.test(tail))continue;
+   score+=weight;evidence.push(match[0]);
+   if(evidence.length>=8)break;
+  }
+  if(score>0)found.push({style,score,evidence});
+ }
+ found.sort((a,b)=>b.score-a.score);
+ const first=found[0];
+ return first?{style:first.style,confidence:'medium',evidence:first.evidence,
+   reason:'文章内の「'+first.evidence.join('・')+'」を根拠に選択'}
+   :{style:'mischief',confidence:'low',evidence:[],reason:'明確な感情語がないためコミカル曲を使用'};
+}
+
 function random(seed){let x=(seed>>>0)||1;return ()=>{x^=x<<13;x^=x>>>17;x^=x<<5;return(x>>>0)/4294967296;};}
 function midi(root,scale,index){return root+scale[((index%7)+7)%7]+12*Math.floor(index/7);}
-function prepare(plan,style,appraisal=null,reactive=false){
- const type=STYLES[style]?style:'journey';
+function prepare(plan,style,appraisal=null,reactive=false,scene=''){
+ const picked=style==='auto'?chooseStyle(scene):null;
+ const type=STYLES[picked?.style||style]?picked?.style||style:'mischief';
  const knowledge=root.PlotuneLoop?.analyzeWhole(appraisal);
  return {...plan,genre:'game',gameStyle:type,loopMode:true,
-  loopArrangement:reactive&&knowledge?.active?knowledge:null};
+  loopArrangement:reactive&&knowledge?.active?knowledge:null,gameAutoChoice:picked};
 }
 function score(plan){
  const game=STYLES[plan.gameStyle]||STYLES.journey;
@@ -282,5 +346,5 @@ function wavBlob(samples,rate=SR){
  for(let i=0;i<samples.length;i++)v.setInt16(44+i*2,Math.round(clamp(samples[i],-1,1)*32767),true);
  return new Blob([buffer],{type:'audio/wav'});
 }
-root.PlotuneHandheld={STYLES,prepare,score,render,wavBlob};
+root.PlotuneHandheld={STYLES,GROUPS,chooseStyle,prepare,score,render,wavBlob};
 })(window);
