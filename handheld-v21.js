@@ -501,38 +501,40 @@ function score(plan){
    for(const key of Object.keys(voices))
      voices[key]=key==='drums'?drums.length:notes.filter(n=>n.voice===key).length;
  }
-  // Gentle "shonbori": a small, recoverable disappointment, NOT defeat.
-  // Run after scene instrument selection so heavy arrangements cannot override it.
+  // Tiny cartoon disappointment: "しょぼん(´･ω･｀)", not loss or dread.
+  // Major pentatonic, warm plucked notes, little downward sighs and a
+  // curious upward ending. No low pedal, minor harmony or funeral rhythm.
   if(plan.gameStyle==='sadness' && !plan.emotionalArc){
     notes.length=0;drums.length=0;
-    const little=[4,3,2,1,2,0,1,2,3,2,1,0,1,2,1,0];
+    const gentle=[4,2,1,0,null,1,2,null, 4,2,1,null,2,1,0,null];
+    const chordRoots=[0,3,4,0];
     const upper=tonic+12;
     for(let b=0;b<bars;b++){
-      const start=b*meter,variation=b%4;
-      for(let j=0;j<8;j++){
-        const slot=j*2,t=start+slot*step;
-        if(t>=duration||(variation===1&&j===3)||(variation===3&&j===5))continue;
-        const degree=little[(slot+variation*2)%16]+(variation===2&&j>4?1:0);
-        notes.push({t,d:Math.min(step*(j%4===3?2.7:1.65),duration-t),
-          midi:clamp(midi(upper,MINOR,degree),57,83),
-          voice:'lead',role:'lead',timbre:'ocarina',volume:.076});
-      }
-      const replyT=start+10*step;
-      if(replyT<duration)notes.push({t:replyT,d:Math.min(step*2.4,duration-replyT),
-        midi:midi(upper,MINOR,variation%2?2:4),voice:'counter',
-        role:'counter',timbre:'musicbox',volume:.023});
-      const chordDegree=[0,3,4,0][variation];
-      for(const interval of [0,2,4]){
-        notes.push({t:start,d:Math.min(meter*.85,duration-start),
-          midi:midi(tonic,MINOR,chordDegree+interval),
-          voice:'pad',role:'pad',timbre:'softpiano',volume:.012});
-      }
-      for(const slot of [0,8]){
+      const start=b*meter,variation=b%4,chordDegree=chordRoots[variation];
+      for(let slot=0;slot<16;slot+=2){
+        const degree=gentle[(slot+variation*2)%gentle.length];
         const t=start+slot*step;
-        if(t<duration)notes.push({t,d:Math.min(step*3.1,duration-t),
-          midi:midi(tonic,MINOR,chordDegree),voice:'bass',
-          role:'bass',timbre:'kalimba',volume:.020});
+        if(degree===null||t>=duration)continue;
+        const ending=variation===3&&slot===14?2:degree;
+        notes.push({t,d:Math.min(step*(slot%8===6?2.2:1.35),duration-t),
+          midi:clamp(midi(upper,MAJOR,ending),60,85),
+          voice:'lead',role:'lead',timbre:'kalimba',volume:.070});
       }
+      // Friendly, brief answers rather than ominous sustained strings.
+      const replyT=start+11*step;
+      if(replyT<duration)notes.push({t:replyT,d:Math.min(step*1.6,duration-replyT),
+        midi:midi(upper,MAJOR,variation===3?2:1),voice:'counter',
+        role:'counter',timbre:'musicbox',volume:.016});
+      // Major triads lightly plucked in the middle register.
+      for(const interval of [0,2,4]){
+        const t=start+step*(interval===4?8:0);
+        if(t<duration)notes.push({t,d:Math.min(step*3.4,duration-t),
+          midi:midi(tonic,MAJOR,chordDegree+interval),
+          voice:'chords',role:'chords',timbre:'softpiano',volume:.013});
+      }
+      if(start<duration)notes.push({t:start,d:Math.min(step*2.7,duration-start),
+        midi:midi(tonic-12,MAJOR,chordDegree),voice:'bass',
+        role:'bass',timbre:'kalimba',volume:.012});
     }
     for(const key of Object.keys(voices))
       voices[key]=key==='drums'?0:notes.filter(n=>n.voice===key).length;
