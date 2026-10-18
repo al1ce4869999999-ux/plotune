@@ -130,7 +130,7 @@ function score(plan){
  const scale=(game.mode||plan.mode)==='minor'?MINOR:MAJOR,tonic=(game.mode==='minor'&&plan.mode!=='minor'?57:game.mode==='major'&&plan.mode==='minor'?60:plan.root||60);
  const concept=plan.loopArrangement,kind=concept?.preset||null,transform=!!concept?.active;
  // Distinct global harmony from the FIRST measure when story supports it.
- const base=game.progression,change=transform?(concept.progression||base):base;
+ const base=game.progression,change=transform&&!MOODS[plan.gameStyle]?(concept.progression||base):base;
  const prog=change.map((v,i)=>((v+(kind==='mystery'?1:0))%7+7)%7);
  const meter=step*16,seed=plan.seed>>>0;
  const themeRand=random(plan.characterSeed>>>0);
