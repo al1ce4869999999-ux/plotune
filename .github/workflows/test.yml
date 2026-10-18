@@ -21,6 +21,8 @@ jobs:
           node --check band-v07.js
           node --check resonare-v08.js
           node --check band-v08.js
+          node --check comparison-v08.js
+          node --check app-v08.js
           node --check app.js
           node --check app-v03.js
           node --check app-v04.js
@@ -37,6 +39,7 @@ jobs:
           node tests/band.test.cjs
           node tests/band-v07.test.cjs
           node tests/practice-v08.test.cjs
+          node tests/ui-v08.test.cjs
           node tests/ui-v07.test.cjs
           node tests/ui-v05.test.cjs
           node tests/comparison-v06.test.cjs
