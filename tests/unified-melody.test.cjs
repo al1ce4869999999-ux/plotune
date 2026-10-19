@@ -58,7 +58,7 @@ test('motif is identifiable while variation, answer and cadence differ',()=>{
  const w=load(['melodic-grammar-v01.js']).PlotuneMelodicGrammar;
  const m=w.compose({seed:1729,bars:8,slots:16,notesPerBar:7,mood:'mystery',density:1});
  assert.ok(m.motif.length>=3);
- assert.deepEqual(m.bars.slice(0,4).map(b=>b[0].phraseRole),['statement','variation','answer','resolution']);
+ assert.equal(JSON.stringify(m.bars.slice(0,4).map(b=>b[0].phraseRole)),JSON.stringify(['statement','variation','answer','resolution']));
  const patterns=m.bars.slice(0,4).map(b=>b.map(n=>n.degree).join(','));
  assert.ok(new Set(patterns).size>=3,'phrase development must not repeat the same pitch row');
  assert.notEqual(m.bars[0][1].step,m.bars[2][1].step,'answer reshapes the motivic contour');
