@@ -581,7 +581,7 @@ function score(plan){
       for(let j=0;j<phrase.length;j++){
         const n=phrase[j],generated=generatedPhrases?.[bar]?.[j],t=start+(generated?generated.offset:n.p+(bar%4===2&&j%3===1?.25:0))*unit;
         if(t>=duration)continue;
-        const generated=generatedPhrases?.[bar]?.[j];
+
         if(generated?.rest)continue;
         const pitch=(generated?generated.degree:degreeFor(j,bar))+shift;
         notes.push({t,d:Math.min(duration-t,(generated?generated.durationUnits:n.d)*unit),midi:clamp(midi(upper,MAJOR,pitch),60,86),
