@@ -38,3 +38,35 @@ test('normal song and instrumental arrangements use the same melody service',()=
  assert.ok(scored.notes.some(n=>n.voice==='lead'));
  assert.ok(count>=2);
 });
+
+test('rhythmic grid has no collisions and is not a uniform note conveyor',()=>{
+ const w=load(['melodic-grammar-v01.js']).PlotuneMelodicGrammar;
+ for(const mood of ['sorrow','courage','mystery','sparse']){
+  const music=w.compose({seed:1729,bars:8,slots:16,notesPerBar:6,mood,density:.88});
+  for(const bar of music.bars){
+   const starts=bar.map(n=>n.offset);
+   assert.equal(new Set(starts).size,starts.length,'unique attacks');
+   assert.ok(starts.every((t,i)=>i===0||t>starts[i-1]),'onsets ordered');
+   assert.ok(bar.every(n=>n.durationUnits>0&&n.offset+n.durationUnits<=16+1e-9));
+  }
+  const spacings=music.bars.flatMap(bar=>bar.slice(1).map((n,i)=>n.offset-bar[i].offset));
+  assert.ok(new Set(spacings).size>1,'the rhythmic layer must vary note spacings');
+  assert.equal(music.bars[3].at(-1).degree,0);
+ }
+});
+test('motif is identifiable while variation, answer and cadence differ',()=>{
+ const w=load(['melodic-grammar-v01.js']).PlotuneMelodicGrammar;
+ const m=w.compose({seed:1729,bars:8,slots:16,notesPerBar:7,mood:'mystery',density:1});
+ assert.ok(m.motif.length>=3);
+ assert.deepEqual(m.bars.slice(0,4).map(b=>b[0].phraseRole),['statement','variation','answer','resolution']);
+ const patterns=m.bars.slice(0,4).map(b=>b.map(n=>n.degree).join(','));
+ assert.ok(new Set(patterns).size>=3,'phrase development must not repeat the same pitch row');
+ assert.notEqual(m.bars[0][1].step,m.bars[2][1].step,'answer reshapes the motivic contour');
+});
+test('scene changes expression without hardcoding an instrument motif',()=>{
+ const w=load(['melodic-grammar-v01.js']).PlotuneMelodicGrammar;
+ const a=w.compose({seed:300,bars:4,slots:16,notesPerBar:7,mood:'sorrow'});
+ const b=w.compose({seed:300,bars:4,slots:16,notesPerBar:7,mood:'courage'});
+ assert.equal(JSON.stringify(a.motif),JSON.stringify(b.motif),'identity remains character-based');
+ assert.notEqual(JSON.stringify(a.bars),JSON.stringify(b.bars),'scene changes its development');
+});
