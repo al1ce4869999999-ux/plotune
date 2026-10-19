@@ -55,5 +55,38 @@ function phrase(g,bar,count=8){
  }
  return result;
 }
-root.PlotuneMelodicGrammar={grammar,phrase};
+// Universal melodic phrase: composition is independent from instrumental performance.
+// Grid offsets and durations are in local subdivision units, not seconds.
+function compose(options={}){
+ const seed=options.seed||1;
+ const g=grammar(options.structure,options.expression,seed);
+ const mood=String(options.mood||'');
+ const sorrow=/sad|loss|farewell|lament|grief|lonely|sigh|musicbox/.test(mood);
+ const hopeful=/courage|hero|triumph|hope|retry|victory/.test(mood);
+ const sparse=/sparse|lullaby|sleep/.test(mood);
+ const density=clamp(Number.isFinite(options.density)?options.density:g.noteDensity,.18,.96);
+ const bars=Math.max(1,Math.floor(options.bars||1)), slots=Math.max(4,Math.floor(options.slots||16));
+ const notesPerBar=Math.max(3,Math.min(12,Math.round(options.notesPerBar|| (sparse?4:sorrow?5:hopeful?8:6))));
+ const out=[];
+ for(let b=0;b<bars;b++){
+  const raw=phrase({...g,noteDensity:density*(sparse?.83:1)},b,notesPerBar);
+  const rand=rng((g.identity^Math.imul(b+5,0x85ebca6b))>>>0);
+  const gap=slots/notesPerBar;
+  const items=raw.map((n,i)=>{
+   const variation=(b%4===2&&i>0&&i<notesPerBar-1)?(rand()-.5)*gap*.34:0;
+   const offset=Math.max(0,Math.min(slots-.25,i*gap+variation));
+   const target=i===notesPerBar-1?slots-offset:gap*(sorrow?1.22:hopeful?.83:1.04);
+   const durationUnits=Math.max(.3,Math.min(slots-offset,target*(n.durationUnits/1.4)));
+   let degree=n.degree;
+   // Local tension rises or falls by phrase; the final cadence resolves.
+   if(sorrow)degree=Math.max(0,degree-(i>=notesPerBar-2?2:1));
+   if(hopeful&&b%4===2)degree=Math.min(8,degree+1);
+   if(b%4===3&&i===notesPerBar-1)degree=0;
+   return {offset,durationUnits,degree,rest:n.rest,step:n.step};
+  });
+  out.push(items);
+ }
+ return {version:'1',seed,bars:out,slots,mood};
+}
+root.PlotuneMelodicGrammar={grammar,phrase,compose};
 })(window);
