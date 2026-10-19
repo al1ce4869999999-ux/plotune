@@ -20,6 +20,13 @@ function trace(plan,result){
  const intervals=lead.slice(1).map((n,i)=>n.midi-lead[i].midi);
  const timbres=[...new Set(notes.map(n=>n.timbre).filter(Boolean))];
  const roles={};for(const n of notes)if(n.volume>0)roles[n.voice]=(roles[n.voice]||0)+1;
+ const applied=result?.details?.researchApplied;
+ if(applied){
+  for(const [key,label,meaning] of [['registerSemitones','音域','主旋律と対旋律の音程調整'],['dynamicsFactor','強弱','音符ごとの音量変更'],['articulationFactor','アーティキュレーション','音価変更'],['brightness','音色','合成波形の明るさ係数'],['reverbWet','空間','反射音の割合']]){
+   entries.push({id:'R-'+key,source:'research',evidence:[],rule:label+'は聴取感情／距離知覚に関連（調整量はPlotuneの仮設定）',parameter:key+'='+applied[key],effect:meaning,kind:'research-dimension'});
+  }
+  entries.push({id:'R-pending',source:'research',evidence:[],rule:'長短調・テンポは研究で影響が確認されているが今回は未調整',parameter:'preset preserved',effect:'変更なし',kind:'not-applied'});
+ }
  entries.push({id:'GEN01',source:'composer',evidence:[],rule:'曲調と音楽文法を統合して作曲',parameter:g,effect:'旋律と伴奏を生成',kind:'implementation'});
  if(g==='sadness')entries.push({id:'GEN02',source:'composer',evidence:[],rule:'軽い落胆用の専用編曲により既存の音符を置き換える',parameter:'sadness arrangement',effect:'主旋律・伴奏・音色を再生成',kind:'implementation'});
  return {version:'0.1',notes:{lead:lead.length,voices:roles,timbres,meanLeap:intervals.length?intervals.reduce((a,v)=>a+Math.abs(v),0)/intervals.length:0,leadOnsets:lead.slice(0,12).map(n=>Number(n.t.toFixed(3)))},entries,limitations:['記述したルールはコード上の因果経路であり、主観的な音質の原因を証明しない','研究の知見と性格から音を割り当てる創作仮説は別','曲調・音色・シンセの相互作用までは自動的に説明しない']};
