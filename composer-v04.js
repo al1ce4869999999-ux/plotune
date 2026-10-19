@@ -19,6 +19,11 @@ function buildScore(plan){
  const scale=SCALES[plan.mode]||SCALES.major,steps=Math.ceil(duration/eighth);
  const randomMusic=random(plan.seed),randomTheme=random(plan.characterSeed);
  const theme=Array.from({length:8},(_,i)=>i===7?0:Math.floor(randomTheme()*7));
+  const unified=root.PlotuneMelodicGrammar?.compose({seed:plan.characterSeed||plan.seed||1,
+    bars:Math.ceil(steps/8),slots:8,notesPerBar:6,
+    density:plan.genre==='ambient'?.50:plan.genre==='horror'?.58:.78,
+    mood:plan.mode==='minor'?'sorrow':plan.genre==='fantasy'?'mystery':'neutral',
+    structure:plan.structure,expression:plan.expression});
  const intervals=Array.from({length:8},(_,i)=>i%2===0&&randomTheme()>.72?7:0);
  const rootNote=plan.root||60;
  const events=(plan.resonare?.events||[]).map((e,i)=>({
@@ -125,11 +130,12 @@ function buildScore(plan){
   const drop=dark&&(i%4===1||i%4===3);
   // Theme contour is persistent, but the local narrative deforms its phrase.
   if(!muted&&!drop){
-   const normalRhythm=i%4===0||i%4===2||i%8===3||i%8===7;
+   const generated=unified?.bars?.[measure]?.find(n=>Math.round(n.offset)===position);
+    const normalRhythm=unified?!!generated&&!generated.rest:(i%4===0||i%4===2||i%8===3||i%8===7);
    const dramaticRhythm=dark?(i%4===0||i%8===6):
        rising?(i%2===0||i%8===7):quiet?(i%4===0):normalRhythm;
    if((dramatic?dramaticRhythm:normalRhythm)&&!(position===7&&measure%4===3)){
-    let di=theme[position]+intervals[position];
+    let di=generated?generated.degree:theme[position]+intervals[position];
     if(position===0||position===4){
       const choices=[chord,chord+2,chord+4];
       di=choices.reduce((a,b)=>Math.abs(b-di)<Math.abs(a-di)?b:a,choices[0]);
@@ -140,7 +146,7 @@ function buildScore(plan){
     if(quiet)di=Math.min(5,di);
     const octaveShift=genre==='piano'||genre==='ambient'?-12:0;
     const voice=dark?'ghost':rising?(genre==='chip'?'chip':'bell'):normalLead;
-    const d=dark?eighth*1.75:quiet?eighth*2.8:rising?eighth*.97:eighth*1.65;
+    const d=dark?eighth*1.75:quiet?eighth*2.8:rising?eighth*.97:eighth*(generated?.durationUnits||1.65);
     add(time,d,degree(rootNote,scale,di)+octaveShift,
       (dark?.135:rising?.23:quiet?.105:.18)*energy,voice,'lead');
     if(rising&&position%4===0){

@@ -1,0 +1,21 @@
+name: Unified melody smoke
+on:
+  push:
+    branches: [feature/unified-melody-engine]
+  pull_request:
+    paths:
+      - 'melodic-grammar-v01.js'
+      - 'composer-v04.js'
+      - 'handheld-v21.js'
+      - 'tests/unified-melody.test.cjs'
+      - '.github/workflows/unified-melody.yml'
+jobs:
+  melody:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check melodic-grammar-v01.js && node --check composer-v04.js && node --check handheld-v21.js
+      - run: node --test tests/unified-melody.test.cjs
