@@ -1,0 +1,24 @@
+name: Listening samples
+on:
+  push:
+    branches: [feature/unified-melody-engine]
+    paths:
+      - 'tests/generate-listening-samples.cjs'
+      - 'melodic-grammar-v01.js'
+      - 'composer-v04.js'
+      - 'handheld-v21.js'
+      - '.github/workflows/listening-samples.yml'
+  workflow_dispatch:
+jobs:
+  listen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node tests/generate-listening-samples.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plotune-unified-listening-samples
+          path: listening-samples/
