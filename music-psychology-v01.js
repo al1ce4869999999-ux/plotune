@@ -16,6 +16,22 @@ function derive(structure,style){
   motif:{bounce:clamp((bouncy?.52:0)+(small?.18:0)),hesitation:quiet?.48:.06,register:small?2:0},
   emotion:{grief:grievous,mildSadness:mild,accent:grievous?.48:mild?.12:.24},
   space:{reverb:space,place},
+  // Eerola, Friberg & Bresin 2013: mode, tempo, register, dynamics,
+  // articulation and timbre each affect perceived emotion. These coefficients
+  // are application design choices, NOT published fitted coefficients.
+  researchCues:(()=>{
+   const sad=style==='sadness',fear=style==='fear'||style==='terror',joy=style==='joy'||style==='fun';
+   return {source:'Eerola-Friberg-Bresin-2013',
+    mode:sad?'gentle-major-with-sigh':fear?'minor':joy?'major':'preserve',
+    tempoFactor:sad?.92:fear?1.06:joy?1.05:1,
+    registerSemitones:sad?-1:fear?-2:joy?1:0,
+    dynamicsFactor:sad?.84:fear?.9:joy?1.06:1,
+    articulationFactor:sad?1.20:fear?.80:joy?.92:1,
+    brightness:sad?.70:fear?.6:joy?1:.85,
+    // Spatial perception: relative reflected/direct energy is a distance cue;
+    // amount selected from location is a creative mapping, not a measured law.
+    reverbWet:clamp(space*.45,.02,.19)};
+  })(),
   orchestration:{family:has(w.technology,'digital')?'synthlead':has(w.magicSystem,'magic')?'ocarina':has(w.materials,'wood')?'kalimba':quiet?'softpiano':null},
   theoryNote:'Research trends are directional; character-to-sound associations are hypotheses'};
 }
