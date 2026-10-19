@@ -471,7 +471,7 @@ function score(plan){
      const unit=sadMode?4:heroicMode?2:playfulMode?2:
        isBreath||isSynth?2:isPluck?3:4; // scene and preset both shape rhythm
      for(let slot=0;slot<16;slot+=unit){
-       const t=start+slot*step;if(t>=duration)continue;
+       const t=start+(unified?.bars?.[b]?.[Math.floor(slot/unit)]?.offset??slot)*step;if(t>=duration)continue;
        const ordinal=Math.floor(slot/unit);
        // Silent gaps and phrase resolution are intentional.
        if(!isBreath&&!isSynth&&slot>=12&&b%2===1)continue;
