@@ -456,6 +456,12 @@ function score(plan){
      palette.rhythm==='hero'?hero:
      isFlute||isSynth?hero:phrase;
    const cadence=isFlute||isSynth?[0,4,5,3]:[5,3,1,4];
+    const unified=root.PlotuneMelodicGrammar?.compose({
+      seed:plan.characterSeed||plan.seed||1,bars,slots:16,
+      notesPerBar:palette.rhythm==='sparse'?4:isFlute||isSynth?8:6,
+      density:palette.rhythm==='sparse'?.68:.88,
+      mood:palette.rhythm==='sparse'?'sorrow':palette.rhythm==='hero'?'courage':palette.rhythm,
+      structure:plan.structure,expression:plan.expression});
    for(let b=0;b<bars;b++){
      const start=b*meter,degree=prog[b%prog.length];
      const basis=midi(tonic+12,scale,degree);
@@ -469,9 +475,12 @@ function score(plan){
        const ordinal=Math.floor(slot/unit);
        // Silent gaps and phrase resolution are intentional.
        if(!isBreath&&!isSynth&&slot>=12&&b%2===1)continue;
-       const move=line[(ordinal+b%4)%8]+((isBreath||isSynth)&&b%4===3?2:0);
+       const melodyNote=unified?.bars?.[b]?.[ordinal];
+        if(unified&&(!melodyNote||melodyNote.rest))continue;
+        const move=melodyNote?melodyNote.degree-3:line[(ordinal+b%4)%8]+((isBreath||isSynth)&&b%4===3?2:0);
        const midiValue=clamp(basis+move+(isBell?-12:0)+(palette.family==='strings'?-7:0),46,92);
-       const len=step*(sadMode?(ordinal%4===3?5.5:3.7):
+       const len=melodyNote?step*Math.max(.7,Math.min(7,melodyNote.durationUnits))*(isBreath?.88:isBox?1.12:1):
+          step*(sadMode?(ordinal%4===3?5.5:3.7):
          heroicMode?(ordinal%4===3?3.2:1.8):
          playfulMode?1.35:isBreath?(ordinal%4===3?3.2:1.8):
          isSynth?(ordinal%4===3?3.3:1.95):isSoft?7.5:
