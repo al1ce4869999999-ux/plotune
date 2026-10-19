@@ -792,8 +792,20 @@ function score(plan){
    }
    notes.sort((a,b)=>a.t-b.t);
  }
+ // Apply research-backed *dimensions* after character/scene composition.
+ // Numeric amounts are our implementation choices; not paper coefficients.
+ const cues=expression?.researchCues||null;
+ if(cues){
+   for(const n of notes){
+     if(n.voice==='lead'||n.voice==='counter'){
+       n.midi=clamp(n.midi+cues.registerSemitones,36,100);
+       n.d=Math.max(.04,Math.min(duration-n.t,n.d*cues.articulationFactor));
+       n.volume*=cues.dynamicsFactor;
+     }else if(n.voice==='chords'||n.voice==='pad') n.volume*=Math.sqrt(cues.dynamicsFactor);
+   }
+ }
  const details={
-  musicPsychology:expression,structuredStory:plan.structure||null,
+  musicPsychology:expression,researchApplied:cues?{...cues,appliedTo:['lead register','lead/counter articulation','note dynamics','synth brightness','reflection wetness'],tempoStatus:'not applied (preset BPM retained)',modeStatus:'not applied (style harmony retained)'}:null,structuredStory:plan.structure||null,
   genre:'game',gameStyle:plan.gameStyle||'journey',gameName:game.name,emotionMode:game.mode,groove:game.drums,shape,
   loopMode:true,loopBars:bars,bpm,theme:motif,parts:voices,
   emotionalProfile:emotional?.kind||null,
@@ -816,6 +828,7 @@ function render(plan){
  const s=score(plan),N=Math.round(s.duration*SR),out=new Float32Array(N);
  const leadTone=STYLES[plan.gameStyle]?.lead||'bright';
  const emotional=MOODS[plan.gameStyle]||null;
+ const cues=plan.expression?.researchCues||null;
  const palette=plan.instrumentChoice?.palette||STORY_INSTRUMENTS[plan.gameStyle]||null;
  function timbreWave(name,phase){
   const s=Math.sin(TAU*phase),s2=Math.sin(TAU*phase*2),s3=Math.sin(TAU*phase*3);
@@ -898,7 +911,8 @@ function render(plan){
    const smoothing=wind?.23:bowed?.17:timbre==='marimba'?.72:timbre==='synthlead'?.61:timbre==='harp'?.47:timbre==='kalimba'?.55:palette?.family==='musicbox'?.49:palette?.family==='bell'?.62:
      emotional?.kind==='melancholy'?.23:emotional?.kind==='uneasy'?.38:n.voice==='chords'?.50:n.voice==='pad'?.28:.74;
    prev=prev*(1-smoothing)+y*smoothing;
-   out[start+i]+=prev*n.volume*clamp(env,0,1);
+   const brightness=cues?.brightness??1;
+   out[start+i]+=prev*n.volume*clamp(env,0,1)*(.76+.24*brightness);
   }
  }
  const r=random((plan.seed^0x7ca1f3d2)>>>0);
@@ -923,6 +937,7 @@ function render(plan){
  // Soft early-reflection tail; distinct from a loud 8-bit delay.
  const reflections=[{delay:.031,gain:.055},{delay:.067,gain:.045},{delay:.143,gain:.032},{delay:.281,gain:.018}];
  for(const reflect of reflections){
+   reflect.gain*=cues?(.45+(cues.reverbWet||0)*5):1;
    const offset=Math.floor(reflect.delay*SR);
    for(let i=offset;i<N;i++)out[i]+=out[i-offset]*reflect.gain;
  }
