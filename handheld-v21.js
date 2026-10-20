@@ -248,6 +248,50 @@ function prepare(plan,style,appraisal=null,reactive=false,scene='',context=''){
   loopArrangement:reactive&&knowledge?.active?knowledge:null,gameAutoChoice:picked,
   instrumentChoice,emotionalArc,storyContext:context||scene,musicDNA:characterMusicDNA(context||scene,plan.characterSeed||1),arrangementSource:style==='auto'?'automatic-style':'manual-style'};
 }
+// Phrase-aware harmony: evaluate melodic anchor notes and plan a non-fixed
+// chord path using a small deterministic dynamic program (no extra random calls).
+function shapeForHarmony(game){return game.shape||'field';}
+function planPhraseHarmony(bars, motif, shape, pulseDensity, seed){
+ const contour={sigh:[0,-1,-2,-1,0,-2,-3,-2],stomp:[0,0,-1,0,1,0,-1,0],
+  tiptoe:[0,1,0,2,1,0,1,0],jump:[0,2,4,2,0,4,5,3],
+  triumph:[0,2,4,5,4,6,5,7],rush:[0,1,2,3,4,3,2,1],
+  spark:[0,2,4,7,5,4,2,0],march:[0,0,2,2,4,4,2,0],
+  mystery:[0,1,3,1,-1,2,0,-2],bounce:[0,2,-1,3,0,4,1,2]}[shape]||[0,1,2,1,3,2,1,0];
+ const mod=n=>(n%7+7)%7;
+ const anchors=Array.from({length:bars},(_,b)=>{
+  const section=b%4;
+  return [0,4,8,12].map(i=>mod(motif[(i+section*2)%8]+contour[i%8]+(section===2?2:0)));
+ });
+ const target=b=>b===bars-1?.1:b%8===7?.3:b%4===3?.44:b%4===2?.78:b%4===1?.55:.3;
+ const dp=[],back=[];
+ for(let b=0;b<bars;b++){
+  dp[b]=[];back[b]=[];
+  for(let c=0;c<7;c++){
+   const chordTones=[c,mod(c+2),mod(c+4)];
+   const match=anchors[b].reduce((n,a,i)=>n+(chordTones.includes(a)?(i===0?1.6:1):-.6),0);
+   const tension=(c===4?.85:c===6?.92:c===1?.55:c===5?.58:c===2?.62:c===3?.38:.12);
+   const phraseEnd=b===bars-1||b%4===3;
+   let local=match*1.25-Math.abs(tension-target(b))*2.5;
+   if(phraseEnd)local+=(c===0?1.5:c===4?.45:0);
+   if(b===bars-1)local+=(c===0?3:0);
+   local+=((Math.imul(seed^((b+1)*97),c+17)>>>0)%19)*.001;
+   if(b===0){dp[b][c]=local+(c===0?.85:0);back[b][c]=-1;continue;}
+   let best=-Infinity,prev=0;
+   for(let p=0;p<7;p++){
+    const dist=Math.min(mod(c-p),mod(p-c));
+    const motion=(p===c?-.95:dist===1?.4:dist===2?.18:-.35);
+    const functional=(p===4&&c===0?1.75:p===1&&c===4?.7:p===5&&c===1?.5:0);
+    const value=dp[b-1][p]+local+motion+functional;
+    if(value>best){best=value;prev=p;}
+   }
+   dp[b][c]=best;back[b][c]=prev;
+  }
+ }
+ const chords=Array(bars);
+ chords[bars-1]=dp[bars-1].indexOf(Math.max(...dp[bars-1]));
+ for(let b=bars-1;b>0;b--)chords[b-1]=back[b][chords[b]];
+ return chords;
+}
 function score(plan){
  const game=STYLES[plan.gameStyle]||STYLES.journey;
  const dna=plan.musicDNA||characterMusicDNA(plan.storyContext||'',plan.characterSeed||1);
@@ -278,7 +322,8 @@ function score(plan){
   if(t<0||t>=duration)return;
   drums.push({t,kind:name,volume:clamp(v,0,1)});voices.drums++;
  }
- function chordAt(b){return prog[b%4];}
+ const harmonicPath=planPhraseHarmony(bars,motif,shapeForHarmony(game),game.density||1,seed);
+ function chordAt(b){return harmonicPath[Math.max(0,Math.min(bars-1,b))];}
  const leadTone=game.lead;
  const leadRoot=tonic+12;
  const songEnergy=game.intensity||1;
@@ -286,7 +331,7 @@ function score(plan){
  const shape=game.shape||'field';
  // Repeat 4-bar thematic material; vary density and fills but keep a looping identity.
  for(let b=0;b<bars;b++){
-  const chord=chordAt(b),next=chordAt((b+1)%bars),barAt=b*meter;
+  const chord=chordAt(b),next=chordAt(Math.min(b+1,bars-1)),barAt=b*meter;
   harmony.push({t:barAt,chord});
   const section=b%4;
   const lift=b%8===4||kind==='bright';
