@@ -1,0 +1,23 @@
+name: Phrase composition v1
+on:
+  push:
+    branches: [feature/phrase-composition-v1]
+  pull_request:
+    paths:
+      - 'melodic-grammar-v01.js'
+      - 'handheld-v21.js'
+      - 'impression-lab.html'
+      - 'tests/phrase-composition-v1.test.cjs'
+      - '.github/workflows/phrase-composition-v1.yml'
+jobs:
+  phrase:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          node --check melodic-grammar-v01.js
+          node --check handheld-v21.js
+          node --test tests/phrase-composition-v1.test.cjs
