@@ -564,15 +564,15 @@ function score(plan){
       neutral:[{p:0,d:2.2,k:0},{p:3,d:2,k:1},{p:6,d:1.8,k:3},
         {p:10,d:2.4,k:2},{p:13,d:2.1,k:1}]
     };
-    const generatedPhrases=dynamicGrammar?Array.from({length:bars},(_,b)=>root.PlotuneMelodicGrammar.phrase(dynamicGrammar,b,phrases[type].length)):null;
+    const generatedPhrases=dynamicGrammar&&plan.phraseMode!=='legacy'?Array.from({length:bars},(_,b)=>root.PlotuneMelodicGrammar.phrase(dynamicGrammar,b)):null;
     const chordSteps=type==='playful'?[0,4,3,0]:type==='reserved'?[0,5,3,0]:[0,3,4,0];
     for(let bar=0;bar<bars;bar++){
       const start=bar*meter,variation=bar%4,degree=chordSteps[variation];
       const phrase=phrases[type],unit=meter/16;
-      for(let j=0;j<phrase.length;j++){
-        const n=phrase[j],t=start+(n.p+(bar%4===2&&j%3===1?.25:0))*unit;
+      for(let j=0;j<(generatedPhrases?.[bar]?.length||phrase.length);j++){
+        const n=phrase[j],generated=generatedPhrases?.[bar]?.[j];
+        const t=start+(generated?generated.positionUnits:(n.p+(bar%4===2&&j%3===1?.25:0)))*unit;
         if(t>=duration)continue;
-        const generated=generatedPhrases?.[bar]?.[j];
         if(generated?.rest)continue;
         const pitch=(generated?generated.degree:degreeFor(j,bar))+shift;
         notes.push({t,d:Math.min(duration-t,(generated?generated.durationUnits:n.d)*unit),midi:clamp(midi(upper,MAJOR,pitch),60,86),
