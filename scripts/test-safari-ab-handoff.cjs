@@ -14,6 +14,6 @@ assert.match(app,/compositionV1:true/);
 assert.match(app,/tracks=\{legacy,hierarchical\}/);
 assert.match(app,/play\('legacy'\)/);
 assert.match(app,/play\('hierarchical'\)/);
-assert.match(app,/const p=a\.input\.engine==='classic'\?a\.base:a\.enhanced/);
+assert.match(app,/const a=analyze\(\),p=a\.input\.engine==='classic'\?a\.base:a\.enhanced/);
 assert.match(rules,/Mandatory Safari A\/B handoff gate/);
 console.log('Safari handoff static regression passed (does not prove browser or audio playback)');
