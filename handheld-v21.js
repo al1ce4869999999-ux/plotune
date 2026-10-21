@@ -846,6 +846,17 @@ function score(plan){
    }
    notes.sort((a,b)=>a.t-b.t);
  }
+ // Instrument-specific composers replace the initial note grid. Give those
+ // replacement notes the same real song-form contour before role mixing.
+ if(plan.songForm&&(palette||plan.gameStyle==='sadness')){
+  for(const n of notes){
+   const point=arcAt(Math.min(bars-1,Math.floor(n.t/meter)));
+   if(n.voice==='lead'||n.voice==='counter'){
+    n.midi=clamp(n.midi+point.register,24,105);
+    n.volume*=point.energy;
+   }
+  }
+ }
  // Apply the same arrangement to notes added by specialist layers after add().
  // Recount roles so diagnostics reflect the audible arrangement.
  for(let i=notes.length-1;i>=0;i--){
