@@ -91,8 +91,9 @@ function analyze(){
   const storyContext=[input.character,input.world,input.scene].filter(Boolean).join('\n');
   const structure=window.PlotuneStoryStructure?.analyze(input);
   const expression=window.PlotuneMusicPsychology?.derive(structure,input.gameStyle);
-  base={...handheld.prepare(original,input.gameStyle,appraisal,false,input.scene,storyContext),structure,expression};
-  enhanced={...handheld.prepare(enhanced,input.gameStyle,appraisal,true,input.scene,storyContext),structure,expression};
+  const songForm=window.PlotuneSongForm?.plan({duration:Number(original.duration),title:input.title});
+  base={...handheld.prepare(original,input.gameStyle,appraisal,false,input.scene,storyContext),structure,expression,songForm};
+  enhanced={...handheld.prepare(enhanced,input.gameStyle,appraisal,true,input.scene,storyContext),structure,expression,songForm};
  }
  const box=$('analysis');box.replaceChildren();
  box.append(textNode('h3','物語の解析結果'));
