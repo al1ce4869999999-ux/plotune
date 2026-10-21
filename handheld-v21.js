@@ -301,9 +301,11 @@ function score(plan){
    const t=barAt+i*step,beat=i%4,on=i%8;
    // Shared melodic phrasing; arrangement and instruments remain style-specific.
    if(sharedPhrases){
-    const event=sharedPhrases[b].find(n=>Math.abs(n.position-i)<.01);
-    if(event&&!event.rest)add(barAt+event.position*step,event.durationUnits*step,
-      midi(leadRoot,scale,event.degree+chord),'lead',.125*energy);
+    for(const event of sharedPhrases[b]){
+     if(Math.floor(event.position)!==i||event.rest)continue;
+     add(barAt+event.position*step,event.durationUnits*step,
+       midi(leadRoot,scale,event.degree+chord),'lead',.125*energy);
+    }
    }else if(i%2===0)add(t,step*1.55,midi(leadRoot,scale,motif[(i+section*2)%8]),'lead',.125*energy);
    // Counterpoint answers primary melody in a different octave.
    if(((i===3||i===7||i===11||i===15)&&!isLast||i===3||i===11)&& (pulseDensity>.5||i===3)){
