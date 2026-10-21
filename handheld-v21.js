@@ -301,8 +301,12 @@ function score(plan){
  const pulseDensity=game.density||1;
  const shape=game.shape||'field';
  const sharedGrammar=root.PlotuneMelodicGrammar?.grammar(plan.structure,plan.expression,plan.characterSeed||seed);
- const sharedPhrases=sharedGrammar&&root.PlotuneMelodicGrammar?.composePhrase?
-   Array.from({length:bars},(_,b)=>root.PlotuneMelodicGrammar.composePhrase(sharedGrammar,b,{density:clamp(pulseDensity*.68,.25,.92)})):null;
+ const motifPhrase=sharedGrammar&&root.PlotuneMelodicGrammar?.composePhrase?
+   root.PlotuneMelodicGrammar.composePhrase(sharedGrammar,0,{density:clamp(pulseDensity*.68,.25,.92)}):null;
+ const sharedPhrases=motifPhrase?Array.from({length:bars},(_,b)=>
+   b===0?motifPhrase:root.PlotuneMelodicGrammar.composePhrase(sharedGrammar,b,{
+     density:clamp(pulseDensity*.68*arcAt(b).density,.25,.92),
+     motif:motifPhrase,stage:arcAt(b).stage})):null;
  // Whole-track dramatic arc: opening, development, peak, release.
  // Works at any length; retains loop continuity and original instrument palettes.
  const arcStages=['opening','development','climax','resolution'];
@@ -829,7 +833,7 @@ function score(plan){
  const details={
   musicPsychology:expression,researchApplied:cues?{...cues,appliedTo:['lead register','lead/counter articulation','note dynamics','synth brightness','reflection wetness'],tempoStatus:'not applied (preset BPM retained)',modeStatus:'not applied (style harmony retained)'}:null,structuredStory:plan.structure||null,
   genre:'game',gameStyle:plan.gameStyle||'journey',gameName:game.name,emotionMode:game.mode,groove:game.drums,shape,
-  loopMode:true,loopBars:bars,bpm,theme:motif,parts:voices,wholeTrackArc,
+  loopMode:true,loopBars:bars,bpm,theme:motif,parts:voices,wholeTrackArc,motifDevelopment:sharedPhrases?'opening → variation → climax → reprise':null,
   emotionalProfile:emotional?.kind||null,
   emotionalArc:arcDynamics?{type:'grief',strength:arc.strength,stages:arcDynamics,gravity:'low-pedal-and-unresolved-cluster',reason:arc.reason}:null,
   storyInstrument:palette?{...palette}:null,
