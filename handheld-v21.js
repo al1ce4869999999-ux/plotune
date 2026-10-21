@@ -267,16 +267,29 @@ function score(plan){
  const voices={lead:0,counter:0,chords:0,arp:0,bass:0,sparkle:0,pad:0,drums:0};
  const roleLimits={lead:850,counter:390,chords:850,arp:700,bass:480,sparkle:180,pad:100};
  const count={};
+ const arrangementProfiles={
+  opening:{lead:1,counter:0,chords:.38,arp:0,bass:.58,pad:.8,sparkle:0,drums:.25},
+  development:{lead:1,counter:.75,chords:.85,arp:.7,bass:.9,pad:1,sparkle:.65,drums:.8},
+  climax:{lead:1,counter:1,chords:1.15,arp:1.1,bass:1.12,pad:1,sparkle:1,drums:1.15},
+  resolution:{lead:1,counter:0,chords:.55,arp:.25,bass:.55,pad:1,sparkle:.3,drums:.2}
+ };
+ const stageForTime=t=>arcAt(Math.min(bars-1,Math.floor(t/meter))).stage;
+ const arrangementAt=t=>arrangementProfiles[stageForTime(t)];
+
  function add(t,d,n,voice,v){
   if(t<0||t>=duration||d<=.018||!Number.isFinite(n))return;
   count[voice]=(count[voice]||0)+1;if(count[voice]>roleLimits[voice])return;
+  const mix=arrangementAt(t)[voice]??1;
+  if(mix<=0)return;
   notes.push({t,d:Math.min(d,duration-t),midi:clamp(n,24,105),
-    voice,role:voice,volume:clamp(v,0,.26)});
+    voice,role:voice,volume:clamp(v*mix,0,.26)});
   voices[voice]++;
  }
  function drum(t,name,v){
   if(t<0||t>=duration)return;
-  drums.push({t,kind:name,volume:clamp(v,0,1)});voices.drums++;
+  const mix=arrangementAt(t).drums;
+  if(mix<=0)return;
+  drums.push({t,kind:name,volume:clamp(v*mix,0,1)});voices.drums++;
  }
  // Phrase-aware harmony: cadence bars resolve to tonic; other bars select
  // nearby functional chords using the shared melodic phrase's strong notes.
@@ -833,7 +846,7 @@ function score(plan){
  const details={
   musicPsychology:expression,researchApplied:cues?{...cues,appliedTo:['lead register','lead/counter articulation','note dynamics','synth brightness','reflection wetness'],tempoStatus:'not applied (preset BPM retained)',modeStatus:'not applied (style harmony retained)'}:null,structuredStory:plan.structure||null,
   genre:'game',gameStyle:plan.gameStyle||'journey',gameName:game.name,emotionMode:game.mode,groove:game.drums,shape,
-  loopMode:true,loopBars:bars,bpm,theme:motif,parts:voices,wholeTrackArc,motifDevelopment:sharedPhrases?'opening → variation → climax → reprise':null,
+  loopMode:true,loopBars:bars,bpm,theme:motif,parts:voices,wholeTrackArc,arrangementProfiles,motifDevelopment:sharedPhrases?'opening → variation → climax → reprise':null,
   emotionalProfile:emotional?.kind||null,
   emotionalArc:arcDynamics?{type:'grief',strength:arc.strength,stages:arcDynamics,gravity:'low-pedal-and-unresolved-cluster',reason:arc.reason}:null,
   storyInstrument:palette?{...palette}:null,
