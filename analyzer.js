@@ -74,6 +74,55 @@
       source: {profile:profile.total, world:world.total, scene:scene.total}
     };
   }
+  // Phase 1: planning targets, not measured listener emotions.
+  // The six legacy mood signals are mapped to a non-exclusive GEMS-inspired
+  // representation. Coefficients are design heuristics, not fitted psychology.
+  const EMOTION_KEYS = ['wonder','transcendence','tenderness','nostalgia','peacefulness','power','joy','tension','sadness'];
+  function emotionVector(scores) {
+    const x = mood => Math.max(0, Number(scores?.[mood]) || 0);
+    const raw = {
+      wonder: x('adventure')*.45+x('serene')*.2,
+      transcendence: x('adventure')*.25+x('serene')*.3,
+      tenderness: x('warm')*.85,
+      nostalgia: x('melancholy')*.55+x('warm')*.18,
+      peacefulness: x('serene')*.85+x('warm')*.25,
+      power: x('adventure')*.75,
+      joy: x('whimsy')*.8+x('warm')*.18,
+      tension: x('suspense')*.9+x('adventure')*.12,
+      sadness: x('melancholy')*.9
+    };
+    const max = Math.max(1,...Object.values(raw));
+    return Object.fromEntries(EMOTION_KEYS.map(key=>[key,Math.round(clamp(raw[key]/max,0,1)*1000)/1000]));
+  }
+  function emotionPlan(input,analysis,sections) {
+    const sceneParts=splitScene(input.scene||'');
+    const global=emotionVector(analysis.scores);
+    const override=input.emotionTargets;
+    if(override && typeof override==='object' && !Array.isArray(override)) {
+      for(const key of EMOTION_KEYS) {
+        if(Object.hasOwn(override,key) && Number.isFinite(override[key]))
+          global[key]=Math.round(clamp(override[key],0,1)*1000)/1000;
+      }
+    }
+    const explicit=override && typeof override==='object' && !Array.isArray(override);
+    return {schema:'plotune.emotion-plan',version:1,
+      source:explicit?'user-with-heuristic-fallback':'heuristic',
+      global,
+      sections:sections.map((section,i)=>{
+        const from=Math.floor(i*sceneParts.length/sections.length);
+        const to=Math.max(from+1,Math.ceil((i+1)*sceneParts.length/sections.length));
+        const slice=sceneParts.slice(from,to).join('');
+        const local=emotionVector(analyzeText(slice).scores);
+        // When a manual target is specified, do not silently overwrite it
+        // with keyword-based local guesses.
+        const target=explicit?{...global}:Object.fromEntries(EMOTION_KEYS.map(key=>[
+          key,Math.round(clamp(global[key]*.4+local[key]*.6,0,1)*1000)/1000
+        ]));
+        return {id:'section-'+(i+1),name:section.name,start:section.start,end:section.end,
+          intensity:section.intensity,target};
+      })
+    };
+  }
   function hash(str) {
     let h = 2166136261;
     for (let i=0;i<str.length;i++) {h ^= str.charCodeAt(i);h = Math.imul(h,16777619);}
@@ -103,7 +152,8 @@
       end:(i+1)/4
     }));
     if (analysis.hasSwitch) sections[2].intensity=clamp(sections[2].intensity+.22,0,1);
-    return {genre,mode,bpm,duration,characterSeed,seed,progression,phrases,sections,
+    const emotion=emotionPlan(input,analysis,sections);
+    return {genre,mode,bpm,duration,characterSeed,seed,progression,phrases,sections,emotionPlan:emotion,
       root:minor?57:60, analysis};
   }
   root.PlotuneAnalysis = {analyze,plan,analyzeText,splitScene,LABELS};
