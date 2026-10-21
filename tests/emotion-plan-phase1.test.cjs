@@ -1,0 +1,37 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const root=path.resolve(__dirname,'..'),window={};
+vm.runInNewContext(fs.readFileSync(path.join(root,'analyzer.js'),'utf8'),{window},{filename:'analyzer.js'});
+const A=window.PlotuneAnalysis;
+const base={title:'複合感情',character:'穏やかな人',world:'静かな森',scene:'昔を思い出して涙を流した。ところが遠くから物音がして不安になった。最後に友達が迎えに来て安心した。',duration:30,style:'auto'};
+const plan=A.plan(base,A.analyze(base));
+const ep=plan.emotionPlan;
+assert.equal(ep.schema,'plotune.emotion-plan');
+assert.equal(ep.version,1);
+assert.equal(ep.source,'heuristic');
+assert.equal(ep.sections.length,plan.sections.length);
+assert.equal(ep.sections.length,4);
+for(let i=0;i<ep.sections.length;i++){
+ const s=ep.sections[i],legacy=plan.sections[i];
+ assert.equal(s.start,legacy.start);assert.equal(s.end,legacy.end);
+ assert.equal(s.intensity,legacy.intensity);
+ assert.equal(s.name,legacy.name);
+ for(const v of Object.values(s.target))assert.ok(Number.isFinite(v)&&v>=0&&v<=1);
+}
+assert.ok(ep.global.sadness>0 && ep.global.tension>0 && ep.global.peacefulness>0,'multiple feelings can coexist');
+assert.notDeepEqual(ep.sections[0].target,ep.sections[2].target,'scene-local time variations');
+assert.deepEqual(A.plan(base,A.analyze(base)).emotionPlan,ep,'deterministic');
+const requested={...base,emotionTargets:{nostalgia:.9,tension:.35,joy:2,sadness:-1,unknown:1}};
+const custom=A.plan(requested,A.analyze(requested));
+assert.equal(custom.emotionPlan.source,'user-with-heuristic-fallback');
+assert.equal(custom.emotionPlan.global.nostalgia,.9);
+assert.equal(custom.emotionPlan.global.tension,.35);
+assert.equal(custom.emotionPlan.global.joy,1);
+assert.equal(custom.emotionPlan.global.sadness,0);
+assert.equal(custom.emotionPlan.global.unknown,undefined);
+assert.ok(custom.emotionPlan.sections.every(s=>s.target.nostalgia===.9),'manual goals preserved per section');
+const quiet={...base,character:'',world:'',scene:'ゆっくり眠った。'};
+const empty=A.plan(quiet,A.analyze(quiet)).emotionPlan;
+assert.ok(Object.values(empty.global).every(n=>n>=0&&n<=1));
+assert.equal(A.plan(base,A.analyze(base)).characterSeed,plan.characterSeed,'existing motif seed preserved');
+console.log('PASS phase1 emotion-plan: multi-emotion, sectional curve, user overrides, determinism, legacy plan');
