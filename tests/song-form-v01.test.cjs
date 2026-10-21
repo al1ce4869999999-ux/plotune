@@ -50,3 +50,22 @@ const off=window.PlotuneHandheld.score({...enhancedPrepared,songForm:null});
 const on=window.PlotuneHandheld.score(enhancedPrepared);
 assert.notEqual(JSON.stringify(off.notes),JSON.stringify(on.notes),'same-seed A/B must isolate audible song-form difference');
 console.log('PASS phase1 A/B: same prepared input, independent form toggle, wired UI');
+
+/* Prefill regression: sample is available on first visit, custom stored inputs remain. */
+const demoSource=fs.readFileSync(path.join(__dirname,'..','app-v13.js'),'utf8');
+const demoStart=demoSource.indexOf('const demoSettings=');
+const demoEnd=demoSource.indexOf("const gameSelect=",demoStart);
+assert.ok(demoStart>=0&&demoEnd>demoStart,'demo initialization must be present');
+const initDemo=demoSource.slice(demoStart,demoEnd);
+const makeFields=()=>Object.fromEntries(['title','character','world','scene','style','duration','formComparisonMode'].map(id=>[id,{value:''}]));
+const emptyFields=makeFields();const initialStorage={getItem:()=>null};
+vm.runInNewContext(initDemo,{$:id=>emptyFields[id],localStorage:initialStorage,fields:['title','character','world','scene','style','duration']});
+for(const id of ['title','character','world','scene'])assert.ok(emptyFields[id].value.trim(),id+' sample is prefilled');
+assert.equal(emptyFields.style.value,'handheld');
+assert.equal(emptyFields.duration.value,'60');
+assert.equal(emptyFields.formComparisonMode.value,'phase1');
+const savedFields=makeFields();
+const stored={title:'自分の曲',character:'オリジナル主人公',world:'宇宙',scene:'星を見上げる',style:'piano',duration:'30'};
+vm.runInNewContext(initDemo,{$:id=>savedFields[id],localStorage:{getItem:()=>JSON.stringify(stored)},fields:Object.keys(stored)});
+for(const [key,value] of Object.entries(stored))assert.equal(savedFields[key].value,value,'saved '+key+' must survive');
+console.log('PASS phase1 demo defaults: ready-to-play on first visit, saved inputs preserved');
