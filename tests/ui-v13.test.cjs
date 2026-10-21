@@ -4,7 +4,7 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
 const root=require('path').resolve(__dirname,'..');
 const ids=['title','character','world','scene','style','duration','engine','bandStyle','bandOptions',
-'analysis','status','make','compare','save','analyze','reroll','play','stop','wav','summary',
+'formComparisonMode','analysis','status','make','compare','save','analyze','reroll','play','stop','wav','summary',
 'comparison','comparisonInfo','classicPlay','resonarePlay','eventCompare','cueSelect',
 'classicClip','resonareClip','clipPosition','changeDiagnosis','trackDiff','runtimeVersion',
 'playerHint','contrastAssessment','generationTrace','loopPlayback','gameStyle','gameOptions','zeta','zetaHelp','zetaProgress'];
