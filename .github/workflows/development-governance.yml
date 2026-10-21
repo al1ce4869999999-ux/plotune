@@ -1,0 +1,20 @@
+name: Development governance
+on:
+  pull_request:
+  push:
+    branches:
+      - 'chore/**'
+      - 'feature/**'
+      - 'feat/**'
+jobs:
+  policy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check development policy
+        run: node scripts/check-development-rules.mjs
