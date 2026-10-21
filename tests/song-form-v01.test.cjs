@@ -58,7 +58,7 @@ const demoEnd=demoSource.indexOf("const gameSelect=",demoStart);
 assert.ok(demoStart>=0&&demoEnd>demoStart,'demo initialization must be present');
 const initDemo=demoSource.slice(demoStart,demoEnd);
 const makeFields=()=>Object.fromEntries(['title','character','world','scene','style','duration','formComparisonMode'].map(id=>[id,{value:''}]));
-const emptyFields=makeFields();const initialStorage={getItem:()=>null};
+const emptyFields=makeFields();emptyFields.style.value='auto';emptyFields.duration.value='30';const initialStorage={getItem:()=>null};
 vm.runInNewContext(initDemo,{$:id=>emptyFields[id],localStorage:initialStorage,fields:['title','character','world','scene','style','duration']});
 for(const id of ['title','character','world','scene'])assert.ok(emptyFields[id].value.trim(),id+' sample is prefilled');
 assert.equal(emptyFields.style.value,'handheld');
