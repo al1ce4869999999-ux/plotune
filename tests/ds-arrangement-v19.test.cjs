@@ -47,7 +47,7 @@ for(const p of [plan('sadness',sad),plan('retry',bold)]){
 }
 const long=H.render(plan('sadness',sad,false,60));
 assert.equal(long.samples.length,60*22050);
-const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+const html=fs.readFileSync(path.join(root,'index.html'),'utf8').replace(/(src="[^"]+?\.js)\?[^" ]+(?=")/g,'$1');
 const ui=fs.readFileSync(path.join(root,'app-v13.js'),'utf8');
 assert.ok((html.includes('src="handheld-v19.js"')||(html.includes('src="handheld-v20.js"')||html.includes('src="handheld-v21.js"'))));
 assert.ok(ui.includes("g.label.includes('物語を彩る楽器')"),'instrument-only presets should be hidden from new DS chooser');
