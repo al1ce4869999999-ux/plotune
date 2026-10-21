@@ -319,6 +319,21 @@ function score(plan){
  const arcStages=['opening','development','climax','resolution'];
  const arcAt=b=>{
   const fraction=(b+.5)/bars;
+  const section=plan.songForm?.sections?.find(s=>fraction<=(s.end/Math.max(.001,duration))+.000001) || null;
+  if(section){
+   const progress=clamp((fraction*duration-section.start)/Math.max(.001,section.duration),0,1);
+   const tension=section.tensionStart+(section.tensionEnd-section.tensionStart)*progress;
+   const profiles={
+    intro:{stage:'opening',density:.62,register:-2},
+    A:{stage:'development',density:.95,register:0},
+    Aprime:{stage:'development',density:1.06,register:1},
+    B:{stage:'climax',density:1.15,register:3},
+    returnA:{stage:'resolution',density:.72,register:0}
+   };
+   const p=profiles[section.id]||profiles.A;
+   return {stage:p.stage,section:section.id,energy:.60+tension*.8,
+     density:p.density,register:p.register};
+  }
   const stage=Math.min(3,Math.floor(fraction*4));
   const profile=[.70,.94,1.23,.77][stage];
   return {stage:arcStages[stage],energy:profile,
