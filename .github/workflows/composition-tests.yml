@@ -10,6 +10,8 @@ on:
       - 'handheld-v21.js'
       - 'app-v13.js'
       - 'index.html'
+      - 'docs/PHASE0_ENGINE_INVENTORY.md'
+      - 'scripts/phase0-fixtures.cjs'
       - 'DEVELOPMENT_RULES.md'
       - 'scripts/test-*.cjs'
       - '.github/workflows/composition-tests.yml'
@@ -31,6 +33,7 @@ jobs:
         run: |
           node scripts/test-composition-plan.cjs
           node scripts/test-motif-planner.cjs
+          node scripts/test-phase0-baselines.cjs
       - name: Safari handoff UI regression
         run: node scripts/test-safari-ab-handoff.cjs
   browser-ab:
