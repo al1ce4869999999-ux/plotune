@@ -35,3 +35,18 @@ assert.ok(score.details.wholeTrackArc.some(bar=>bar.section==='B'&&bar.register=
 assert.ok(score.details.wholeTrackArc.some(bar=>bar.section==='returnA'&&bar.register===0),'reprise returns to theme register');
 console.log('PASS phase1 integration: sections drive handheld note events and instrument entrances');
 
+
+/* UI regression: A/B must isolate song form, not Resonare or random seed. */
+const appSource=fs.readFileSync(path.join(__dirname,'..','app-v13.js'),'utf8');
+const htmlSource=fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');
+assert.match(htmlSource,/id="formComparisonMode"/);
+assert.match(htmlSource,/value="phase1"/);
+assert.match(appSource,/const baseline=phase1\?\{\.\.\.a\.enhanced,songForm:null\}:a\.base/);
+assert.match(appSource,/const candidate=a\.enhanced/);
+assert.match(appSource,/const base=renderer\(baseline\)\.render\(baseline\)/);
+assert.match(appSource,/const enhanced=renderer\(candidate\)\.render\(candidate\)/);
+const enhancedPrepared={...prepared,songForm:form};
+const off=window.PlotuneHandheld.score({...enhancedPrepared,songForm:null});
+const on=window.PlotuneHandheld.score(enhancedPrepared);
+assert.notEqual(JSON.stringify(off.notes),JSON.stringify(on.notes),'same-seed A/B must isolate audible song-form difference');
+console.log('PASS phase1 A/B: same prepared input, independent form toggle, wired UI');
