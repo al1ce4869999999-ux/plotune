@@ -274,7 +274,22 @@ function score(plan){
   resolution:{lead:1,counter:0,chords:.55,arp:.25,bass:.55,pad:1,sparkle:.3,drums:.2}
  };
  const stageForTime=t=>arcAt(Math.min(bars-1,Math.floor(t/meter))).stage;
- const arrangementAt=t=>arrangementProfiles[stageForTime(t)];
+ const arrangementAt=t=>{
+  const original=arrangementProfiles[stageForTime(t)];
+  if(!plan.compositionV1||!root.PlotuneCompositionPlan)return original;
+  const bar=Math.min(bars-1,Math.floor(t/meter));
+  const section=roleForm.sections.find(s=>bar>=s.startBar&&bar<s.startBar+s.bars);
+  const local=bar-section.startBar,density=section.densityTarget[local];
+  const entrance=section.function==='intro'||section.function==='outro';
+  return {...original,
+   counter:entrance?0:original.counter*(.3+density),
+   arp:entrance?original.arp*.25:original.arp*(.5+density),
+   drums:entrance?original.drums*.25:original.drums*(.4+density),
+   sparkle:section.function==='contrast'?original.sparkle*1.2:original.sparkle*.6,
+   chords:original.chords*(.65+density*.45)};
+ };
+ const roleForm=plan.compositionV1&&root.PlotuneCompositionPlan?
+  root.PlotuneCompositionPlan.create({bars,seed:plan.seed,tempo:bpm}):null;
 
  function add(t,d,n,voice,v){
   if(t<0||t>=duration||d<=.018||!Number.isFinite(n))return;
