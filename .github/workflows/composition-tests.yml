@@ -1,0 +1,64 @@
+name: Composition engine tests
+on:
+  push:
+    branches: [feature/composition-plan-phase1]
+  pull_request:
+    paths:
+      - 'composition-plan-v1.js'
+      - 'motif-planner-v1.js'
+      - 'melodic-grammar-v01.js'
+      - 'handheld-v21.js'
+      - 'app-v13.js'
+      - 'index.html'
+      - 'docs/PHASE0_ENGINE_INVENTORY.md'
+      - 'scripts/phase0-fixtures.cjs'
+      - 'scripts/phase0-score-fingerprints.json'
+      - 'DEVELOPMENT_RULES.md'
+      - 'scripts/test-*.cjs'
+      - '.github/workflows/composition-tests.yml'
+jobs:
+  composition:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: |
+          node --check composition-plan-v1.js
+          node --check motif-planner-v1.js
+          node --check handheld-v21.js
+          node --check app-v13.js
+      - name: Structural regression
+        run: |
+          node scripts/test-composition-plan.cjs
+          node scripts/test-motif-planner.cjs
+          PHASE0_FINGERPRINT_EXPECTED=scripts/phase0-score-fingerprints.json node scripts/test-phase0-baselines.cjs
+      - name: Safari handoff UI regression
+        run: node scripts/test-safari-ab-handoff.cjs
+  browser-ab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser test dependencies
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Start local app
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/plotune-http.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4173/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/plotune-http.log
+          exit 1
+      - name: Old/new composition engine browser E2E
+        env:
+          BASE_URL: http://127.0.0.1:4173/
+        run: node scripts/test-safari-ab-browser.cjs

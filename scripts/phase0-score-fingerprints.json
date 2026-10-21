@@ -1,0 +1,8 @@
+{
+  "generic-piano": "72da545310575d398f12898044dae51104f737e8af5aa2a04412bc3e2c473f5a",
+  "generic-chip": "b2ffe609f9aecbb3069f45d64f8710f606c3f05d7e3bf2cb42f5d0138cf9ecb1",
+  "band": "ebd2b17c009b9fcf5c32a6494a83c956362e3614be9b0585a9acafdc1c941127",
+  "bandpiano": "db23d1f9758810c23a9299d01d821a1fc62d18ea1bdb2bac83759fd7ee561c01",
+  "handheld-legacy": "732978a6b70dbb0cc6c10fa1e57b61b4d920d740a529c492eb0e69338f2f85cc",
+  "handheld-hierarchical": "9ec350053291dcfdb265e9dc810d0766283ada744313a052add64ccba9de9d23"
+}

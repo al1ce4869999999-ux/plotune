@@ -93,6 +93,9 @@ function analyze(){
   const expression=window.PlotuneMusicPsychology?.derive(structure,input.gameStyle);
   base={...handheld.prepare(original,input.gameStyle,appraisal,false,input.scene,storyContext),structure,expression};
   enhanced={...handheld.prepare(enhanced,input.gameStyle,appraisal,true,input.scene,storyContext),structure,expression};
+  if(new URLSearchParams(location.search).get('compositionV1')==='1'){
+   base.compositionV1=true;enhanced.compositionV1=true;
+  }
  }
  const box=$('analysis');box.replaceChildren();
  box.append(textNode('h3','物語の解析結果'));
@@ -102,6 +105,20 @@ function analyze(){
  addRow(report,'目的の推定',appraisal.goal.label);
  addRow(report,'根拠',appraisal.goal.evidence.join('・')||'未特定');
  addRow(report,'出来事',appraisal.events.length+'件');
+ // Phase 1 shadow planner: diagnostics only, no effect on legacy audio.
+ if(window.PlotuneCompositionPlan){
+  try{
+   const seconds=Number(base.duration)||30;
+   const bpm=Number(base.bpm)||100;
+   const bars=Math.max(2,Math.round(seconds*bpm/240));
+   const plan=window.PlotuneCompositionPlan.create({bars,tempo:bpm,seed:base.seed||base.characterSeed||1});
+   addRow(report,'新構造（試験）',plan.sections.map(s=>s.function+' '+s.bars+'小節').join(' → '));
+   addRow(report,'緊張設計（試験）',plan.sections.map(s=>s.tensionTarget.at(-1)).join(' → '));
+   addRow(report,'構造診断',plan.diagnostics.length+'件（音声には未適用）');
+  }catch(error){
+   addRow(report,'構造診断','生成失敗：'+String(error.message||error));
+  }
+ }
  if(['band','bandpiano','game'].includes(base.genre)){
    const whole=loopComposer.analyzeWhole(appraisal);
    addRow(report,'曲全体の編曲',whole.active?whole.label:'基準編曲を維持');
@@ -119,6 +136,17 @@ function analyze(){
     }
    }
    box.append(textNode('p','ループBGMでは文章全体を先に分析し、冒頭から一貫した曲調で演奏します。携帯ゲーム風は主旋律・対旋律・コード・アルペジオ・ベース・ドラム・装飾音を別々に作曲します。','explain'));
+ }
+ // Phase 1 diagnostics only; the legacy audio plans remain untouched.
+ if(window.PlotuneCompositionPlan){
+  const bpm=Number(base.bpm)||100;
+  const duration=Number(base.duration)||Number(input.duration)||30;
+  const bars=Math.max(2,Math.min(128,Math.round(duration*bpm/240)));
+  const seed=Number(base.seed)||window.PlotuneCompositionPlan.hash([input.character,input.world,input.scene,variant].join('|'));
+  const composition=window.PlotuneCompositionPlan.create({bars,tempo:bpm,seed});
+  addRow(report,'新設計の曲構造（試験）',composition.sections.map(s=>s.function+' '+s.bars+'小節').join(' → '));
+  addRow(report,'緊張度の目標',composition.sections.map(s=>s.tensionTarget.at(-1).toFixed(2)).join(' / '));
+  addRow(report,'音声への適用','未接続（従来エンジンで再生）');
  }
  box.append(report);
  box.append(textNode('h4','出来事に対する演奏指示'));
@@ -297,10 +325,32 @@ async function play(which=null,scope='full'){
   }
   current=track;$('stop').disabled=false;
   status((synced?'同じ再生位置で切り替え：':'再生中：')+
-    (which==='classic'?'基準版':which==='resonare'?'Resonare版':'曲')+
+    (which==='classic'?'基準版':which==='resonare'?'Resonare版':which==='legacy'?'従来エンジン':which==='hierarchical'?'新エンジン':'曲')+
     ' · '+offset.toFixed(1)+'秒'+(scope==='clip'?'（冒頭／場面だけ）':looping?'（ループ再生）':'')+' 🎵');
  }catch(e){console.error(e);node=null;transport=null;status('再生エラー：'+(e?.message||String(e)),true);}
 }
+async function generateEngineAB(){
+ const message=$('engineABStatus');
+ if($('style').value!=='handheld'){message.textContent='曲調を「DS風ゲームサウンド」にしてね。';return;}
+ if(!form().scene.trim()){message.textContent='先にシーンを入力してね。';return;}
+ $('engineABOld').disabled=true;$('engineABNew').disabled=true;
+ message.textContent='同じ設定で2曲を生成中…';
+ await new Promise(resolve=>setTimeout(resolve,30));
+ try{
+  stop(true);
+  const a=analyze(),p=a.input.engine==='classic'?a.base:a.enhanced;
+  const legacy=handheld.render({...p,compositionV1:false});
+  const hierarchical=handheld.render({...p,compositionV1:true});
+  tracks={legacy,hierarchical};current=legacy;
+  const difference=compareTools.signalDifference(legacy,hierarchical,0,Math.min(legacy.score.duration,hierarchical.score.duration,10));
+  $('engineABOld').disabled=false;$('engineABNew').disabled=false;
+  message.textContent='新旧2曲完成。従来版と新設計版を交互に再生できます。冒頭10秒の波形差（参考値）：'+JSON.stringify(difference).slice(0,130);
+  status('新旧エンジン比較を生成しました');
+ }catch(e){console.error(e);message.textContent='新旧生成エラー：'+(e?.message||String(e));}
+}
+$('engineABMake').addEventListener('click',generateEngineAB);
+$('engineABOld').addEventListener('click',()=>play('legacy'));
+$('engineABNew').addEventListener('click',()=>play('hierarchical'));
 async function exportWav(){
  if(!current)return;
  const blob=composer.wavBlob(current.samples,current.sampleRate);
