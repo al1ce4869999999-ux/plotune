@@ -8,5 +8,5 @@ for(const [seconds,expected] of [[10,['intro','A','returnA']],[30,['intro','A','
  for(let i=0;i<a.sections.length;i++){const s=a.sections[i];assert.ok(s.duration>0);assert.ok(s.tensionStart>=0&&s.tensionEnd<=1);assert.ok(s.reason);if(i)assert.equal(s.start,a.sections[i-1].end);}
  assert.equal(a.diagnostics.audioGenerated,false);
 }
-for(const duration of [0,-1,NaN,Infinity])assert.throws(()=>plan({duration}),RangeError);
+for(const duration of [0,-1,NaN,Infinity])assert.throws(()=>plan({duration}),{name:'RangeError',message:'duration must be positive and finite'});
 console.log('PASS phase1 song form: duration, continuity, tension, diagnostics, determinism');
