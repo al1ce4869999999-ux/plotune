@@ -33,3 +33,28 @@ jobs:
           node scripts/test-motif-planner.cjs
       - name: Safari handoff UI regression
         run: node scripts/test-safari-ab-handoff.cjs
+  browser-ab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser test dependencies
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Start local app
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/plotune-http.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4173/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/plotune-http.log
+          exit 1
+      - name: Old/new composition engine browser E2E
+        env:
+          BASE_URL: http://127.0.0.1:4173/
+        run: node scripts/test-safari-ab-browser.cjs
