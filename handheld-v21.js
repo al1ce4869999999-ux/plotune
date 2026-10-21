@@ -278,7 +278,23 @@ function score(plan){
   if(t<0||t>=duration)return;
   drums.push({t,kind:name,volume:clamp(v,0,1)});voices.drums++;
  }
- function chordAt(b){return prog[b%4];}
+ // Phrase-aware harmony: cadence bars resolve to tonic; other bars select
+ // nearby functional chords using the shared melodic phrase's strong notes.
+ function chordAt(b){
+  if(!root.PlotuneMelodicGrammar?.composePhrase)return prog[b%4];
+  if(b%4===3)return 0;
+  const g=root.PlotuneMelodicGrammar.grammar(plan.structure,plan.expression,plan.characterSeed||seed);
+  const events=root.PlotuneMelodicGrammar.composePhrase(g,b,{density:clamp((game.density||.7)*.68,.25,.92)});
+  const sounding=events.filter(n=>!n.rest);
+  const anchor=sounding.length?sounding[Math.floor(sounding.length/2)].degree:0;
+  const candidates=[0,3,4,5,1];
+  const previous=prog[(b+3)%4];
+  return candidates.reduce((best,c)=> {
+   const fit=x=>Math.min(...[0,2,4].map(k=>Math.abs(((anchor-x-k)%7+7)%7)))+
+      Math.abs(x-previous)*.08+(x===prog[b%4]?-.35:0);
+   return fit(c)<fit(best)?c:best;
+  },prog[b%4]);
+ }
  const leadTone=game.lead;
  const leadRoot=tonic+12;
  const songEnergy=game.intensity||1;
