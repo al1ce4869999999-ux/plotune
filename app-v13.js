@@ -325,10 +325,32 @@ async function play(which=null,scope='full'){
   }
   current=track;$('stop').disabled=false;
   status((synced?'同じ再生位置で切り替え：':'再生中：')+
-    (which==='classic'?'基準版':which==='resonare'?'Resonare版':'曲')+
+    (which==='classic'?'基準版':which==='resonare'?'Resonare版':which==='legacy'?'従来エンジン':which==='hierarchical'?'新エンジン':'曲')+
     ' · '+offset.toFixed(1)+'秒'+(scope==='clip'?'（冒頭／場面だけ）':looping?'（ループ再生）':'')+' 🎵');
  }catch(e){console.error(e);node=null;transport=null;status('再生エラー：'+(e?.message||String(e)),true);}
 }
+async function generateEngineAB(){
+ const message=$('engineABStatus');
+ if($('style').value!=='handheld'){message.textContent='曲調を「DS風ゲームサウンド」にしてね。';return;}
+ if(!form().scene.trim()){message.textContent='先にシーンを入力してね。';return;}
+ $('engineABOld').disabled=true;$('engineABNew').disabled=true;
+ message.textContent='同じ設定で2曲を生成中…';
+ await new Promise(resolve=>setTimeout(resolve,30));
+ try{
+  stop(true);
+  const a=analyze(),p=a.input.engine==='classic'?a.base:a.enhanced;
+  const legacy=handheld.render({...p,compositionV1:false});
+  const hierarchical=handheld.render({...p,compositionV1:true});
+  tracks={legacy,hierarchical};current=legacy;
+  const difference=compareTools.signalDifference(legacy,hierarchical,0,Math.min(legacy.score.duration,hierarchical.score.duration,10));
+  $('engineABOld').disabled=false;$('engineABNew').disabled=false;
+  message.textContent='新旧2曲完成。従来版と新設計版を交互に再生できます。冒頭10秒の波形差（参考値）：'+JSON.stringify(difference).slice(0,130);
+  status('新旧エンジン比較を生成しました');
+ }catch(e){console.error(e);message.textContent='新旧生成エラー：'+(e?.message||String(e));}
+}
+$('engineABMake').addEventListener('click',generateEngineAB);
+$('engineABOld').addEventListener('click',()=>play('legacy'));
+$('engineABNew').addEventListener('click',()=>play('hierarchical'));
 async function exportWav(){
  if(!current)return;
  const blob=composer.wavBlob(current.samples,current.sampleRate);
