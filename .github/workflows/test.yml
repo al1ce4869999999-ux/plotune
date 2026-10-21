@@ -55,6 +55,7 @@ jobs:
           node --check app-v07.js
       - name: Run no-API engine tests
         run: |
+          node tests/ci-preflight.test.cjs
           node tests/song-form-v01.test.cjs
           node tests/engine.test.cjs
           node tests/resonare.test.cjs
