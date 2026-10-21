@@ -1,0 +1,31 @@
+name: Composition engine tests
+on:
+  push:
+    branches: [feature/composition-plan-phase1]
+  pull_request:
+    paths:
+      - 'composition-plan-v1.js'
+      - 'motif-planner-v1.js'
+      - 'melodic-grammar-v01.js'
+      - 'handheld-v21.js'
+      - 'app-v13.js'
+      - 'scripts/test-*.cjs'
+      - '.github/workflows/composition-tests.yml'
+jobs:
+  composition:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: |
+          node --check composition-plan-v1.js
+          node --check motif-planner-v1.js
+          node --check handheld-v21.js
+          node --check app-v13.js
+      - name: Structural regression
+        run: |
+          node scripts/test-composition-plan.cjs
+          node scripts/test-motif-planner.cjs
