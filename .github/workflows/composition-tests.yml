@@ -9,6 +9,8 @@ on:
       - 'melodic-grammar-v01.js'
       - 'handheld-v21.js'
       - 'app-v13.js'
+      - 'index.html'
+      - 'DEVELOPMENT_RULES.md'
       - 'scripts/test-*.cjs'
       - '.github/workflows/composition-tests.yml'
 jobs:
@@ -29,3 +31,5 @@ jobs:
         run: |
           node scripts/test-composition-plan.cjs
           node scripts/test-motif-planner.cjs
+      - name: Safari handoff UI regression
+        run: node scripts/test-safari-ab-handoff.cjs
