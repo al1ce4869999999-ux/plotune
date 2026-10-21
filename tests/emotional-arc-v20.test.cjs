@@ -48,6 +48,6 @@ for(const duration of [15,30,60]){
  assert.ok(Math.abs(audio.samples.at(-1)-audio.samples[0])<.003);
  assert.equal(H.wavBlob(audio.samples,audio.sampleRate).size,duration*22050*2+44);
 }
-const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+const html=fs.readFileSync(path.join(root,'index.html'),'utf8').replace(/(src="[^"]+?\.js)\?[^" ]+(?=")/g,'$1');
 assert.ok((html.includes('src="handheld-v20.js"')||html.includes('src="handheld-v21.js"')));
 console.log('PASS v2.0: grief arc stages, dynamic melody, suspended dissonance, bass collapse, 15/30/60 PCM + WAV');

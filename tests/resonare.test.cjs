@@ -58,7 +58,7 @@ assert.ok(nonzero>1000&&peak>0&&peak<=1,'valid audio');
 assert.ok(diff>500,'A/B needs audible signal changes');
 assert.ok(wet.details.cues.includes('stumble'),'stumble should reach score');
 assert.equal(C.wavBlob(wet.samples,wet.sampleRate).size,44+wet.samples.length*2);
-const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+const html=fs.readFileSync(path.join(root,'index.html'),'utf8').replace(/(src="[^"]+?\.js)\?[^" ]+(?=")/g,'$1');
 const assets=html.includes('src="app-v13.js"')
  ? ['analyzer.js','resonare-v08.js','composer-v04.js','loop-arranger-v09.js','band-v09.js','band-piano-v15.js','comparison-v13.js','handheld-v21.js','zeta-export-v12.js','app-v13.js']
  : html.includes('src="app-v12.js"')
