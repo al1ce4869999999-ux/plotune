@@ -102,6 +102,20 @@ function analyze(){
  addRow(report,'目的の推定',appraisal.goal.label);
  addRow(report,'根拠',appraisal.goal.evidence.join('・')||'未特定');
  addRow(report,'出来事',appraisal.events.length+'件');
+ // Phase 1 shadow planner: diagnostics only, no effect on legacy audio.
+ if(window.PlotuneCompositionPlan){
+  try{
+   const seconds=Number(base.duration)||30;
+   const bpm=Number(base.bpm)||100;
+   const bars=Math.max(2,Math.round(seconds*bpm/240));
+   const plan=window.PlotuneCompositionPlan.create({bars,tempo:bpm,seed:base.seed||base.characterSeed||1});
+   addRow(report,'新構造（試験）',plan.sections.map(s=>s.function+' '+s.bars+'小節').join(' → '));
+   addRow(report,'緊張設計（試験）',plan.sections.map(s=>s.tensionTarget.at(-1)).join(' → '));
+   addRow(report,'構造診断',plan.diagnostics.length+'件（音声には未適用）');
+  }catch(error){
+   addRow(report,'構造診断','生成失敗：'+String(error.message||error));
+  }
+ }
  if(['band','bandpiano','game'].includes(base.genre)){
    const whole=loopComposer.analyzeWhole(appraisal);
    addRow(report,'曲全体の編曲',whole.active?whole.label:'基準編曲を維持');
