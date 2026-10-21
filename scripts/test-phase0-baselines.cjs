@@ -1,5 +1,7 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const fixtures=require('./phase0-fixtures.cjs');
+const crypto=require('node:crypto');
+const fingerprints={};
 const files=['analyzer.js','resonare-v08.js','composer-v04.js','loop-arranger-v09.js','band-v09.js','band-piano-v15.js','story-structure-v01.js','music-psychology-v01.js','melodic-grammar-v01.js','composition-plan-v1.js','motif-planner-v1.js','handheld-v21.js'];
 function context(){
  const c={Math,Float32Array,ArrayBuffer,DataView,Blob,TextEncoder,console};c.window=c;
