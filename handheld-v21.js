@@ -303,13 +303,26 @@ function score(plan){
  const sharedGrammar=root.PlotuneMelodicGrammar?.grammar(plan.structure,plan.expression,plan.characterSeed||seed);
  const sharedPhrases=sharedGrammar&&root.PlotuneMelodicGrammar?.composePhrase?
    Array.from({length:bars},(_,b)=>root.PlotuneMelodicGrammar.composePhrase(sharedGrammar,b,{density:clamp(pulseDensity*.68,.25,.92)})):null;
+ // Whole-track dramatic arc: opening, development, peak, release.
+ // Works at any length; retains loop continuity and original instrument palettes.
+ const arcStages=['opening','development','climax','resolution'];
+ const arcAt=b=>{
+  const fraction=(b+.5)/bars;
+  const stage=Math.min(3,Math.floor(fraction*4));
+  const profile=[.70,.94,1.23,.77][stage];
+  return {stage:arcStages[stage],energy:profile,
+    density:[.72,.96,1.12,.68][stage],
+    register:[-1,0,2,-1][stage]};
+ };
+ const wholeTrackArc=Array.from({length:bars},(_,b)=>({bar:b+1,...arcAt(b)}));
  // Repeat 4-bar thematic material; vary density and fills but keep a looping identity.
  for(let b=0;b<bars;b++){
   const chord=chordAt(b),next=chordAt((b+1)%bars),barAt=b*meter;
   harmony.push({t:barAt,chord});
   const section=b%4;
   const lift=b%8===4||kind==='bright';
-  const energy=clamp((section===2?1.08:section===3?.87:1)*(kind==='tense'?.76:kind==='effort'?1.12:1)*songEnergy,.28,1.38);
+  const arcState=arcAt(b);
+   const energy=clamp((section===2?1.08:section===3?.87:1)*(kind==='tense'?.76:kind==='effort'?1.12:1)*songEnergy*arcState.energy,.22,1.38);
   const isLast=b===bars-1;
   // Baseline original chord voicings, game ensemble uses bright, close four notes.
   for(const d of [0,2,4,6])add(barAt,step*15.2,midi(tonic,scale,chord+d)-12,'pad',.016*energy);
@@ -319,8 +332,9 @@ function score(plan){
    if(sharedPhrases){
     for(const event of sharedPhrases[b]){
      if(Math.floor(event.position)!==i||event.rest)continue;
+     if(arcState.density<.8&&event.position>9&&event.position<13)continue;
      add(barAt+event.position*step,event.durationUnits*step,
-       midi(leadRoot,scale,event.degree+chord),'lead',.125*energy);
+       midi(leadRoot,scale,event.degree+chord+arcState.register),'lead',.125*energy);
     }
    }else if(i%2===0)add(t,step*1.55,midi(leadRoot,scale,motif[(i+section*2)%8]),'lead',.125*energy);
    // Counterpoint answers primary melody in a different octave.
@@ -815,7 +829,7 @@ function score(plan){
  const details={
   musicPsychology:expression,researchApplied:cues?{...cues,appliedTo:['lead register','lead/counter articulation','note dynamics','synth brightness','reflection wetness'],tempoStatus:'not applied (preset BPM retained)',modeStatus:'not applied (style harmony retained)'}:null,structuredStory:plan.structure||null,
   genre:'game',gameStyle:plan.gameStyle||'journey',gameName:game.name,emotionMode:game.mode,groove:game.drums,shape,
-  loopMode:true,loopBars:bars,bpm,theme:motif,parts:voices,
+  loopMode:true,loopBars:bars,bpm,theme:motif,parts:voices,wholeTrackArc,
   emotionalProfile:emotional?.kind||null,
   emotionalArc:arcDynamics?{type:'grief',strength:arc.strength,stages:arcDynamics,gravity:'low-pedal-and-unresolved-cluster',reason:arc.reason}:null,
   storyInstrument:palette?{...palette}:null,
