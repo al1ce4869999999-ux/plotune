@@ -46,10 +46,27 @@ function save(quiet=false){
  try{localStorage.setItem('plotune',JSON.stringify(form()));if(!quiet)status('設定を保存しました');}
  catch{if(!quiet)status('設定を保存できませんでした',true);}
 }
+const demoSettings={
+ title:'ぽんぽんの小さな冒険',
+ character:'ぽんぽんは、おっとりして不器用なたぬきの獣人。失敗しても諦めず、少しずつ挑戦する。',
+ world:'秋の夕暮れの小さな森。優しいけれど少し不思議な、携帯ゲームの冒険世界。',
+ scene:'ぽんぽんは森の小道を歩きはじめる。大きな落ち葉につまずき、困って立ち止まる。やがて風の向こうに光を見つけ、勇気を出して歩きだす。最後には見慣れた小道へ帰り、ほっと笑う。'
+};
+let hasSavedSettings=false;
 try{
- const saved=JSON.parse(localStorage.getItem('plotune')||'{}');
+ const raw=localStorage.getItem('plotune');
+ const saved=raw?JSON.parse(raw):{};
+ hasSavedSettings=!!raw;
  fields.forEach(k=>{if(saved[k]!=null)$(k).value=saved[k]});
 }catch{}
+for(const [key,value] of Object.entries(demoSettings)){
+ if(!$(key).value.trim())$(key).value=value;
+}
+if(!hasSavedSettings){
+ $('style').value='handheld';
+ $('duration').value='60';
+ $('formComparisonMode').value='phase1';
+}
 const gameSelect=$('gameStyle');
 const existing=gameSelect.value;
 gameSelect.replaceChildren();
