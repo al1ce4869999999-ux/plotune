@@ -368,7 +368,7 @@ function score(plan){
      add(barAt+event.position*step,event.durationUnits*step,
        midi(leadRoot,scale,event.degree+chord+arcState.register),'lead',.125*energy);
     }
-   }else if(i%2===0)add(t,step*1.55,midi(leadRoot,scale,motif[(i+section*2)%8]),'lead',.125*energy);
+   }else if(i%2===0)add(t,step*1.55,midi(leadRoot,scale,motif[(i+section*2)%8]+arcState.register),'lead',.125*energy);
    // Counterpoint answers primary melody in a different octave.
    if(((i===3||i===7||i===11||i===15)&&!isLast||i===3||i===11)&& (pulseDensity>.5||i===3)){
     const response=motif[(i+3)%8]+(kind==='effort'?1:0);
