@@ -5,7 +5,7 @@ const A=window.PlotuneAnalysis,R=window.PlotuneResonare,H=window.PlotuneHandheld
 function make(scene,style,duration){const input={title:'t',character:'',world:'',scene,style:'handheld',duration};
 const p=A.plan(input,A.analyze(input));return H.prepare(p,style,R.analyze(input),false,scene)}
 for(const duration of [15,30,60]){
-const p=make('ぽんぽんが涙をこらえて泣いた','sadness',duration),s=H.score(p);
+const p=make('ぽんぽんが最後の別れに泣き崩れた','sadness',duration),s=H.score(p);
 assert.equal(s.details.emotionalArc.gravity,'low-pedal-and-unresolved-cluster');
 for(const type of ['gravity-pedal','gravity-floor','dark-cluster','hollow-afterglow'])
 assert.ok(s.notes.some(n=>n.arcMarker===type),type);
