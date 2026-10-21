@@ -79,6 +79,20 @@ function composePhrase(g,bar,options={}){
      rest:note.rest&&!cadence,step:note.step,cadence});
    position=next+(r()<.18?.5:0);
  }
+ // Four-bar motif memory: the first phrase supplies an identity, later stages
+ // transform its rhythm and intervals rather than inventing unrelated notes.
+ if(options.motif&&options.motif.length){
+  const stage=options.stage||'development';
+  for(let i=0;i<events.length;i++){
+   const source=options.motif[i%options.motif.length];
+   const offset=stage==='climax'?(i%3===0?2:1):stage==='resolution'?-1:0;
+   events[i].degree=Math.max(0,Math.min(8,source.degree+offset));
+   if(stage==='resolution'&&i===events.length-1){
+    events[i].degree=0;events[i].rest=false;events[i].cadence=true;
+   }
+   if(stage==='development'&&i%3===1)events[i].durationUnits=Math.min(events[i].durationUnits*1.2,16-events[i].position);
+  }
+ }
  if(events.length&&!events.some(n=>!n.rest))events[0].rest=false;
  return events;
 }
