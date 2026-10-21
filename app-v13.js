@@ -93,6 +93,9 @@ function analyze(){
   const expression=window.PlotuneMusicPsychology?.derive(structure,input.gameStyle);
   base={...handheld.prepare(original,input.gameStyle,appraisal,false,input.scene,storyContext),structure,expression};
   enhanced={...handheld.prepare(enhanced,input.gameStyle,appraisal,true,input.scene,storyContext),structure,expression};
+  if(new URLSearchParams(location.search).get('compositionV1')==='1'){
+   base.compositionV1=true;enhanced.compositionV1=true;
+  }
  }
  const box=$('analysis');box.replaceChildren();
  box.append(textNode('h3','物語の解析結果'));
