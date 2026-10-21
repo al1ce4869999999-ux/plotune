@@ -39,7 +39,7 @@ Object.assign(context,{PlotuneAnalysis:window.PlotuneAnalysis,PlotuneResonare:wi
  PlotuneLoop:window.PlotuneLoop,PlotuneComposerV4:window.PlotuneComposerV4,PlotuneBand:window.PlotuneBand,PlotuneBandPiano:window.PlotuneBandPiano,PlotuneHandheld:window.PlotuneHandheld});
 vm.runInNewContext(fs.readFileSync(root+'/app-v13.js','utf8'),context,{filename:'app-v13.js'});
 (async()=>{
- assert.ok(elems.runtimeVersion.textContent.includes('v2.1'));
+ assert.ok(/^実行中：v\d+\.\d+/.test(elems.runtimeVersion.textContent));
  assert.equal(elems.bandOptions.hidden,false);
  assert.equal(elems.gameOptions.hidden,true);
  await elems.make.handlers.click();
