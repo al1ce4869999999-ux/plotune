@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const window={};const ctx={window,Blob,console};const baseDir=path.resolve(__dirname,'..');
 for(const name of ['analyzer.js','composer-v04.js'])vm.runInNewContext(fs.readFileSync(path.join(baseDir,name),'utf8'),ctx,{filename:name});
-const A=window.PlotuneAnalysis,C=window.PlotuneComposer;
+const A=window.PlotuneAnalysis,C=window.PlotuneComposerV4;
 const input={title:'contrast',character:'',world:'',scene:'悲しく泣いた。急に怖い物音。最後には安心した。',duration:15};
 const base=A.plan(input,A.analyze(input));
 const old=C.buildScore(base),withTargets=C.buildScore({...base,emotionComposition:true});
