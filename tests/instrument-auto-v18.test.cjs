@@ -64,5 +64,5 @@ const sixty=track(scenes[1][0],60);
 assert.equal(sixty.samples.length,60*22050);
 assert.ok(Math.abs(sixty.samples.at(-1)-sixty.samples[0])<.003);
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-assert.ok(/src="handheld-v(?:18|19|20|21)\\.js(?:\\?[^"]*)?"/.test(html));
+assert.ok(/src="handheld-v(?:18|19|20|21)\.js(?:\?[^"]*)?"/.test(html));
 console.log('PASS v1.8: 48 presets, 9 scene-select cases, manual overrides, 8+ new timbres, PCM, Zeta WAV loops');
