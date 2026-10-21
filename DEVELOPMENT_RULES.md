@@ -48,3 +48,11 @@ This is the repository-side development policy for plotune. It follows the execu
 ## CI-enforced invariants
 - `node scripts/check-development-rules.mjs` checks mandatory sections and required checks against accidental removal.
 - This safeguard is not proof of actual release safety, A/B listening quality, mobile behavior or successful handoffs.
+
+## Mandatory Safari A/B handoff gate (incident #24)
+- First identify the exact comparison dimension requested. Classic vs Resonare analysis is not legacy vs hierarchical composition. A query parameter alone is not a listening interface.
+- Check the visible page has explicitly named controls for each requested arm and that handlers actually render and play the matching arm with identical input, seed and settings.
+- Verification order: requirement-to-UI inspection; handler/data-path inspection; automated same-seed A/B regression; deployed browser interaction; then iPhone Safari audio and listening quality.
+- Track separately: committed implementation, successful deployment, browser UI/interaction verified, audio playback verified, subjective listening accepted. READY is not proof of any later gate.
+- Never say the Safari listening gate is ready when browser navigation, actual controls and generation have not been verified. If a check is unavailable, disclose it as incomplete before handoff.
+- For every incident, log observed symptom, verified versus suspected root cause, fix SHA, test evidence and unresolved checks in an Issue before claiming the prevention work is complete.
