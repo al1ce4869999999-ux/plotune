@@ -75,10 +75,11 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <script defer src="comparison-v13.js"></script>
 <script defer src="story-structure-v01.js?v=20261018-psych1"></script>
 <script defer src="music-psychology-v01.js?v=20261019-research1"></script>
-<script defer src="melodic-grammar-v01.js?v=20261022-motif1"></script><script defer src="handheld-v21.js?v=20261022-arrangement1"></script>
+<script defer src="melodic-grammar-v01.js?v=20261022-motif1"></script><script defer src="handheld-v21.js?v=20261022-songform1"></script>
 <script defer src="zeta-export-v12.js"></script>
 <script defer src="generation-trace-v01.js?v=20261019-research1"></script>
-<script defer src="app-v13.js?v=20261019-trace1"></script>
+<script defer src="song-form-v01.js?v=20261022-form1"></script>
+<script defer src="app-v13.js?v=20261022-songform1"></script>
 </head>
 <body>
 <main>
@@ -143,6 +144,9 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <section class="card" id="analysis" hidden aria-live="polite"></section>
 <section class="card">
 <h2>🎶 プレイヤー</h2>
+<label for="formComparisonMode">🎧 比較する内容</label><select id="formComparisonMode"><option value="resonare">基準版／Resonare版（従来どおり）</option><option value="phase1">フェーズ1なし／あり（DS風ゲームサウンド）</option></select>
+<p class="note">フェーズ1比較はDS風ゲームサウンド専用。同じ設定・seedで曲構成だけをON/OFFします。</p>
+
 <p id="summary">まだ曲を作成していません。作曲すると冒頭から編曲の異なる基準版とResonare版を比較できます（文章の根拠が薄い場合は同一編曲）。</p>
 <p id="runtimeVersion" class="note">作曲プログラムを読み込み中…</p>
 <p id="playerHint" class="compare-help">「✨ 2曲まとめて作曲」を押すと、下の2つのボタンが使えるようになるよ。</p>

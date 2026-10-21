@@ -32,7 +32,7 @@ const old=make('indie',15,false),fresh=make('glassrock',15,false);
 const pattern=s=>s.notes.filter(n=>n.instrument==='bass'&&n.t<3).map(n=>n.midi+':'+n.t.toFixed(2));
 assert.notDeepEqual(pattern(old),pattern(fresh),'the bass really has a different melodic pattern');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-assert.ok(html.includes('value="glassrock"')&&html.includes('src="band-piano-v15.js"'));
+assert.ok(html.includes('value="glassrock"')&&/src="band-piano-v15\.js(?:\?[^"]*)?"/.test(html));
 
 // Richer layers must be objectively distinct from the previous sparse version.
 const oldModule={};const oldContext={window:oldModule,Blob,console};

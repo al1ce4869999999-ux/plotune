@@ -319,6 +319,21 @@ function score(plan){
  const arcStages=['opening','development','climax','resolution'];
  const arcAt=b=>{
   const fraction=(b+.5)/bars;
+  const section=plan.songForm?.sections?.find(s=>fraction<=(s.end/Math.max(.001,duration))+.000001) || null;
+  if(section){
+   const progress=clamp((fraction*duration-section.start)/Math.max(.001,section.duration),0,1);
+   const tension=section.tensionStart+(section.tensionEnd-section.tensionStart)*progress;
+   const profiles={
+    intro:{stage:'opening',density:.62,register:-2},
+    A:{stage:'development',density:.95,register:0},
+    Aprime:{stage:'development',density:1.06,register:1},
+    B:{stage:'climax',density:1.15,register:3},
+    returnA:{stage:'resolution',density:.72,register:0}
+   };
+   const p=profiles[section.id]||profiles.A;
+   return {stage:p.stage,section:section.id,energy:.60+tension*.8,
+     density:p.density,register:p.register};
+  }
   const stage=Math.min(3,Math.floor(fraction*4));
   const profile=[.70,.94,1.23,.77][stage];
   return {stage:arcStages[stage],energy:profile,
@@ -353,7 +368,7 @@ function score(plan){
      add(barAt+event.position*step,event.durationUnits*step,
        midi(leadRoot,scale,event.degree+chord+arcState.register),'lead',.125*energy);
     }
-   }else if(i%2===0)add(t,step*1.55,midi(leadRoot,scale,motif[(i+section*2)%8]),'lead',.125*energy);
+   }else if(i%2===0)add(t,step*1.55,midi(leadRoot,scale,motif[(i+section*2)%8]+(plan.songForm?arcState.register:0)),'lead',.125*energy);
    // Counterpoint answers primary melody in a different octave.
    if(((i===3||i===7||i===11||i===15)&&!isLast||i===3||i===11)&& (pulseDensity>.5||i===3)){
     const response=motif[(i+3)%8]+(kind==='effort'?1:0);
@@ -830,6 +845,17 @@ function score(plan){
      if(o.family&&n.voice==='lead'&&!n.timbre)n.timbre=o.family;
    }
    notes.sort((a,b)=>a.t-b.t);
+ }
+ // Instrument-specific composers replace the initial note grid. Give those
+ // replacement notes the same real song-form contour before role mixing.
+ if(plan.songForm&&(palette||plan.gameStyle==='sadness')){
+  for(const n of notes){
+   const point=arcAt(Math.min(bars-1,Math.floor(n.t/meter)));
+   if(n.voice==='lead'||n.voice==='counter'){
+    n.midi=clamp(n.midi+point.register,24,105);
+    n.volume*=point.energy;
+   }
+  }
  }
  // Apply the same arrangement to notes added by specialist layers after add().
  // Recount roles so diagnostics reflect the audible arrangement.

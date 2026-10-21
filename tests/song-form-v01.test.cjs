@@ -1,0 +1,71 @@
+const assert=require('node:assert/strict');const fs=require('node:fs');const vm=require('node:vm');const path=require('node:path');
+const window={};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'..','song-form-v01.js'),'utf8'),{window});const plan=window.PlotuneSongForm.plan;
+for(const [seconds,expected] of [[10,['intro','A','returnA']],[30,['intro','A','B','returnA']],[60,['intro','A','Aprime','B','returnA']]]){
+ const a=plan({duration:seconds,title:'test'}),b=plan({duration:seconds,title:'test'});
+ assert.equal(JSON.stringify(a),JSON.stringify(b),'deterministic');
+ assert.equal(JSON.stringify(a.sections.map(x=>x.id)),JSON.stringify(expected));
+ assert.equal(a.sections[0].start,0);assert.equal(a.sections.at(-1).end,seconds);
+ for(let i=0;i<a.sections.length;i++){const s=a.sections[i];assert.ok(s.duration>0);assert.ok(s.tensionStart>=0&&s.tensionEnd<=1);assert.ok(s.reason);if(i)assert.equal(s.start,a.sections[i-1].end);}
+ assert.equal(a.diagnostics.audioGenerated,false);
+}
+for(const duration of [0,-1,NaN,Infinity])assert.throws(()=>plan({duration}),{name:'RangeError',message:'duration must be positive and finite'});
+console.log('PASS phase1 song form: duration, continuity, tension, diagnostics, determinism');
+
+/* Integration regression: planned sections must alter actual handheld score events. */
+const context={window,Blob,console};
+for(const filename of ['analyzer.js','resonare-v08.js','loop-arranger-v09.js','handheld-v21.js']){
+ vm.runInNewContext(fs.readFileSync(path.join(__dirname,'..',filename),'utf8'),context,{filename});
+}
+const input={title:'form-integration',character:'',world:'',scene:'森を歩く',style:'handheld',duration:60};
+const analysis=window.PlotuneAnalysis.analyze(input);
+const basePlan=window.PlotuneAnalysis.plan(input,analysis);
+const prepared=window.PlotuneHandheld.prepare(basePlan,'journey',null,false,input.scene);
+const form=plan({duration:60,title:input.title});
+const score=window.PlotuneHandheld.score({...prepared,songForm:form});
+const fallback=window.PlotuneHandheld.score(prepared);
+const sequence=score.details.wholeTrackArc.map(bar=>bar.section);
+assert.equal(JSON.stringify([...new Set(sequence)]),JSON.stringify(['intro','A','Aprime','B','returnA']),'real score must follow sections');
+assert.ok(score.notes.some(n=>n.voice==='lead'),'form must retain audible lead notes');
+const intro=form.sections[0];
+assert.ok(!score.notes.some(n=>n.voice==='counter'&&n.t<intro.end-0.01),'intro counterpoint should stay silent');
+const a=score.notes.filter(n=>n.voice==='lead').map(n=>[n.t,n.midi,n.volume]);
+const b=fallback.notes.filter(n=>n.voice==='lead').map(n=>[n.t,n.midi,n.volume]);
+assert.notEqual(JSON.stringify(a),JSON.stringify(b),'form must change note events, not only metadata');
+assert.ok(score.details.wholeTrackArc.some(bar=>bar.section==='B'&&bar.register===3),'B raises register');
+assert.ok(score.details.wholeTrackArc.some(bar=>bar.section==='returnA'&&bar.register===0),'reprise returns to theme register');
+console.log('PASS phase1 integration: sections drive handheld note events and instrument entrances');
+
+
+/* UI regression: A/B must isolate song form, not Resonare or random seed. */
+const appSource=fs.readFileSync(path.join(__dirname,'..','app-v13.js'),'utf8');
+const htmlSource=fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');
+assert.match(htmlSource,/id="formComparisonMode"/);
+assert.match(htmlSource,/value="phase1"/);
+assert.match(appSource,/const baseline=phase1\?\{\.\.\.a\.enhanced,songForm:null\}:a\.base/);
+assert.match(appSource,/const candidate=a\.enhanced/);
+assert.match(appSource,/const base=renderer\(baseline\)\.render\(baseline\)/);
+assert.match(appSource,/const enhanced=renderer\(candidate\)\.render\(candidate\)/);
+const enhancedPrepared={...prepared,songForm:form};
+const off=window.PlotuneHandheld.score({...enhancedPrepared,songForm:null});
+const on=window.PlotuneHandheld.score(enhancedPrepared);
+assert.notEqual(JSON.stringify(off.notes),JSON.stringify(on.notes),'same-seed A/B must isolate audible song-form difference');
+console.log('PASS phase1 A/B: same prepared input, independent form toggle, wired UI');
+
+/* Prefill regression: sample is available on first visit, custom stored inputs remain. */
+const demoSource=fs.readFileSync(path.join(__dirname,'..','app-v13.js'),'utf8');
+const demoStart=demoSource.indexOf('const demoSettings=');
+const demoEnd=demoSource.indexOf("const gameSelect=",demoStart);
+assert.ok(demoStart>=0&&demoEnd>demoStart,'demo initialization must be present');
+const initDemo=demoSource.slice(demoStart,demoEnd);
+const makeFields=()=>Object.fromEntries(['title','character','world','scene','style','duration','formComparisonMode'].map(id=>[id,{value:''}]));
+const emptyFields=makeFields();emptyFields.style.value='auto';emptyFields.duration.value='30';const initialStorage={getItem:()=>null};
+vm.runInNewContext(initDemo,{$:id=>emptyFields[id],localStorage:initialStorage,fields:['title','character','world','scene','style','duration']});
+for(const id of ['title','character','world','scene'])assert.ok(emptyFields[id].value.trim(),id+' sample is prefilled');
+assert.equal(emptyFields.style.value,'handheld');
+assert.equal(emptyFields.duration.value,'60');
+assert.equal(emptyFields.formComparisonMode.value,'phase1');
+const savedFields=makeFields();
+const stored={title:'自分の曲',character:'オリジナル主人公',world:'宇宙',scene:'星を見上げる',style:'piano',duration:'30'};
+vm.runInNewContext(initDemo,{$:id=>savedFields[id],localStorage:{getItem:()=>JSON.stringify(stored)},fields:Object.keys(stored)});
+for(const [key,value] of Object.entries(stored))assert.equal(savedFields[key].value,value,'saved '+key+' must survive');
+console.log('PASS phase1 demo defaults: ready-to-play on first visit, saved inputs preserved');

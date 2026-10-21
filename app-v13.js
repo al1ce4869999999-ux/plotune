@@ -7,6 +7,7 @@ const names={chip:'8bit・コミカル',pop:'ポップ',piano:'ピアノ風',hor
 const cueNames={practice:'練習・試行',stumble:'つまずき',recovery:'回復',success:'成功',danger:'危険',loss:'喪失',turn:'転換',anticipation:'期待',neutral:'変化なし'};
 const roleNames={guitar:'ギター',bass:'ベース',drums:'ドラム',piano:'ピアノ',melody:'旋律',counter:'対旋律',chords:'コード',arp:'アルペジオ',pad:'パッド',sparkle:'装飾音'};
 const fields=['title','character','world','scene','style','duration','engine','bandStyle','gameStyle'];
+const phase1Mode=()=>$('formComparisonMode').value==='phase1'&&$('style').value==='handheld';
 const composer=window.PlotuneComposerV4,band=window.PlotuneBand,bandPiano=window.PlotuneBandPiano,handheld=window.PlotuneHandheld,compareTools=window.PlotuneCompare,loopComposer=window.PlotuneLoop;
 const renderer=plan=>plan.genre==='band'?band:plan.genre==='bandpiano'?bandPiano:plan.genre==='game'?handheld:composer;
 const styleName=plan=>plan.genre==='bandpiano'?(bandPiano.STYLES[plan.bandStyle]||bandPiano.STYLES.indie).name+'＋ピアノユニゾン':plan.genre==='band'?(band.STYLES[plan.bandStyle]||band.STYLES.indie).name:plan.genre==='game'?(handheld.STYLES[plan.gameStyle]||handheld.STYLES.journey).name:names[plan.genre];
@@ -28,7 +29,7 @@ function clearComparison(){
  stop(true);tracks=null;events=[];selected=null;$('comparison').hidden=true;
  $('eventCompare').hidden=true;$('cueSelect').replaceChildren();
 }
-function bandPanel(){$('bandOptions').hidden=!['band','bandpiano'].includes($('style').value);$('gameOptions').hidden=$('style').value!=='handheld';}
+function bandPanel(){$('bandOptions').hidden=!['band','bandpiano'].includes($('style').value);$('gameOptions').hidden=$('style').value!=='handheld';$('formComparisonMode').disabled=$('style').value!=='handheld';if($('formComparisonMode').disabled)$('formComparisonMode').value='resonare';}
 function ready(){
  $('play').disabled=$('wav').disabled=!current;
  $('reroll').disabled=!current;
@@ -45,10 +46,27 @@ function save(quiet=false){
  try{localStorage.setItem('plotune',JSON.stringify(form()));if(!quiet)status('設定を保存しました');}
  catch{if(!quiet)status('設定を保存できませんでした',true);}
 }
+const demoSettings={
+ title:'ぽんぽんの小さな冒険',
+ character:'ぽんぽんは、おっとりして不器用なたぬきの獣人。失敗しても諦めず、少しずつ挑戦する。',
+ world:'秋の夕暮れの小さな森。優しいけれど少し不思議な、携帯ゲームの冒険世界。',
+ scene:'ぽんぽんは森の小道を歩きはじめる。大きな落ち葉につまずき、困って立ち止まる。やがて風の向こうに光を見つけ、勇気を出して歩きだす。最後には見慣れた小道へ帰り、ほっと笑う。'
+};
+let hasSavedSettings=false;
 try{
- const saved=JSON.parse(localStorage.getItem('plotune')||'{}');
+ const raw=localStorage.getItem('plotune');
+ const saved=raw?JSON.parse(raw):{};
+ hasSavedSettings=!!raw;
  fields.forEach(k=>{if(saved[k]!=null)$(k).value=saved[k]});
 }catch{}
+for(const [key,value] of Object.entries(demoSettings)){
+ if(!$(key).value.trim())$(key).value=value;
+}
+if(!hasSavedSettings){
+ if($('style').value==='auto')$('style').value='handheld';
+ if($('duration').value==='30')$('duration').value='60';
+}
+if($('style').value==='handheld')$('formComparisonMode').value='phase1';
 const gameSelect=$('gameStyle');
 const existing=gameSelect.value;
 gameSelect.replaceChildren();
@@ -91,8 +109,9 @@ function analyze(){
   const storyContext=[input.character,input.world,input.scene].filter(Boolean).join('\n');
   const structure=window.PlotuneStoryStructure?.analyze(input);
   const expression=window.PlotuneMusicPsychology?.derive(structure,input.gameStyle);
-  base={...handheld.prepare(original,input.gameStyle,appraisal,false,input.scene,storyContext),structure,expression};
-  enhanced={...handheld.prepare(enhanced,input.gameStyle,appraisal,true,input.scene,storyContext),structure,expression};
+  const songForm=window.PlotuneSongForm?.plan({duration:Number(original.duration),title:input.title});
+  base={...handheld.prepare(original,input.gameStyle,appraisal,false,input.scene,storyContext),structure,expression,songForm};
+  enhanced={...handheld.prepare(enhanced,input.gameStyle,appraisal,true,input.scene,storyContext),structure,expression,songForm};
  }
  const box=$('analysis');box.replaceChildren();
  box.append(textNode('h3','物語の解析結果'));
@@ -174,8 +193,12 @@ async function compare(){
  await new Promise(resolve=>setTimeout(resolve,35));
  try{
   const a=analyze();
-  const base=renderer(a.base).render(a.base);
-  const enhanced=renderer(a.enhanced).render(a.enhanced);
+  const phase1=phase1Mode();
+  // Isolate song form only: identical prepared plan, seed and instrumentation.
+  const baseline=phase1?{...a.enhanced,songForm:null}:a.base;
+  const candidate=a.enhanced;
+  const base=renderer(baseline).render(baseline);
+  const enhanced=renderer(candidate).render(candidate);
   tracks={classic:base,resonare:enhanced};
   current=a.input.engine==='classic'?base:enhanced;
   events=compareTools.buildEvents(base,enhanced,a.appraisal);
@@ -190,6 +213,20 @@ async function compare(){
   }
   selected=events[0]||null;
   comparisonDisplay();
+  for(const [id,label] of Object.entries(phase1?{classicPlay:'▶ フェーズ1なし',resonarePlay:'▶ フェーズ1あり',classicClip:'▶ 10秒・なし',resonareClip:'▶ 10秒・あり'}:{classicPlay:'▶ 基準版',resonarePlay:'▶ Resonare版',classicClip:'▶ 10秒比較・基準版',resonareClip:'▶ 10秒比較・Resonare版'}))$(id).textContent=label;
+  if(phase1){
+   const duration=Math.min(base.score.duration,enhanced.score.duration);
+   const relative=compareTools.signalDifference(base,enhanced,0,duration).relative;
+   const roles=compareTools.roleChanges(base,enhanced,0,duration);
+   const changed=Object.values(roles).reduce((n,r)=>n+r.changed,0);
+   $('contrastAssessment').textContent='フェーズ1のみON/OFF。同じ入力・seed・楽器設定で曲構成による演奏差を比較します。';
+   $('comparisonInfo').textContent='構成なし → 構成あり／演奏差分 '+changed+'件／波形差 '+Math.round(relative*100)+'%。再生による聴感評価は別途必要です。';
+   $('comparison').hidden=false;
+   $('playerHint').textContent='「フェーズ1なし」と「フェーズ1あり」を同じ位置から切り替えて聴けます。';
+   $('summary').textContent='フェーズ1 ON/OFF比較 · '+styleName(candidate)+' · '+duration+'秒';
+   current=enhanced;status('フェーズ1の比較用2曲を生成しました。');
+   return;
+  }
   const d=enhanced.details,ordinary=base.details;
   const global=a.enhanced.loopArrangement;
   const layers=d.genre==='game'?d.parts:null;
@@ -390,6 +427,7 @@ function reset(){
  clearComparison();current=null;ready();$('summary').textContent='設定が変わりました。もう一度作曲してね';
 }
 $('engine').addEventListener('change',()=>{reset();analyze();status('解析方法を切り替えました');});
+$('formComparisonMode').addEventListener('change',()=>{reset();status('比較方式を変更しました。もう一度2曲を生成してください');});
 $('style').addEventListener('change',()=>{bandPanel();reset();status('曲調を切り替えました');});
 $('bandStyle').addEventListener('change',()=>{reset();status('バンドのスタイルを切り替えました');});
 $('gameStyle').addEventListener('change',()=>{reset();status('ゲームサウンドの編曲を切り替えました');});
