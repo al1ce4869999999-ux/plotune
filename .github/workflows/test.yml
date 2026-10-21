@@ -52,37 +52,42 @@ jobs:
           node --check app-v06.js
           node --check app-v062.js
           node --check app-v07.js
+      - name: Preflight UI and asset contracts
+        run: node tests/preflight-contracts.test.cjs
       - name: Run no-API engine tests
         run: |
-          node tests/engine.test.cjs
-          node tests/emotion-plan-phase1.test.cjs
-          node tests/emotion-audio-phase1.test.cjs
-          node tests/resonare.test.cjs
-          node tests/structural.test.cjs
-          node tests/band.test.cjs
-          node tests/band-v07.test.cjs
-          node tests/practice-v08.test.cjs
-          node tests/ui-v08.test.cjs
-          node tests/loop-v09.test.cjs
-          node tests/ui-v09.test.cjs
-          node tests/handheld-v10.test.cjs
-          node tests/ponpon-v11.test.cjs
-          node tests/game-expression-v16.test.cjs
-          node tests/storybook-v17.test.cjs
-          node tests/instrument-auto-v18.test.cjs
-          node tests/ds-arrangement-v19.test.cjs
-          node tests/emotional-arc-v20.test.cjs
-          node tests/grief-gravity-v21.test.cjs
-          node tests/ui-v10.test.cjs
-          node tests/zeta-export-v12.test.cjs
-          node tests/ui-v12.test.cjs
-          node tests/band-piano-v13.test.cjs
-          node tests/melodic-rock-v14.test.cjs
-          node tests/melodic-rock-v15.test.cjs
-          node tests/ui-v13.test.cjs
-          node tests/ui-v07.test.cjs
-          node tests/ui-v05.test.cjs
-          node tests/comparison-v06.test.cjs
-          node tests/ui-v06.test.cjs
-          node tests/cache-v062.test.cjs
-          node tests/ui-v04.test.cjs
+          failed=0
+          node tests/engine.test.cjs || failed=1
+          node tests/emotion-plan-phase1.test.cjs || failed=1
+          node tests/emotion-audio-phase1.test.cjs || failed=1
+          node tests/resonare.test.cjs || failed=1
+          node tests/structural.test.cjs || failed=1
+          node tests/band.test.cjs || failed=1
+          node tests/band-v07.test.cjs || failed=1
+          node tests/practice-v08.test.cjs || failed=1
+          node tests/ui-v08.test.cjs || failed=1
+          node tests/loop-v09.test.cjs || failed=1
+          node tests/ui-v09.test.cjs || failed=1
+          node tests/handheld-v10.test.cjs || failed=1
+          node tests/ponpon-v11.test.cjs || failed=1
+          node tests/game-expression-v16.test.cjs || failed=1
+          node tests/storybook-v17.test.cjs || failed=1
+          node tests/instrument-auto-v18.test.cjs || failed=1
+          node tests/ds-arrangement-v19.test.cjs || failed=1
+          node tests/emotional-arc-v20.test.cjs || failed=1
+          node tests/grief-gravity-v21.test.cjs || failed=1
+          node tests/ui-v10.test.cjs || failed=1
+          node tests/zeta-export-v12.test.cjs || failed=1
+          node tests/ui-v12.test.cjs || failed=1
+          node tests/band-piano-v13.test.cjs || failed=1
+          node tests/melodic-rock-v14.test.cjs || failed=1
+          node tests/melodic-rock-v15.test.cjs || failed=1
+          node tests/ui-v13.test.cjs || failed=1
+          node tests/ui-v07.test.cjs || failed=1
+          node tests/ui-v05.test.cjs || failed=1
+          node tests/comparison-v06.test.cjs || failed=1
+          node tests/ui-v06.test.cjs || failed=1
+          node tests/cache-v062.test.cjs || failed=1
+          node tests/ui-v04.test.cjs || failed=1
+
+          exit "$failed"
