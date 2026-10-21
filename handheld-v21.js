@@ -301,12 +301,6 @@ function score(plan){
  const pulseDensity=game.density||1;
  const shape=game.shape||'field';
  const sharedGrammar=root.PlotuneMelodicGrammar?.grammar(plan.structure,plan.expression,plan.characterSeed||seed);
- const motifPhrase=sharedGrammar&&root.PlotuneMelodicGrammar?.composePhrase?
-   root.PlotuneMelodicGrammar.composePhrase(sharedGrammar,0,{density:clamp(pulseDensity*.68,.25,.92)}):null;
- const sharedPhrases=motifPhrase?Array.from({length:bars},(_,b)=>
-   b===0?motifPhrase:root.PlotuneMelodicGrammar.composePhrase(sharedGrammar,b,{
-     density:clamp(pulseDensity*.68*arcAt(b).density,.25,.92),
-     motif:motifPhrase,stage:arcAt(b).stage})):null;
  // Whole-track dramatic arc: opening, development, peak, release.
  // Works at any length; retains loop continuity and original instrument palettes.
  const arcStages=['opening','development','climax','resolution'];
@@ -319,6 +313,12 @@ function score(plan){
     register:[-1,0,2,-1][stage]};
  };
  const wholeTrackArc=Array.from({length:bars},(_,b)=>({bar:b+1,...arcAt(b)}));
+ const motifPhrase=sharedGrammar&&root.PlotuneMelodicGrammar?.composePhrase?
+   root.PlotuneMelodicGrammar.composePhrase(sharedGrammar,0,{density:clamp(pulseDensity*.68,.25,.92)}):null;
+ const sharedPhrases=motifPhrase?Array.from({length:bars},(_,b)=>
+   b===0?motifPhrase:root.PlotuneMelodicGrammar.composePhrase(sharedGrammar,b,{
+     density:clamp(pulseDensity*.68*arcAt(b).density,.25,.92),
+     motif:motifPhrase,stage:arcAt(b).stage})):null;
  // Repeat 4-bar thematic material; vary density and fills but keep a looping identity.
  for(let b=0;b<bars;b++){
   const chord=chordAt(b),next=chordAt((b+1)%bars),barAt=b*meter;
