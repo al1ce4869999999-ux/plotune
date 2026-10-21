@@ -133,6 +133,8 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 </select>
 <p class="note">既存のDS曲調を選ぶだけ。シーンを読んでオカリナ・シンセ・ハープなどを自動編成し、旋律やリズムまで変えます。7系統の独立したパートを端末内で合成。既存ゲームの曲や音源は使用しません。</p>
 </div>
+<label for="formComparisonMode">聴き比べの種類</label><select id="formComparisonMode"><option value="resonare">基準版／Resonare版（従来どおり）</option><option value="phase1">フェーズ1なし／あり（DS風ゲームサウンド）</option></select>
+<p class="note">フェーズ1比較はDS風ゲームサウンド専用。同じ設定・seedで曲構成だけをON/OFFします。</p>
 <label for="engine">解析エンジン</label><select id="engine"><option value="resonare">Resonare型（実験版）</option><option value="classic">基準アレンジ（出来事に反応しない）</option></select>
 <div class="actions">
 <button id="compare" class="alt" type="button">⚖️ 2曲を作り直す</button>
