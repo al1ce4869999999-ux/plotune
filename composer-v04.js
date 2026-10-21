@@ -39,6 +39,14 @@ function buildScore(plan){
  const normalLead={chip:'chip',piano:'piano',pop:'pluck',fantasy:'bell',
                    ambient:'flute',horror:'ghost'}[genre]||'pluck';
  const dramatic=!!plan.resonare;
+ // Opt-in emotion-aware rendition; preserve existing audio when disabled.
+ const emotion=plan.emotionComposition===true?plan.emotionPlan?.sections:null;
+ const emotionAt=time=>{
+   if(!emotion?.length)return null;
+   const fraction=time/duration;
+   const segment=emotion.find(x=>fraction>=x.start&&fraction<x.end)||emotion[emotion.length-1];
+   return segment.target||null;
+ };
  const activeSpan=Math.max(6,Math.round(6+plan.bpm/30)); // 1.5–2.5 bars
  function add(time,len,midi,volume,voice,role){
   if(!Number.isFinite(time)||!Number.isFinite(midi)||time>=duration||len<=0)return;
@@ -101,7 +109,13 @@ function buildScore(plan){
   const dark=['stumble','loss','danger'].includes(cue);
   const rising=['recovery','success'].includes(cue);
   const quiet=cue==='anticipation'||cue==='turn';
-  const energy=clamp(dark?.61:rising?.94:quiet?.48:.77,.32,1);
+  const emotionTarget=emotionAt(time);
+  const expressiveTension=emotionTarget?.tension||0;
+  const expressivePeace=emotionTarget?.peacefulness||0;
+  const expressiveJoy=emotionTarget?.joy||0;
+  const expressiveSadness=emotionTarget?.sadness||0;
+  const emotionEnergy=emotionTarget?clamp(1+expressiveJoy*.28+expressiveTension*.20-expressivePeace*.22-expressiveSadness*.16,.6,1.45):1;
+  const energy=clamp((dark?.61:rising?.94:quiet?.48:.77)*emotionEnergy,.25,1.25);
   const rootChord=degree(rootNote,scale,chord);
   // A chord is genuinely REHARMONIZED twice per bar in the experimental version.
   if(i%4===0){
@@ -128,7 +142,9 @@ function buildScore(plan){
    const normalRhythm=i%4===0||i%4===2||i%8===3||i%8===7;
    const dramaticRhythm=dark?(i%4===0||i%8===6):
        rising?(i%2===0||i%8===7):quiet?(i%4===0):normalRhythm;
-   if((dramatic?dramaticRhythm:normalRhythm)&&!(position===7&&measure%4===3)){
+   const feelingRest=emotionTarget && expressivePeace+expressiveSadness>1.05 && position===3;
+   const feelingMotion=emotionTarget && expressiveJoy+expressiveTension>1.05 && position===1;
+   if(!feelingRest&&((dramatic?dramaticRhythm:normalRhythm)||feelingMotion)&&!(position===7&&measure%4===3)){
     let di=theme[position]+intervals[position];
     if(position===0||position===4){
       const choices=[chord,chord+2,chord+4];
@@ -138,9 +154,10 @@ function buildScore(plan){
     if(dark){di=Math.max(0,di-3-(i%4===0?1:0));}
     if(rising)di+=position%4===2?3:1;
     if(quiet)di=Math.min(5,di);
+    if(emotionTarget)di+=expressiveTension>.55&&position===2?1:expressivePeace>.55&&position===6?-1:0;
     const octaveShift=genre==='piano'||genre==='ambient'?-12:0;
     const voice=dark?'ghost':rising?(genre==='chip'?'chip':'bell'):normalLead;
-    const d=dark?eighth*1.75:quiet?eighth*2.8:rising?eighth*.97:eighth*1.65;
+    const d=(dark?eighth*1.75:quiet?eighth*2.8:rising?eighth*.97:eighth*1.65)*(emotionTarget?clamp(1+expressivePeace*.3-expressiveTension*.15,.8,1.35):1);
     add(time,d,degree(rootNote,scale,di)+octaveShift,
       (dark?.135:rising?.23:quiet?.105:.18)*energy,voice,'lead');
     if(rising&&position%4===0){
@@ -192,6 +209,7 @@ function buildScore(plan){
  return {duration,bpm:plan.bpm,sampleRate:RATE,theme,notes,drums,rests,
   harmony,changes,expression,genre,dramatic,
   details:{
+   emotionComposition:!!emotion,emotionSections:emotion?emotion.map(x=>({id:x.id,start:x.start,end:x.end,target:x.target})):null,
    theme,genre,mode:plan.mode,bpm:plan.bpm,dramatic,
    melodyNotes:notes.filter(n=>n.role==='lead').length,
    accompanimentNotes:notes.filter(n=>n.role==='chord').length,
