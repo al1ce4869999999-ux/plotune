@@ -134,6 +134,17 @@ function analyze(){
    }
    box.append(textNode('p','ループBGMでは文章全体を先に分析し、冒頭から一貫した曲調で演奏します。携帯ゲーム風は主旋律・対旋律・コード・アルペジオ・ベース・ドラム・装飾音を別々に作曲します。','explain'));
  }
+ // Phase 1 diagnostics only; the legacy audio plans remain untouched.
+ if(window.PlotuneCompositionPlan){
+  const bpm=Number(base.bpm)||100;
+  const duration=Number(base.duration)||Number(input.duration)||30;
+  const bars=Math.max(2,Math.min(128,Math.round(duration*bpm/240)));
+  const seed=Number(base.seed)||window.PlotuneCompositionPlan.hash([input.character,input.world,input.scene,variant].join('|'));
+  const composition=window.PlotuneCompositionPlan.create({bars,tempo:bpm,seed});
+  addRow(report,'新設計の曲構造（試験）',composition.sections.map(s=>s.function+' '+s.bars+'小節').join(' → '));
+  addRow(report,'緊張度の目標',composition.sections.map(s=>s.tensionTarget.at(-1).toFixed(2)).join(' / '));
+  addRow(report,'音声への適用','未接続（従来エンジンで再生）');
+ }
  box.append(report);
  box.append(textNode('h4','出来事に対する演奏指示'));
  for(const e of appraisal.events.slice(0,14)){
