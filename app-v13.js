@@ -81,6 +81,12 @@ function analyze(){
  const original=PlotuneAnalysis.plan(input,old,variant);
  const appraisal=PlotuneResonare.analyze(input);
  let base=original,enhanced=PlotuneResonare.attachPlan(original,appraisal);
+ // A/B opt-in: the baseline remains untouched; emotional rendition is
+ // enabled only for the standard renderer, not the handheld/band engines.
+ if($('emotionComposition')?.checked && !['handheld','band','bandpiano'].includes(input.style)){
+   enhanced={...enhanced,emotionComposition:true};
+ }
+
  if(['band','bandpiano'].includes(input.style)){
   const arrangementEngine=input.style==='bandpiano'?bandPiano:band;
   base=loopComposer.baseline(arrangementEngine.adaptPlan(original,input.bandStyle));
