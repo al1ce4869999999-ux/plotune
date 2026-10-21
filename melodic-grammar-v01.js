@@ -55,5 +55,32 @@ function phrase(g,bar,count=8){
  }
  return result;
 }
-root.PlotuneMelodicGrammar={grammar,phrase};
+
+// Shared phrase planner: rhythmic events occupy a whole bar, not fixed note slots.
+// Reuses the same character/world grammar for game, character, box and flute voices.
+function composePhrase(g,bar,options={}){
+ const r=rng((g.identity^Math.imul((bar%4)+1,0x9e3779b9)^Math.imul(Math.floor(bar/4)+1,0x85ebca6b))>>>0);
+ const density=clamp(options.density??g.noteDensity,.22,.95);
+ const slots=16,events=[];
+ const count=Math.max(3,Math.min(11,Math.round(3+density*7+(r()-.5)*2)));
+ const raw=phrase(g,bar,count);
+ let position=bar%4===1&&g.hesitation>.3?1:0;
+ const base=bar%4===0?0:bar%4===1?1:bar%4===2?2:0;
+ for(let i=0;i<count&&position<slots-.25;i++){
+   const remaining=slots-position;
+   const tail=count-i;
+   const spacing=Math.min(remaining,Math.max(.75,remaining/tail*(.7+r()*.55)));
+   const note=raw[i];
+   const cadence=i===count-1&&bar%4===3;
+   const next=Math.min(slots,position+spacing);
+   const duration=Math.max(.45,Math.min(next-position,spacing*(.55+r()*.4)+(cadence?1.25:0)));
+   events.push({position:+position.toFixed(3),durationUnits:+Math.min(duration,slots-position).toFixed(3),
+     degree:cadence?base:Math.max(0,Math.min(8,note.degree+(bar%4===2?1:0))),
+     rest:note.rest&&!cadence,step:note.step,cadence});
+   position=next+(r()<.18?.5:0);
+ }
+ if(events.length&&!events.some(n=>!n.rest))events[0].rest=false;
+ return events;
+}
+root.PlotuneMelodicGrammar={grammar,phrase,composePhrase};
 })(window);
