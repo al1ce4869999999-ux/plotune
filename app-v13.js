@@ -63,10 +63,10 @@ for(const [key,value] of Object.entries(demoSettings)){
  if(!$(key).value.trim())$(key).value=value;
 }
 if(!hasSavedSettings){
- $('style').value='handheld';
- $('duration').value='60';
- $('formComparisonMode').value='phase1';
+ if($('style').value==='auto')$('style').value='handheld';
+ if($('duration').value==='30')$('duration').value='60';
 }
+if($('style').value==='handheld')$('formComparisonMode').value='phase1';
 const gameSelect=$('gameStyle');
 const existing=gameSelect.value;
 gameSelect.replaceChildren();
