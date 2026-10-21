@@ -336,9 +336,35 @@ function score(plan){
    b===0?motifPhrase:root.PlotuneMelodicGrammar.composePhrase(sharedGrammar,b,{
      density:clamp(pulseDensity*.68*arcAt(b).density,.25,.92),
      motif:motifPhrase,stage:arcAt(b).stage})):null);
+ // Joint melody/harmony: score functional chord candidates against strong-beat
+ // melody anchors, voice-leading, and the section's planned cadence.
+ const plannedChords=[];
+ function harmonicAt(bar){
+  const b=((bar%bars)+bars)%bars;
+  if(plannedChords[b]!==undefined)return plannedChords[b];
+  const section=hierarchical.sections.find(s=>b>=s.startBar&&b<s.startBar+s.bars);
+  const local=b-section.startBar;
+  const final=local===section.bars-1;
+  if(final&&section.cadence==='authentic')return plannedChords[b]=0;
+  const anchors=(sharedPhrases[b]||[]).filter(n=>!n.rest&&n.position%4<1.1);
+  const prior=b?harmonicAt(b-1):0;
+  const candidates=[0,1,3,4,5];
+  let chosen=0,best=Infinity;
+  for(const candidate of candidates){
+   const tones=[candidate,candidate+2,candidate+4].map(n=>n%7);
+   const fit=anchors.reduce((sum,n)=>sum+(tones.includes(((n.degree%7)+7)%7)?0:1.5),0);
+   const movement=Math.min(Math.abs(candidate-prior),7-Math.abs(candidate-prior))*.22;
+   const preferred=candidate===prog[b%prog.length]?-.2:0;
+   const half=final&&section.cadence==='half'&&candidate!==4?1.4:0;
+   const score=fit+movement+preferred+half;
+   if(score<best){best=score;chosen=candidate;}
+  }
+  plannedChords[b]=chosen;
+  return chosen;
+ }
  // Repeat 4-bar thematic material; vary density and fills but keep a looping identity.
  for(let b=0;b<bars;b++){
-  const chord=chordAt(b),next=chordAt((b+1)%bars),barAt=b*meter;
+  const chord=hierarchical?harmonicAt(b):chordAt(b),next=hierarchical?harmonicAt((b+1)%bars):chordAt((b+1)%bars),barAt=b*meter;
   harmony.push({t:barAt,chord});
   const section=b%4;
   const lift=b%8===4||kind==='bright';
@@ -355,7 +381,7 @@ function score(plan){
      if(Math.floor(event.position)!==i||event.rest)continue;
      if(arcState.density<.8&&event.position>9&&event.position<13)continue;
      add(barAt+event.position*step,event.durationUnits*step,
-       midi(leadRoot,scale,event.degree+chord+arcState.register),'lead',.125*energy);
+       midi(leadRoot,scale,event.degree+(hierarchical?0:chord)+arcState.register),'lead',.125*energy);
     }
    }else if(i%2===0)add(t,step*1.55,midi(leadRoot,scale,motif[(i+section*2)%8]),'lead',.125*energy);
    // Counterpoint answers primary melody in a different octave.
