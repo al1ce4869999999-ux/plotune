@@ -13,6 +13,7 @@ jobs:
           node-version: '22'
       - name: Check JavaScript syntax
         run: |
+          node --check song-form-v01.js
           node --check analyzer.js
           node --check resonare.js
           node --check composer.js
@@ -54,6 +55,7 @@ jobs:
           node --check app-v07.js
       - name: Run no-API engine tests
         run: |
+          node tests/song-form-v01.test.cjs
           node tests/engine.test.cjs
           node tests/resonare.test.cjs
           node tests/structural.test.cjs
