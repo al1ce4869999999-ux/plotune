@@ -59,25 +59,25 @@ assert.ok(diff>500,'A/B needs audible signal changes');
 assert.ok(wet.details.cues.includes('stumble'),'stumble should reach score');
 assert.equal(C.wavBlob(wet.samples,wet.sampleRate).size,44+wet.samples.length*2);
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-const assets=html.includes('src="app-v13.js"')
+const assets=/src="app-v13.js(?:\?[^\"]*)?"/.test(html)
  ? ['analyzer.js','resonare-v08.js','composer-v04.js','loop-arranger-v09.js','band-v09.js','band-piano-v15.js','comparison-v13.js','handheld-v21.js','zeta-export-v12.js','app-v13.js']
- : html.includes('src="app-v12.js"')
+ : /src="app-v12.js(?:\?[^\"]*)?"/.test(html)
  ? ['analyzer.js','resonare-v08.js','composer-v04.js','loop-arranger-v09.js','band-v09.js','comparison-v10.js','handheld-v10.js','zeta-export-v12.js','app-v12.js']
- : html.includes('src="app-v10.js"')
+ : /src="app-v10.js(?:\?[^\"]*)?"/.test(html)
  ? ['analyzer.js','resonare-v08.js','composer-v04.js','loop-arranger-v09.js','band-v09.js','comparison-v10.js','handheld-v10.js','app-v10.js']
- : html.includes('src="app-v09.js"')
+ : /src="app-v09.js(?:\?[^\"]*)?"/.test(html)
  ? ['analyzer.js','resonare-v08.js','loop-arranger-v09.js','composer-v04.js','band-v09.js','comparison-v08.js','app-v09.js']
- : html.includes('src="app-v08.js"')
+ : /src="app-v08.js(?:\?[^\"]*)?"/.test(html)
  ? ['analyzer.js','resonare-v08.js','composer-v04.js','band-v08.js','comparison-v08.js','app-v08.js']
- : html.includes('src="app-v07.js"')
+ : /src="app-v07.js(?:\?[^\"]*)?"/.test(html)
  ? ['analyzer.js','resonare.js','composer-v04.js','band-v07.js','comparison-v06.js','app-v07.js']
- : html.includes('src="app-v062.js"')
+ : /src="app-v062.js(?:\?[^\"]*)?"/.test(html)
  ? ['analyzer.js','resonare.js','composer-v04.js','band-v05.js','comparison-v06.js','app-v062.js']
- : html.includes('src="app-v06.js"')
+ : /src="app-v06.js(?:\?[^\"]*)?"/.test(html)
  ? ['analyzer.js','resonare.js','composer-v04.js','band-v05.js','comparison-v06.js','app-v06.js']
- : html.includes('src="app-v05.js"')
+ : /src="app-v05.js(?:\?[^\"]*)?"/.test(html)
  ? ['analyzer.js','resonare.js','composer-v04.js','band-v05.js','app-v05.js']
- : html.includes('src="app-v04.js"')
+ : /src="app-v04.js(?:\?[^\"]*)?"/.test(html)
  ? ['analyzer.js','resonare.js','composer-v04.js','app-v04.js']
  : ['analyzer.js','resonare.js','composer.js','app-v03.js'];
 for(const asset of assets)assert.ok(html.includes('src="'+asset+'"')||html.includes('src="'+asset+'?'),'missing script '+asset);
