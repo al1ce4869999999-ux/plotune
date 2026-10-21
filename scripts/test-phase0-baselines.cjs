@@ -32,6 +32,12 @@ for(const fixture of fixtures){
  const a=signature(generate()),b=signature(generate());
  assert.equal(a,b,fixture.id+' must be deterministic for the fixed input and seed');
  assert.ok(a.length>50,fixture.id+' generated empty score');
- console.log(fixture.id+' deterministic, score bytes='+a.length);
+ fingerprints[fixture.id]=crypto.createHash('sha256').update(a).digest('hex');
+ console.log(fixture.id+' deterministic, score bytes='+a.length+', sha256='+fingerprints[fixture.id]);
+}
+if(process.env.PHASE0_FINGERPRINT_OUTPUT)fs.writeFileSync(process.env.PHASE0_FINGERPRINT_OUTPUT,JSON.stringify(fingerprints,null,2)+'\\n');
+if(process.env.PHASE0_FINGERPRINT_EXPECTED){
+ const expected=JSON.parse(fs.readFileSync(process.env.PHASE0_FINGERPRINT_EXPECTED,'utf8'));
+ assert.deepEqual(fingerprints,expected,'Phase 0 historical score fingerprints changed');
 }
 console.log('Phase 0 route baseline fixtures passed');
