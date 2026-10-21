@@ -831,6 +831,17 @@ function score(plan){
    }
    notes.sort((a,b)=>a.t-b.t);
  }
+ // Apply the same arrangement to notes added by specialist layers after add().
+ // Recount roles so diagnostics reflect the audible arrangement.
+ for(let i=notes.length-1;i>=0;i--){
+  const n=notes[i],mix=arrangementAt(n.t)[n.voice]??1;
+  if(mix===0){notes.splice(i,1);continue;}
+  if(n.role!==n.voice)n.volume=clamp(n.volume*mix,0,.26);
+ }
+ for(let i=drums.length-1;i>=0;i--){
+  const hit=drums[i],mix=arrangementAt(hit.t).drums;
+  if(mix===0)drums.splice(i,1);
+ }
  // Apply research-backed *dimensions* after character/scene composition.
  // Numeric amounts are our implementation choices; not paper coefficients.
  const cues=expression?.researchCues||null;
