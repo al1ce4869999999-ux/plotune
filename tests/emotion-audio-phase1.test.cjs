@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const window={};const ctx={window,Blob,console};const baseDir=path.resolve(__dirname,'..');
+for(const name of ['analyzer.js','composer-v04.js'])vm.runInNewContext(fs.readFileSync(path.join(baseDir,name),'utf8'),ctx,{filename:name});
+const A=window.PlotuneAnalysis,C=window.PlotuneComposer;
+const input={title:'contrast',character:'',world:'',scene:'悲しく泣いた。急に怖い物音。最後には安心した。',duration:15};
+const base=A.plan(input,A.analyze(input));
+const old=C.buildScore(base),withTargets=C.buildScore({...base,emotionComposition:true});
+assert.equal(withTargets.details.emotionComposition,true);
+assert.equal(withTargets.details.emotionSections.length,4);
+assert.deepEqual(Array.from(withTargets.theme),Array.from(old.theme),'original theme retained');
+assert.equal(C.buildScore(base).details.emotionComposition,false);
+const manually={...base,emotionComposition:true,emotionPlan:{sections:base.sections.map((s,i)=>({...s,id:'s'+i,target:{joy:i===1?1:0,peacefulness:i===3?1:0,tension:i===2?1:0,sadness:0}}))}};
+const changed=C.buildScore(manually);
+assert.notDeepEqual(changed.notes,old.notes,'emotional sections alter score events');
+assert.deepEqual(C.buildScore(manually).notes,changed.notes,'deterministic');
+assert.ok(changed.notes.every(x=>x.t>=0&&x.t+x.d<=15+.001&&Number.isFinite(x.midi)),'bounded notes');
+console.log('PASS: section emotion targets alter score while retaining baseline');
