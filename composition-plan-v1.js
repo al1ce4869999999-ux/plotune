@@ -38,6 +38,7 @@ function tensionPlanner(plan){
  }
  return plan;
 }
+function sectionAt(plan,bar){return plan.sections.find(s=>bar>=s.startBar&&bar<s.startBar+s.bars)||plan.sections[plan.sections.length-1];}
 function create(input){const p=tensionPlanner(formPlanner(input));p.diagnostics.unshift({stage:'FormPlanner',location:'whole',candidates:1,chosen:p.sections.map(s=>s.function).join('-'),scores:{bars:p.sections.reduce((n,s)=>n+s.bars,0)},reason:'Duration-dependent hierarchical form'});return p;}
-root.PlotuneCompositionPlan={create,formPlanner,tensionPlanner,hash};
+root.PlotuneCompositionPlan={create,formPlanner,tensionPlanner,sectionAt,hash};
 })(typeof window!=='undefined'?window:globalThis);
