@@ -5,7 +5,7 @@ const A=window.PlotuneAnalysis,R=window.PlotuneResonare,H=window.PlotuneHandheld
 function make(scene,style,duration){const input={title:'t',character:'',world:'',scene,style:'handheld',duration};
 const p=A.plan(input,A.analyze(input));return H.prepare(p,style,R.analyze(input),false,scene)}
 for(const duration of [15,30,60]){
-const p=make('ぽんぽんが涙をこらえて泣いた','sadness',duration),s=H.score(p);
+const p=make('ぽんぽんは大切な友達が亡くなったと知り、泣き崩れた','sadness',duration),s=H.score(p);
 assert.equal(s.details.emotionalArc.gravity,'low-pedal-and-unresolved-cluster');
 for(const type of ['gravity-pedal','gravity-floor','dark-cluster','hollow-afterglow'])
 assert.ok(s.notes.some(n=>n.arcMarker===type),type);
@@ -17,6 +17,8 @@ assert.equal(audio.samples.length,duration*22050);
 assert.ok(audio.samples.every(n=>Number.isFinite(n)&&Math.abs(n)<=1));
 assert.ok(Math.abs(audio.samples[0]-audio.samples.at(-1))<.003);
 }
+const gentle=H.score(make('ぽんぽんが涙をこらえて泣いた','sadness',15));
+assert.equal(gentle.details.emotionalArc,null,'ordinary tears should not trigger catastrophic grief');
 const happy=H.score(make('うれしくて笑った','joy',15));
 assert.equal(happy.details.emotionalArc,null);
 assert.ok(!happy.notes.some(n=>n.arcMarker==='gravity-floor'));
