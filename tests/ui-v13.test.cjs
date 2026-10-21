@@ -7,7 +7,7 @@ const ids=['title','character','world','scene','style','duration','engine','band
 'analysis','status','make','compare','save','analyze','reroll','play','stop','wav','summary',
 'comparison','comparisonInfo','classicPlay','resonarePlay','eventCompare','cueSelect',
 'classicClip','resonareClip','clipPosition','changeDiagnosis','trackDiff','runtimeVersion',
-'playerHint','contrastAssessment','generationTrace','loopPlayback','gameStyle','gameOptions','zeta','zetaHelp','zetaProgress'];
+'playerHint','contrastAssessment','generationTrace','loopPlayback','gameStyle','gameOptions','zeta','zetaHelp','zetaProgress','zetaDownload'];
 const element=id=>({id,value:'',textContent:'',children:[],handlers:{},hidden:false,disabled:false,
  checked:false,style:{},classList:{toggle(){}},addEventListener(k,cb){this.handlers[k]=cb},
  replaceChildren(...items){this.children=items},append(...items){this.children.push(...items)},
