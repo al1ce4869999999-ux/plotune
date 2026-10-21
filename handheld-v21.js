@@ -284,6 +284,9 @@ function score(plan){
  const songEnergy=game.intensity||1;
  const pulseDensity=game.density||1;
  const shape=game.shape||'field';
+ const sharedGrammar=root.PlotuneMelodicGrammar?.grammar(plan.structure,plan.expression,plan.characterSeed||seed);
+ const sharedPhrases=sharedGrammar&&root.PlotuneMelodicGrammar?.composePhrase?
+   Array.from({length:bars},(_,b)=>root.PlotuneMelodicGrammar.composePhrase(sharedGrammar,b,{density:clamp(pulseDensity*.68,.25,.92)})):null;
  // Repeat 4-bar thematic material; vary density and fills but keep a looping identity.
  for(let b=0;b<bars;b++){
   const chord=chordAt(b),next=chordAt((b+1)%bars),barAt=b*meter;
@@ -296,24 +299,12 @@ function score(plan){
   for(const d of [0,2,4,6])add(barAt,step*15.2,midi(tonic,scale,chord+d)-12,'pad',.016*energy);
   for(let i=0;i<16;i++){
    const t=barAt+i*step,beat=i%4,on=i%8;
-   // Main tune is a recognizable independent melody, not one-off sound effects.
-   const contour={sigh:[0,-1,-2,-1,0,-2,-3,-2],stomp:[0,0,-1,0,1,0,-1,0],
-    tiptoe:[0,1,0,2,1,0,1,0],jump:[0,2,4,2,0,4,5,3],
-    triumph:[0,2,4,5,4,6,5,7],rush:[0,1,2,3,4,3,2,1],
-    spark:[0,2,4,7,5,4,2,0],march:[0,0,2,2,4,4,2,0],
-    mystery:[0,1,3,1,-1,2,0,-2],bounce:[0,2,-1,3,0,4,1,2]}[shape]||[0,1,2,1,3,2,1,0];
-   const melodyIndex=motif[(i+section*2)%8]+contour[i%8]+(section===2?2:0)+
-       (kind==='bright'&&i>=8?2:0);
-   const leadPattern=kind==='tense'?(i%4===0||i%8===6):
-      kind==='effort'?(i%2===0||i%8===7):
-      kind==='playful'?(i%3!==0):pulseDensity<=.45?(i%8===0||i%8===4):
-      pulseDensity<.68?(i%4===0||i%8===6):pulseDensity>1?(i%3!==1):i%2===0||i%8===3;
-   if(leadPattern){
-    const rootDegree=(i%8===0||i%8===6)?chord:melodyIndex;
-    add(t,step*(kind==='tense'?2.8:1.55),
-      midi(leadRoot,scale,rootDegree),
-      'lead',.125*energy);
-   }
+   // Shared melodic phrasing; arrangement and instruments remain style-specific.
+   if(sharedPhrases){
+    const event=sharedPhrases[b].find(n=>Math.abs(n.position-i)<.01);
+    if(event&&!event.rest)add(barAt+event.position*step,event.durationUnits*step,
+      midi(leadRoot,scale,event.degree+chord),'lead',.125*energy);
+   }else if(i%2===0)add(t,step*1.55,midi(leadRoot,scale,motif[(i+section*2)%8]),'lead',.125*energy);
    // Counterpoint answers primary melody in a different octave.
    if(((i===3||i===7||i===11||i===15)&&!isLast||i===3||i===11)&& (pulseDensity>.5||i===3)){
     const response=motif[(i+3)%8]+(kind==='effort'?1:0);
@@ -564,16 +555,15 @@ function score(plan){
       neutral:[{p:0,d:2.2,k:0},{p:3,d:2,k:1},{p:6,d:1.8,k:3},
         {p:10,d:2.4,k:2},{p:13,d:2.1,k:1}]
     };
-    const generatedPhrases=dynamicGrammar?Array.from({length:bars},(_,b)=>root.PlotuneMelodicGrammar.phrase(dynamicGrammar,b,phrases[type].length)):null;
+    const generatedPhrases=dynamicGrammar&&root.PlotuneMelodicGrammar?.composePhrase?Array.from({length:bars},(_,b)=>root.PlotuneMelodicGrammar.composePhrase(dynamicGrammar,b,{density:type==='reserved'?.38:type==='playful'?.85:.62})):null;
     const chordSteps=type==='playful'?[0,4,3,0]:type==='reserved'?[0,5,3,0]:[0,3,4,0];
     for(let bar=0;bar<bars;bar++){
       const start=bar*meter,variation=bar%4,degree=chordSteps[variation];
       const phrase=phrases[type],unit=meter/16;
-      for(let j=0;j<phrase.length;j++){
-        const n=phrase[j],t=start+(n.p+(bar%4===2&&j%3===1?.25:0))*unit;
-        if(t>=duration)continue;
+      for(let j=0;j<(generatedPhrases?.[bar]?.length||phrase.length);j++){
         const generated=generatedPhrases?.[bar]?.[j];
-        if(generated?.rest)continue;
+        const n=phrase[j%phrase.length],t=start+(generated?generated.position:n.p)*unit;
+        if(t>=duration||generated?.rest)continue;
         const pitch=(generated?generated.degree:degreeFor(j,bar))+shift;
         notes.push({t,d:Math.min(duration-t,(generated?generated.durationUnits:n.d)*unit),midi:clamp(midi(upper,MAJOR,pitch),60,86),
           voice:'lead',role:'lead',timbre:expressive[0],volume:type==='reserved'?.052:.070});
