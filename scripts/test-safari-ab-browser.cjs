@@ -11,7 +11,7 @@ const assert = require('node:assert/strict');
   await page.locator('#scene').fill('静かな森の中を歩き、遠くに光を見つける。');
   await assert.equal(await page.locator('#engineABMake').isVisible(),true);
   await page.locator('#engineABMake').click();
-  await page.waitForFunction(()=>document.querySelector('#engineABOld')&&!document.querySelector('#engineABOld').disabled||document.querySelector('#engineABStatus')?.textContent.includes('エラー'),{timeout:60000});
+  await page.waitForFunction(()=>document.querySelector('#engineABOld')&&!document.querySelector('#engineABOld').disabled||document.querySelector('#engineABStatus')?.textContent.includes('エラー'),null,{timeout:60000});
   const message=await page.locator('#engineABStatus').innerText();
   assert.match(message,/新旧2曲完成/,message);
   assert.equal(await page.locator('#engineABNew').isEnabled(),true);
