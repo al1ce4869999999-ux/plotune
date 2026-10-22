@@ -252,7 +252,7 @@ async function compare(){
   $('playerHint').textContent=global
     ? '0秒から編曲が違うよ。最初の10秒を「冒頭比較」ボタンで直接聴き比べてね。'
     : '物語の根拠が薄い場合は、基準版と同じループになります。';
-  $('summary').textContent='2曲生成済み（基準版 ＋ Resonare版） · '+styleName(a.base)+' · '+base.details.bpm.toFixed(1)+' BPM · '+base.score.duration+'秒'+
+  $('summary').textContent=(phase1?'2曲生成済み（感情表現OFF ＋ ON） · ':'2曲生成済み（基準版 ＋ Resonare版） · ')+styleName(a.base)+' · '+base.details.bpm.toFixed(1)+' BPM · '+base.score.duration+'秒'+
    (base.details.loopMode?' · 小節ぴったりのループ設計':'');
   save(true);
   status(global?'2曲完成！冒頭から異なるループ編曲で比較できます。':
