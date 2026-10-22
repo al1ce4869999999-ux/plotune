@@ -4,7 +4,7 @@ const app=fs.readFileSync(path.join(__dirname,'../app-v13.js'),'utf8');
 const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
 const engine=fs.readFileSync(path.join(__dirname,'../handheld-v21.js'),'utf8');
 assert.match(app,/base=\{\.\.\.handheld\.prepare\(original,input\.gameStyle,appraisal,false,input\.scene,storyContext\),structure,expression\}/);
-assert.match(app,/enhanced=\{\.\.\.handheld\.prepare\(original,input\.gameStyle,appraisal,false,input\.scene,storyContext\),structure,expression,motifDevelopment:true\}/);
+assert.match(app,/\.\.\.handheld\.prepare\(original,input\.gameStyle,appraisal,false,input\.scene,storyContext\),structure,expression,motifDevelopment:true\}/);
 assert.match(app,/phase2\?'▶ フェーズ2 OFF'/);
 assert.match(app,/phase2\?'▶ フェーズ2 ON'/);
 assert.match(app,/tracks=\{classic:base,resonare:enhanced\}/);

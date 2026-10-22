@@ -1,0 +1,11 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const app=fs.readFileSync(path.join(__dirname,'../app-v13.js'),'utf8');
+const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
+const engine=fs.readFileSync(path.join(__dirname,'../handheld-v21.js'),'utf8');
+assert.match(html,/id="harmonyComparison"/);
+assert.match(app,/enhanced=\$\('harmonyComparison'\)\?\.checked\?/);
+assert.match(app,/\{\.\.\.base,musicHarmony:true\}/);
+assert.match(app,/harmonyAB\?'▶ M3 和声OFF'/);
+assert.match(app,/harmonyAB\?'▶ M3 和声ON'/);
+assert.match(engine,/plan\.musicHarmony===true && sharedPhrases && root\.PlotuneM3Harmony/);
+console.log('PASS M3 harmony-only A/B controls and flag');
