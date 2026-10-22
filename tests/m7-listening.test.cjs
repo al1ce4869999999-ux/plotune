@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),vm=require('node:vm');
+const box={};box.globalThis=box;
+vm.runInNewContext(fs.readFileSync('m7-listening-v01.js','utf8'),box);
+const m=box.PlotuneM7Listening;
+assert.equal(m.IDS.length,4);
+assert.equal(m.gainFor({samples:Float32Array.from([.1,-.1])}),1);
+assert.throws(()=>m.gainFor({samples:Float32Array.from([0,0])}),{name:'RangeError'});
+assert.throws(()=>m.gainFor({samples:Float32Array.from([NaN])}),{name:'RangeError'});
+const tracks=m.IDS.map(conditionId=>({conditionId,track:{samples:new Float32Array(32).fill(.2),sampleRate:8}}));
+assert.equal(m.validate({tracks}).tracks.length,4);
+assert.throws(()=>m.validate({tracks:tracks.slice(1)}),{name:'TypeError'});
+assert.throws(()=>m.validate({tracks:[...tracks.slice(0,3),{conditionId:'phase-m',track:{samples:new Float32Array(16),sampleRate:8}}]}),{name:'RangeError'});
+const html=fs.readFileSync('index.html','utf8');
+for(const id of ['m7Make','m7Seed','m7Stop','m7Status',...m.IDS.map(x=>'m7Play-'+x)])assert(html.includes('id="'+id+'"'));
+assert(html.includes('m7-listening-v01.js'));
+console.log('M7.2 listening contract passed');
