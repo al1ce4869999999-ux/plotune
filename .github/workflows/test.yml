@@ -77,6 +77,7 @@ jobs:
           node tests/phase2-main-comparison.test.cjs || failed=1
           node tests/m3-harmony-ab-ui.test.cjs || failed=1
           node tests/phase3-expressive-ab.test.cjs || failed=1
+          node tests/phase4-transition-ab.test.cjs || failed=1
           node tests/emotion-isolated-ab.test.cjs || failed=1
           node tests/resonare.test.cjs || failed=1
           node tests/structural.test.cjs || failed=1
