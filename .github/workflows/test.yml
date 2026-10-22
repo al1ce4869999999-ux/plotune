@@ -63,6 +63,7 @@ jobs:
           node tests/emotion-audio-phase1.test.cjs || failed=1
           node tests/emotion-first-composition.test.cjs || failed=1
           node tests/motif-planner-v01.test.cjs || failed=1
+          node tests/motif-phrase-integration.test.cjs || failed=1
           node tests/emotion-isolated-ab.test.cjs || failed=1
           node tests/resonare.test.cjs || failed=1
           node tests/structural.test.cjs || failed=1
