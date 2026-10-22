@@ -690,63 +690,108 @@ function score(plan){
     for(const key of Object.keys(voices))
       voices[key]=key==='drums'?0:notes.filter(n=>n.voice===key).length;
   }
- // Phase 2 opt-in: motif evolution must affect the whole audible score,
- // not just the lead pitch. Preserve legacy scores byte-for-byte when OFF.
+ // Phase 2 opt-in: make the ensemble follow melodic gestures instead of
+ // switching fixed accompaniment cells on every measure. Legacy is untouched.
  if(plan.motifDevelopment===true&&motifIdentity){
-  const old=notes.splice(0);
-  for(const n of old){
-   const bar=Math.min(bars-1,Math.floor(n.t/meter));
-   const stage=arcAt(bar).stage;
-   const beat=(n.t-bar*meter)/step;
-   const copy={...n};
-   // Leave room to hear the statement; build an answering voice later.
-   if(stage==='opening'){
-    if(n.voice==='counter'||n.voice==='sparkle'||n.voice==='arp')continue;
-    if(n.voice==='chords')copy.volume*=.64;
-    if(n.voice==='lead')copy.volume*=.91;
-   }else if(stage==='development'){
-    if(n.voice==='lead'&&beat>=12)copy.volume*=.75;
-    if(n.voice==='pad')copy.volume*=.90;
-    if(n.voice==='counter')copy.volume*=1.16;
-   }else if(stage==='climax'){
-    // Widen harmony and reinforce the answer, without amplifying every layer.
-    if(n.voice==='chords'&&n.midi<82){
-     copy.midi=clamp(n.midi+(beat<1?12:0),24,105);
-     copy.volume=clamp(n.volume*.89,0,.26);
-    }
-    if(n.voice==='pad')copy.volume*=.72;
-    if(n.voice==='lead')copy.volume=clamp(n.volume*1.10,0,.26);
-   }else{
-    if(n.voice==='arp'||n.voice==='sparkle')continue;
-    if(n.voice==='counter'&&beat<10)continue;
-    if(n.voice==='chords')copy.volume*=.48;
-    if(n.voice==='bass')copy.volume*=.74;
-    if(n.voice==='lead'){copy.d=Math.min(duration-n.t,n.d*1.24);copy.volume*=.83;}
+  const source=notes.slice();
+  const leads=source.filter(n=>n.voice==='lead').sort((a,b)=>a.t-b.t);
+  const rand=random(((seed||1)^0x45b71d9f)>>>0);
+  const sectionAt=t=>arcAt(Math.min(bars-1,Math.floor(t/meter))).stage;
+  // Phrase pressure includes local rises and retreats even inside the peak.
+  const pressure=t=>{
+   const u=t/duration,stage=sectionAt(t);
+   const global=stage==='opening'?.06:stage==='development'?.43:
+    stage==='climax'?.88:.22;
+   const pulse=.16*Math.sin(u*Math.PI*7+.35)+.09*Math.sin(u*Math.PI*13);
+   return clamp(global+pulse,0,1);
+  };
+  notes.length=0;
+  for(const n of source){
+   const stage=sectionAt(n.t),p=pressure(n.t),copy={...n};
+   // Remove grid-bound stabs, arpeggios and predictable counter patterns.
+   if(['chords','arp','counter','sparkle','pad'].includes(n.voice))continue;
+   if(n.voice==='lead'){
+    copy.volume*=.85+.25*p;
+    if(stage==='resolution')copy.d=Math.min(duration-n.t,n.d*1.25);
+   }
+   if(n.voice==='bass'){
+    // Harmonic bass will enter on phrase landmarks, not every quarter.
+    continue;
    }
    notes.push(copy);
   }
-  // A diatonic answering figure is heard AFTER the principal motif.
-  // Sparse entrances articulate development rather than a constant pad.
-  for(let b=0;b<bars;b++){
-   const stage=arcAt(b).stage;
-   if(stage!=='development'&&stage!=='climax')continue;
-   const start=b*meter,degree=chordAt(b);
-   const offsets=stage==='climax'?[8,12]:[10];
-   for(const offset of offsets){
-    const t=start+offset*step;
-    if(t>=duration)continue;
-    const pitch=midi(tonic+12,scale,degree+(stage==='climax'?4:2));
-    notes.push({t,d:Math.min(duration-t,step*(stage==='climax'?3.3:2.4)),
-     midi:clamp(pitch,24,105),voice:'counter',role:'counter',
-     timbre:palette?.secondary||'softpiano',
-     volume:stage==='climax'?.041:.030});
+  // Detect a phrase's breathing space by the lead's next onset. The harmony
+  // changes at selected gestures and can sustain across bar boundaries.
+  const landmarks=[];
+  for(let i=0;i<leads.length;i++){
+   const n=leads[i],next=leads[i+1];
+   const gap=next?next.t-n.t:duration-n.t;
+   const p=pressure(n.t);
+   const first=i===0,breath=gap>=step*1.5;
+   const harmonicTurn=i>0&&Math.floor(n.t/(meter*1.7))!==
+     Math.floor(leads[i-1].t/(meter*1.7));
+   if(first||breath&&harmonicTurn||p>.62&&i%3===0){
+    if(!landmarks.length||n.t-landmarks[landmarks.length-1].t>=step*3)
+     landmarks.push({t:n.t,pressure:p,stage:sectionAt(n.t),gap});
    }
   }
-  for(const d of drums){
-   const stage=arcAt(Math.min(bars-1,Math.floor(d.t/meter))).stage;
-   d.volume*=stage==='opening'?.40:stage==='development'?.83:
-    stage==='climax'?1:.32;
+  if(!landmarks.length)landmarks.push({t:0,pressure:0,stage:'opening',gap:meter});
+  for(let i=0;i<landmarks.length;i++){
+   const cue=landmarks[i],next=landmarks[i+1];
+   const span=Math.min(duration-cue.t,next?next.t-cue.t:meter*1.8);
+   if(span<=.018)continue;
+   const degree=chordAt(Math.min(bars-1,Math.floor(cue.t/meter)));
+   const p=cue.pressure,stage=cue.stage;
+   // Three simultaneous pitches make a real triad, not a single pad tone.
+   // Tension can open into an added seventh near a swell.
+   if(i>0||p>.16){
+    const tones=p>.64?[0,2,4,6]:[0,2,4];
+    for(const interval of tones){
+     notes.push({t:cue.t,d:Math.min(duration-cue.t,Math.max(step*2,span*.91)),
+      midi:midi(tonic,scale,degree+interval),voice:'chords',role:'chords',
+      timbre:palette?.padTone||'strings',volume:(.018+.019*p)/(tones.length/3)});
+    }
+   }
+   // Bass answers the chord entrance, with occasional pickups.
+   if(stage!=='opening'||i>0)
+    notes.push({t:cue.t,d:Math.min(duration-cue.t,Math.max(step*2,span*.88)),
+     midi:midi(tonic-24,scale,degree),voice:'bass',role:'bass',
+     volume:.041+.036*p});
+   if(p>.45&&span>step*4){
+    const pickup=cue.t+Math.min(span*.68,step*6);
+    if(pickup<duration)notes.push({t:pickup,d:Math.min(step*2,duration-pickup),
+     midi:midi(tonic-24,scale,degree+4),voice:'bass',role:'bass',
+     volume:.026+.025*p});
+   }
   }
+  // Counter-melody responds to a finished lead gesture, never a fixed beat.
+  for(let i=0;i<leads.length-1;i++){
+   const a=leads[i],b=leads[i+1],gap=b.t-(a.t+a.d*.65);
+   const p=pressure(a.t);
+   if(p<.28||gap<step*.95||rand()>.27+p*.53)continue;
+   const t=Math.min(duration-.02,a.t+a.d*.72+step*.24);
+   if(t>=b.t-step*.45)continue;
+   notes.push({t,d:Math.min(duration-t,b.t-t-step*.2,step*(1.4+p*2.0)),
+    midi:clamp(a.midi-12+(p>.67?4:2),24,105),
+    voice:'counter',role:'counter',timbre:palette?.secondary||'softpiano',
+    volume:.022+.030*p});
+  }
+  // Rhythm joins the melody in waves. Existing metronomic hits are replaced
+  // only for opt-in, and the opening stays unaccompanied.
+  drums.length=0;
+  for(let i=0;i<leads.length;i++){
+   const n=leads[i],p=pressure(n.t);
+   if(p<.32)continue;
+   if(rand()<.17+.61*p)
+    drums.push({t:n.t,kind:'kick',volume:.13+.30*p});
+   if(p>.57&&i%2===1&&rand()<.72)
+    drums.push({t:Math.min(duration-.02,n.t+step*.45),
+     kind:'hat',volume:.10+.16*p});
+   if(p>.72&&i%4===2)
+    drums.push({t:Math.min(duration-.02,n.t+step*.8),
+     kind:'snare',volume:.13+.25*p});
+  }
+  notes.sort((a,b)=>a.t-b.t);
   for(const role of Object.keys(voices))
    voices[role]=role==='drums'?drums.length:notes.filter(n=>n.voice===role).length;
  }
