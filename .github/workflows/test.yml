@@ -41,6 +41,7 @@ jobs:
           node --check phase5-whole-song-audit-v01.js
           node --check phase6-evaluation-v01.js
           node --check phase56-integration-v01.js
+          node --check phase56-lab-v01.js
           node --check handheld-v21.js
           node --check app-v11.js
           node --check comparison-v10.js
@@ -84,6 +85,7 @@ jobs:
           node tests/phase5-whole-song-audit.test.cjs || failed=1
           node tests/phase6-evaluation.test.cjs || failed=1
           node tests/phase56-integration.test.cjs || failed=1
+          node tests/phase56-lab-ui.test.cjs || failed=1
           node tests/emotion-isolated-ab.test.cjs || failed=1
           node tests/resonare.test.cjs || failed=1
           node tests/structural.test.cjs || failed=1
