@@ -214,7 +214,9 @@ async function compare(){
   const active=a.appraisal.events.filter(e=>e.cue!=='neutral');
   const relative=allWaveDiff(base,enhanced);
   let diagnosis;
-  if(global){
+  if(phase1){
+    diagnosis='同じ曲・同じシード・同じ編成で、感情表現の有無だけを変更しています。聴感上の改善は未判定です。';
+  }else if(global){
     diagnosis='曲の冒頭0秒から編曲を変更：'+global.label+'。'+global.reason+
      '。ギター・ベース・ドラムとコード進行を曲全体で設計し直しました。ループ前提のBGMです。';
   }else if(active.length===0||changedNotes===0&&relative<.02){
