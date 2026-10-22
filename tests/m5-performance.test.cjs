@@ -18,6 +18,8 @@ assert.equal(JSON.stringify(notes),before,'pure original unchanged');
 assert.ok(a.details.dynamics>0&&a.details.rubato>0&&a.details.breaths>0,'expression applied');
 assert.ok(a.notes.every(n=>n.t>=0&&n.d>=.04&&n.t+n.d<=16+.001),'time valid');
 assert.throws(()=>M.express({notes:[],duration:0,meter:1}),/valid timing/);
+const struckResult=M.express({...args,notes:notes.map(n=>({...n,timbre:'musicbox'}))});
+assert.equal(struckResult.details.breaths,0,'struck instruments do not breathe');
 const input={title:'M5',character:'静かな旅人',world:'森',scene:'森の道を歩く',style:'handheld',duration:30};
 const plan=A.plan(input,A.analyze(input));
 for(const style of ['journey','forestflute','musicbox']){
