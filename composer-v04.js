@@ -179,15 +179,18 @@ function buildScore(plan){
     const d=(dark?eighth*1.75:quiet?eighth*2.8:rising?eighth*.97:eighth*1.65)*(emotionTarget?clamp(1+expressivePeace*.3-expressiveTension*.15,.8,1.35):1);
     add(time,d,degree(rootNote,scale,di)+octaveShift,
       (dark?.135:rising?.23:quiet?.105:.18)*energy,voice,'lead');
-    if(form&&position===form.phrase*2&&form.phrase>0){
-     add(time+eighth*.52,eighth*(form.warmth>.45?2.5:1.4),
-       degree(rootNote,scale,chord+2)-12,.09,genre==='piano'?'piano':'bell','countermelody');
-    }
     if(rising&&position%4===0){
       add(time+eighth*.10,eighth*1.25,
         degree(rootNote,scale,di+2)+octaveShift,.105,'bell','countermelody');
     }
    }
+  }
+  // Answer the lead in its planned phrase rests rather than doubling its onset.
+  const reply=formAt(i);
+  const replyStep=reply?[null,2,4,5][reply.phrase]:null;
+  if(replyStep===position&&!muted&&!drop){
+   add(time+eighth*.10,eighth*(reply.warmth>.45?2.5:1.4),
+     degree(rootNote,scale,cell.chord+2)-12,.09,genre==='piano'?'piano':'bell','countermelody');
   }
   // Dynamics/orchestration: muted percussion under threat, full return after victory.
   const rhythmGenre=['chip','pop','fantasy'].includes(genre);
