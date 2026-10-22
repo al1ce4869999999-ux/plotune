@@ -1,0 +1,55 @@
+name: Opt-in merge after CI
+
+on:
+  workflow_run:
+    workflows: ["Plotune engine tests"]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  merge:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge only explicitly approved, fully green PRs into main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          PRS_JSON: ${{ toJSON(github.event.workflow_run.pull_requests) }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Event payload is data, never executed as shell commands.
+          printf '%s' "$PRS_JSON" | jq -r '.[].number' | while read -r number; do
+            [ -n "$number" ] || continue
+            pr="$(gh api "repos/$REPO/pulls/$number")"
+            base="$(jq -r '.base.ref' <<< "$pr")"
+            actual_sha="$(jq -r '.head.sha' <<< "$pr")"
+            state="$(jq -r '.state' <<< "$pr")"
+            draft="$(jq -r '.draft' <<< "$pr")"
+            label="$(jq -r '[.labels[].name] | index("ci-automerge") != null' <<< "$pr")"
+            if [[ "$base" != "main" || "$actual_sha" != "$HEAD_SHA" || "$state" != "open" || "$draft" != "false" || "$label" != "true" ]]; then
+              echo "Skip PR #$number: not eligible or not explicitly opted in"
+              continue
+            fi
+            # All reported checks must have finished successfully; no empty check set.
+            checks="$(gh pr view "$number" --repo "$REPO" --json statusCheckRollup)"
+            eligible="$(jq -r '
+              .statusCheckRollup as $s |
+              ($s | length > 0) and
+              all($s[]; if .__typename == "CheckRun"
+                then (.conclusion == "SUCCESS" or .conclusion == "NEUTRAL" or .conclusion == "SKIPPED")
+                else .state == "SUCCESS" end)
+            ' <<< "$checks")"
+            if [[ "$eligible" != "true" ]]; then
+              echo "Skip PR #$number: other checks are pending/failed"
+              continue
+            fi
+            gh api -X PUT "repos/$REPO/pulls/$number/merge" \
+              -f merge_method=squash -f sha="$HEAD_SHA"
+            echo "Merged PR #$number after successful CI"
+          done
