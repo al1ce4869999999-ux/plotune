@@ -1,0 +1,39 @@
+name: Goal retention gate
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+permissions:
+  pull-requests: read
+jobs:
+  goal-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require a concrete user-facing goal and handoff
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request.body || '';
+            const required = [
+              '固定する小目標',
+              'ユーザーが通る利用経路',
+              '完了条件',
+              '変更内容と影響する既存テスト',
+              '現在の状態',
+              '未完了と次の一手'
+            ];
+            const escaped = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const missing = [];
+            for (let i=0;i<required.length;i++) {
+              const head = required[i];
+              const re = new RegExp('^##\\s+'+escaped(head)+'\\s*$', 'm');
+              const match = re.exec(body);
+              if (!match) { missing.push(head+' (見出しなし)'); continue; }
+              const start=match.index+match[0].length;
+              const tail=body.slice(start).split(/^##\\s+/m)[0]
+                .replace(/<!--[\\s\\S]*?-->/g,'').trim();
+              if (!tail || /^[-*]\\s*\\[ \\]\\s*/.test(tail) && !tail.replace(/[-*\\[\\]\\s]/g,'')) {
+                missing.push(head+' (内容なし)');
+              }
+            }
+            if (missing.length) core.setFailed('小目標の保持に必要な記載がありません: '+missing.join(', '));
+            else core.info('小目標・利用経路・完了条件・引き継ぎがPRに記録されています');
