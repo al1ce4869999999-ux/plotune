@@ -60,6 +60,7 @@ jobs:
           node tests/engine.test.cjs || failed=1
           node tests/emotion-plan-phase1.test.cjs || failed=1
           node tests/emotion-audio-phase1.test.cjs || failed=1
+          node tests/emotion-first-composition.test.cjs || failed=1
           node tests/emotion-isolated-ab.test.cjs || failed=1
           node tests/resonare.test.cjs || failed=1
           node tests/structural.test.cjs || failed=1

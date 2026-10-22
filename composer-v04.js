@@ -71,11 +71,22 @@ function buildScore(plan){
  const expression=[];
  let shiftedChords=0,breaks=0,cadences=0,cueHits=0;
  const progression=Array.isArray(plan.progression)&&plan.progression.length?plan.progression:[0,5,3,4];
+ // Plan each bar's harmony and motif role from a 4-bar emotional arc.
+ const emotionForm=emotion?Array.from({length:Math.ceil(steps/8)},(_,bar)=>{
+  const target=emotionAt(bar*8*eighth)||{},phrase=bar%4;
+  const tension=clamp((target.tension||0)*.85+(target.power||0)*.3);
+  const grief=clamp((target.sadness||0)*.7+(target.nostalgia||0)*.3);
+  const warmth=clamp((target.tenderness||0)*.7+(target.peacefulness||0)*.4);
+  const lift=clamp((target.joy||0)*.65+(target.wonder||0)*.3+(target.transcendence||0)*.2);
+  const path=tension>.38?[0,3,4,0]:grief>.4?[5,3,4,0]:lift>.35?[0,4,3,0]:[0,3,4,0];
+  return {phrase,chord:path[phrase],contour:[0,lift>.3?2:1,tension>.3?3:-2,-1][phrase],tension,grief,warmth,lift,cadence:phrase===3};
+ }):null;
+ const formAt=step=>emotionForm?.[Math.min(emotionForm.length-1,Math.floor(step/8))]||null;
  // Every two beats a harmony cell can react; baseline retains 4/4 progression.
  function harmonyAt(step){
   const measure=Math.floor(step/8),base=progression[measure%progression.length];
   const s=state(step),bad=['stumble','loss','danger'].includes(s.cue);
-  let chord=base,alteration=0;
+  let chord=formAt(step)?.chord??base,alteration=0;
   if(dramatic&&bad){
     chord=s.cue==='stumble'?(base+5)%7:(base+4)%7;
     alteration=s.tension>.35?1:0; // chromatic tension voice
@@ -139,12 +150,14 @@ function buildScore(plan){
   const drop=dark&&(i%4===1||i%4===3);
   // Theme contour is persistent, but the local narrative deforms its phrase.
   if(!muted&&!drop){
+   const form=formAt(i);
    const normalRhythm=i%4===0||i%4===2||i%8===3||i%8===7;
    const dramaticRhythm=dark?(i%4===0||i%8===6):
        rising?(i%2===0||i%8===7):quiet?(i%4===0):normalRhythm;
    const feelingRest=emotionTarget && expressivePeace+expressiveSadness>1.05 && position===3;
    const feelingMotion=emotionTarget && expressiveJoy+expressiveTension>1.05 && position===1;
-   if(!feelingRest&&((dramatic?dramaticRhythm:normalRhythm)||feelingMotion)&&!(position===7&&measure%4===3)){
+   const phraseRhythm=form?(form.phrase===0?[0,2,5].includes(position):form.phrase===1?[0,3,6].includes(position):form.phrase===2?[0,1,3,5].includes(position):[0,2,4,6].includes(position)):normalRhythm;
+   if(!feelingRest&&(form?phraseRhythm:((dramatic?dramaticRhythm:normalRhythm)||feelingMotion))&&!(position===7&&measure%4===3)){
     let di=theme[position]+intervals[position];
     if(position===0||position===4){
       const choices=[chord,chord+2,chord+4];
@@ -154,7 +167,13 @@ function buildScore(plan){
     if(dark){di=Math.max(0,di-3-(i%4===0?1:0));}
     if(rising)di+=position%4===2?3:1;
     if(quiet)di=Math.min(5,di);
-    if(emotionTarget)di+=expressiveTension>.55&&position===2?1:expressivePeace>.55&&position===6?-1:0;
+    if(form){
+     const motif=theme[position]+intervals[position];
+     di=motif+(form.phrase===2?theme[7-position]-theme[position]:0)+form.contour;
+     if(form.cadence&&position>=4)di=position===6?chord+2:chord;
+     else if(position===0||position===4)di=chord+(form.tension>.55?1:0);
+     if(form.grief>.48&&position>=3)di--;
+    }else if(emotionTarget)di+=expressiveTension>.55&&position===2?1:expressivePeace>.55&&position===6?-1:0;
     const octaveShift=genre==='piano'||genre==='ambient'?-12:0;
     const voice=dark?'ghost':rising?(genre==='chip'?'chip':'bell'):normalLead;
     const d=(dark?eighth*1.75:quiet?eighth*2.8:rising?eighth*.97:eighth*1.65)*(emotionTarget?clamp(1+expressivePeace*.3-expressiveTension*.15,.8,1.35):1);
@@ -165,6 +184,13 @@ function buildScore(plan){
         degree(rootNote,scale,di+2)+octaveShift,.105,'bell','countermelody');
     }
    }
+  }
+  // Answer the lead in its planned phrase rests rather than doubling its onset.
+  const reply=formAt(i);
+  const replyStep=reply?[null,2,4,5][reply.phrase]:null;
+  if(replyStep===position&&!muted&&!drop){
+   add(time+eighth*.10,eighth*(reply.warmth>.45?2.5:1.4),
+     degree(rootNote,scale,cell.chord+2)-12,.09,genre==='piano'?'piano':'bell','countermelody');
   }
   // Dynamics/orchestration: muted percussion under threat, full return after victory.
   const rhythmGenre=['chip','pop','fantasy'].includes(genre);
@@ -209,7 +235,7 @@ function buildScore(plan){
  return {duration,bpm:plan.bpm,sampleRate:RATE,theme,notes,drums,rests,
   harmony,changes,expression,genre,dramatic,
   details:{
-   emotionComposition:!!emotion,emotionSections:emotion?emotion.map(x=>({id:x.id,start:x.start,end:x.end,target:x.target})):null,
+   emotionComposition:!!emotion,emotionForm:emotionForm?emotionForm.map(({phrase,chord,contour,cadence})=>({phrase,chord,contour,cadence})):null,emotionSections:emotion?emotion.map(x=>({id:x.id,start:x.start,end:x.end,target:x.target})):null,
    theme,genre,mode:plan.mode,bpm:plan.bpm,dramatic,
    melodyNotes:notes.filter(n=>n.role==='lead').length,
    accompanimentNotes:notes.filter(n=>n.role==='chord').length,
