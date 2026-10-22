@@ -144,7 +144,11 @@ function buildScore(plan){
        rising?(i%2===0||i%8===7):quiet?(i%4===0):normalRhythm;
    const feelingRest=emotionTarget && expressivePeace+expressiveSadness>1.05 && position===3;
    const feelingMotion=emotionTarget && expressiveJoy+expressiveTension>1.05 && position===1;
-   if(!feelingRest&&((dramatic?dramaticRhythm:normalRhythm)||feelingMotion)&&!(position===7&&measure%4===3)){
+   // Four-bar question/response instead of restarting identical eighth-note patterns.
+   const phraseBar=measure%4;
+   const phraseRest=!!emotionTarget&&phraseBar===1&&position===3;
+   const phrasePickup=!!emotionTarget&&phraseBar===2&&position===5;
+   if(!feelingRest&&!phraseRest&&((dramatic?dramaticRhythm:normalRhythm)||feelingMotion||phrasePickup)&&!(position===7&&phraseBar===3)){
     let di=theme[position]+intervals[position];
     if(position===0||position===4){
       const choices=[chord,chord+2,chord+4];
@@ -154,7 +158,15 @@ function buildScore(plan){
     if(dark){di=Math.max(0,di-3-(i%4===0?1:0));}
     if(rising)di+=position%4===2?3:1;
     if(quiet)di=Math.min(5,di);
-    if(emotionTarget)di+=expressiveTension>.55&&position===2?1:expressivePeace>.55&&position===6?-1:0;
+    if(emotionTarget){
+     // Preserve the original motif but develop it over four measures.
+     const barContour=[0,1,-1,0][phraseBar];
+     const tensionRise=expressiveTension>.45?(phraseBar===2?2:phraseBar===1?1:0):0;
+     const sadFall=expressiveSadness>.45&&phraseBar===2?-1:0;
+     di+=barContour+tensionRise+sadFall;
+     if(phraseBar===3&&position>=4)di=position>=6?chord:Math.round((di+chord)/2);
+     if(expressivePeace>.55&&position===6)di--;
+    }
     const octaveShift=genre==='piano'||genre==='ambient'?-12:0;
     const voice=dark?'ghost':rising?(genre==='chip'?'chip':'bell'):normalLead;
     const d=(dark?eighth*1.75:quiet?eighth*2.8:rising?eighth*.97:eighth*1.65)*(emotionTarget?clamp(1+expressivePeace*.3-expressiveTension*.15,.8,1.35):1);
