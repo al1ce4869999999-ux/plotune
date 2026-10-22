@@ -873,6 +873,18 @@ function score(plan){
      }else if(n.voice==='chords'||n.voice==='pad') n.volume*=Math.sqrt(cues.dynamicsFactor);
    }
  }
+ // Specialist instrument layers can replace preliminary lead notes.
+ // Apply opt-in thematic development to the final audible score instead.
+ if(registeredMotif){
+  const leads=notes.filter(n=>n.voice==='lead').sort((a,b)=>a.t-b.t);
+  for(let i=0;i<leads.length;i++){
+   const n=leads[i],bar=Math.floor(n.t/meter);
+   const stage=arcAt(Math.min(bars-1,bar)).stage;
+   if(stage==='opening')continue;
+   const offset=stage==='development'?(i%2===0?2:-1):stage==='climax'?3:-2;
+   n.midi=clamp(n.midi+offset,36,100);
+  }
+ }
  const details={
   musicPsychology:expression,researchApplied:cues?{...cues,appliedTo:['lead register','lead/counter articulation','note dynamics','synth brightness','reflection wetness'],tempoStatus:'not applied (preset BPM retained)',modeStatus:'not applied (style harmony retained)'}:null,structuredStory:plan.structure||null,
   genre:'game',gameStyle:plan.gameStyle||'journey',gameName:game.name,emotionMode:game.mode,groove:game.drums,shape,
