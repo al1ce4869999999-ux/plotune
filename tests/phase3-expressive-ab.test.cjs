@@ -4,7 +4,7 @@ const app=fs.readFileSync(path.join(root,'app-v13.js'),'utf8');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const handheld=fs.readFileSync(path.join(root,'handheld-v21.js'),'utf8');
 assert.match(html,/id="phase3Comparison"/);
-assert.match(app,/if\(\$\('phase3Comparison'\)\?\.checked\)\{/);
+assert.match(app,/(?:if|else if)\(\$\('phase3Comparison'\)\?\.checked\)\{/);
 assert.match(app,/base=\{\.\.\.base,motifDevelopment:true\}/);
 assert.match(app,/enhanced=\{\.\.\.base,musicDevelopment:true,musicHarmony:true,musicVoices:true,musicPerformance:true\}/);
 assert.match(app,/phase3\?'▶ Phase 3 OFF'/);
