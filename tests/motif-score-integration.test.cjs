@@ -8,6 +8,9 @@ const input={title:'seeded phase2',character:'小さな冒険家',world:'森',sc
 const analysis=A.analyze(input),planned=A.plan(input,analysis);
 for(const preset of ['journey','musicbox','forestflute']){
  const prepared=H.prepare(planned,preset,null,false,input.scene);
+ // The journey path is tested without the automatic scene palette, which
+ // deliberately replaces its lead after shared-phrase composition.
+ if(preset==='journey')prepared.instrumentChoice=null;
  const off=H.score(prepared);
  const on=H.score({...prepared,motifDevelopment:true});
  const again=H.score({...prepared,motifDevelopment:true});
