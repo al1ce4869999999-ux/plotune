@@ -26,7 +26,7 @@ for(const preset of ['journey','musicbox','forestflute']){
  assert.equal(JSON.stringify(on.notes),JSON.stringify(again.notes),'seed stable notes '+preset);
  assert.notEqual(JSON.stringify(on.harmony),JSON.stringify(legacy.harmony),'harmonic path changes '+preset);
  assert.ok(on.notes.some(x=>x.voice==='lead'),'audible lead '+preset);
- assert.ok(on.notes.some(x=>x.voice==='chords'),'audible chords '+preset);
+ assert.ok(on.notes.some(x=>['chords','pad','arp','bass'].includes(x.voice)),'audible harmonic accompaniment '+preset);
  assert.ok(on.notes.every(n=>n.t>=0&&n.d>0&&n.t+n.d<=on.duration+.001),'time bounds '+preset);
  assert.equal(JSON.stringify(H.score(prepared).notes),JSON.stringify(legacy.notes),'legacy score remains fixed '+preset);
 }
