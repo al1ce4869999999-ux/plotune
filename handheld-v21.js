@@ -332,6 +332,18 @@ function score(plan){
    b===0?motifPhrase:root.PlotuneMelodicGrammar.composePhrase(sharedGrammar,b,{
      density:clamp(pulseDensity*.68*arcAt(b).density,.25,.92),
      motif:motifPhrase,stage:arcAt(b).stage})):null;
+ // M1 opt-in: transform the registered source motif before score rendering.
+ if(plan.musicDevelopment===true && motifPhrase && sharedPhrases &&
+    root.PlotuneMotifRegistry?.register && root.PlotuneMotifTransform?.transform){
+  const source=root.PlotuneMotifRegistry.register('theme-A',motifPhrase,{expressiveRole:'main'});
+  for(let b=1;b<bars;b++){
+   const stage=arcAt(b).stage;
+   const kind=stage==='development'?'inversion':'transposition';
+   const shift=stage==='climax'?2:0;
+   const result=root.PlotuneMotifTransform.transform(source,kind,{steps:shift});
+   sharedPhrases[b]=result.events.map(e=>({...e}));
+  }
+ }
  // Repeat 4-bar thematic material; vary density and fills but keep a looping identity.
  for(let b=0;b<bars;b++){
   const chord=chordAt(b),next=chordAt((b+1)%bars),barAt=b*meter;
