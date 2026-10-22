@@ -99,7 +99,7 @@ function analyze(){
   const structure=window.PlotuneStoryStructure?.analyze(input);
   const expression=window.PlotuneMusicPsychology?.derive(structure,input.gameStyle);
   base={...handheld.prepare(original,input.gameStyle,appraisal,false,input.scene,storyContext),structure,expression};
-  enhanced={...handheld.prepare(enhanced,input.gameStyle,appraisal,true,input.scene,storyContext),structure,expression};
+  enhanced={...handheld.prepare(original,input.gameStyle,appraisal,false,input.scene,storyContext),structure,expression,motifDevelopment:true};
  }
  const box=$('analysis');box.replaceChildren();
  box.append(textNode('h3','物語の解析結果'));
@@ -178,12 +178,13 @@ function allWaveDiff(a,b){
 async function compare(){
  if(!form().scene.trim()){status('シーンを入力してね',true);return;}
  const phase1=$('emotionComposition')?.checked && !['handheld','band','bandpiano'].includes(form().style);
- clearComparison();current=null;busy(true);status(phase1?'感情表現OFF/ONを作曲中…':'基準版とResonare版を作曲中…');
+ const phase2=form().style==='handheld';
+ clearComparison();current=null;busy(true);status(phase2?'フェーズ2 OFF/ONを作曲中…':phase1?'感情表現OFF/ONを作曲中…':'基準版とResonare版を作曲中…');
  await new Promise(resolve=>setTimeout(resolve,35));
  try{
   const a=analyze();
-  $('classicPlay').textContent=phase1?'▶ 感情表現OFF':'▶ 基準版';
-  $('resonarePlay').textContent=phase1?'▶ 感情表現ON':'▶ Resonare版';
+  $('classicPlay').textContent=phase2?'▶ フェーズ2 OFF':phase1?'▶ 感情表現OFF':'▶ 基準版';
+  $('resonarePlay').textContent=phase2?'▶ フェーズ2 ON':phase1?'▶ 感情表現ON':'▶ Resonare版';
   const base=renderer(a.base).render(a.base);
   const enhanced=renderer(a.enhanced).render(a.enhanced);
   tracks={classic:base,resonare:enhanced};
