@@ -38,8 +38,8 @@ assert.equal(JSON.stringify(baseline.notes),JSON.stringify(off.notes),'OFF must 
 assert.equal(JSON.stringify(baseline.drums),JSON.stringify(off.drums),'OFF must preserve percussion');
 assert.equal(JSON.stringify(baseline.harmony),JSON.stringify(off.harmony),'OFF must preserve harmony');
 assert.equal(JSON.stringify(lead(on)),JSON.stringify(lead(onAgain)),'ON is deterministic');
+assert.equal(on.details.mDevelopmentActive,true,'ON must reach registered motif generator');
 assert.notEqual(JSON.stringify(lead(off)),JSON.stringify(lead(on)),'ON must affect rendered melody');
-assert.equal(on.details.mDevelopmentActive,true);
 assert.equal(off.details.mDevelopmentActive,false);
 assert.ok(on.notes.every(n=>n.d>0&&n.t>=0&&n.t+n.d<=30+.001),'notes are bounded');
 assert.ok(on.drums.every(n=>n.t>=0&&n.t<30),'drums are bounded');
