@@ -17,7 +17,7 @@ const baseline=legacy.PlotuneHandheld.score(prior);
 const off=modern.PlotuneHandheld.score({...current,musicDevelopment:false});
 const on=modern.PlotuneHandheld.score({...current,musicDevelopment:true});
 const onAgain=modern.PlotuneHandheld.score({...current,musicDevelopment:true});
-function lead(s){return s.notes.filter(n=>n.role==='lead').map(n=>[n.t,n.midi,n.d]);}
+function lead(s){return s.notes.filter(n=>n.voice==='lead').map(n=>[n.t,n.midi,n.d]);}
 assert.equal(JSON.stringify(baseline.notes),JSON.stringify(off.notes),'OFF must preserve all legacy notes');
 assert.equal(JSON.stringify(baseline.drums),JSON.stringify(off.drums),'OFF must preserve percussion');
 assert.equal(JSON.stringify(baseline.harmony),JSON.stringify(off.harmony),'OFF must preserve harmony');
