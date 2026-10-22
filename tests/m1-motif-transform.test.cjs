@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const context={window:{}},root=path.resolve(__dirname,'..');
+for(const f of ['m1-motif-registry-v01.js','m1-motif-transform-v01.js'])vm.runInNewContext(fs.readFileSync(path.join(root,f),'utf8'),context,{filename:f});
+const r=context.window.PlotuneMotifRegistry,t=context.window.PlotuneMotifTransform.transform;
+const motif=r.register('theme',[{degree:2,position:0,durationUnits:1},{degree:4,position:1,durationUnits:1},{degree:3,position:2,durationUnits:2,rest:true},{degree:5,position:4,durationUnits:1}]);
+const snapshot=JSON.stringify(motif);
+assert.deepEqual(Array.from(t(motif,'inversion').events.filter(e=>!e.rest).map(e=>e.degree)),[2,0,0]);
+assert.deepEqual(Array.from(t(motif,'transposition',{steps:1}).events.filter(e=>!e.rest).map(e=>e.degree)),[3,5,6]);
+assert.equal(t(motif,'augmentation').events[1].position,2);
+assert.equal(t(motif,'diminution').events[1].durationUnits,.5);
+assert.equal(t(motif,'fragmentation',{length:2}).events.length,2);
+assert.equal(t(motif,'rhythmic-shift',{offset:1}).events[0].position,1);
+assert.equal(JSON.stringify(motif),snapshot,'transform must not mutate registered motif');
+assert.throws(()=>t(motif,'augmentation',{factor:0}),/factor/);
+assert.throws(()=>t(motif,'transposition',{steps:1.5}),/steps/);
+assert.throws(()=>t(motif,'nonsense'),/unknown/);
+console.log('PASS M1-2 independent motif transformations');
