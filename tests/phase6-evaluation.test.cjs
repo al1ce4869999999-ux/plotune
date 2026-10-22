@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict');
+const {compare,recordListening}=require('../phase6-evaluation-v01.js');
+const {auditHandheld}=require('../phase5-whole-song-audit-v01.js');
+const score=(n)=>({duration:16,bpm:120,notes:Array.from({length:n},(_,i)=>({t:i*16/n,midi:60+i%5,voice:'lead',d:.2})),details:{transitions:[{boundary:4}]}});
+const cases={'Baseline':{score:score(8)},'Phase':{score:score(9)},'M':{score:score(10)},'Phase+M':{score:score(11)}};
+const result=compare(cases,42,{audit:auditHandheld});
+assert.equal(result.differences.Phase.notes,1);
+assert.equal(result.results['Phase+M'].audit.song.sectionCount,4);
+assert.equal(result.listening.status,'pending');
+assert.equal(JSON.stringify(result),JSON.stringify(compare(cases,42,{audit:auditHandheld})));
+const ratings=result.conditions.map(condition=>({condition,coherence:4,development:3,relisten:5}));
+assert.equal(recordListening(result,ratings).listening.status,'rated');
+assert.equal(result.listening.status,'pending','original immutable');
+assert.throws(()=>recordListening(result,ratings.slice(1)),/Four unique/);
+assert.throws(()=>compare({'Baseline':cases.Baseline},42),/Four generated/);
+console.log('PASS Phase 5 engine-score adapter and Phase 6 comparison/listener contract');
