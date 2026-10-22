@@ -1,0 +1,11 @@
+const assert=require('node:assert/strict');const fs=require('node:fs'),path=require('node:path');
+const html=fs.readFileSync(path.join(__dirname,'../impression-lab.html'),'utf8');
+assert.match(html,/id="compareMode"/);
+assert.match(html,/value="motif"/);
+assert.match(html,/build\(motif\?\$\('characterA'\)\.value:\$\('characterB'\)\.value,motif\)/,'ON must reuse the exact same character');
+assert.match(html,/tracks\.A=build\(\$\('characterA'\)\.value,false\)/,'OFF baseline explicit');
+assert.match(html,/motifDevelopment\};return PlotuneHandheld\.render\(p\)/,'feature flag reaches final renderer');
+assert.match(html,/同一seed・同一キャラ/,'comparison condition disclosed');
+assert.match(html,/tracks\.B=build/,'B generated from the shared comparison');
+assert.match(html,/compareMode:\$\('compareMode'\)\.value/,'save provenance of comparison');
+console.log('PASS phase2 AB lab: equal character and seed, explicit OFF/ON, legacy comparison and record metadata');
