@@ -2,10 +2,10 @@
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Plotune 音楽印象ラボ</title>
 <style>body{margin:0;background:#151522;color:#f5f1ff;font:16px -apple-system,sans-serif}main{max-width:760px;margin:auto;padding:20px 16px 64px}section{border:1px solid #4c4664;background:#222338;padding:16px;border-radius:15px;margin:15px 0}textarea,select,input{width:100%;box-sizing:border-box;background:#121423;color:white;border:1px solid #67617f;padding:11px;border-radius:9px;font:inherit}textarea{height:90px}label{display:block;margin:13px 0 5px}button{background:#baaaff;border:0;border-radius:10px;padding:12px;margin:6px 6px 6px 0;font:inherit;font-weight:700;color:#191525}button:disabled{opacity:.4}.hint{color:#c7c0df;font-size:13px;line-height:1.6}h1{font-size:26px}h2{font-size:19px}h3{font-size:16px}.rating{display:grid;grid-template-columns:1fr 1fr;gap:10px}.rating label{font-size:13px}pre{white-space:pre-wrap;word-break:break-word;font-size:12px;background:#151627;padding:12px;border-radius:10px}a{color:#d8cbff}</style>
 <script defer src="analyzer.js"></script><script defer src="resonare-v08.js"></script><script defer src="loop-arranger-v09.js"></script><script defer src="story-structure-v01.js?v=20261018-psych1"></script><script defer src="music-psychology-v01.js?v=20261019-research1"></script><script defer src="motif-planner-v01.js?v=20261022-phase2"></script>
-<script defer src="melodic-grammar-v01.js?v=20261022-motif1"></script><script defer src="handheld-v21.js?v=20261022-arrangement1"></script></head>
+<script defer src="m2-emotion-phrase-v01.js?v=20261022-m2"></script><script defer src="m3-harmony-melody-v01.js?v=20261022-m3"></script><script defer src="m4-voice-dialogue-v01.js?v=20261022-m4"></script><script defer src="melodic-grammar-v01.js?v=20261022-motif1"></script><script defer src="handheld-v21.js?v=20261022-arrangement1"></script></head>
 <body><main><h1>🎼 Plotune 音楽印象ラボ</h1><p class="hint">世界観・出来事を固定して人物だけ変えるA/B実験。通常の作曲画面には影響しません。音楽心理学の傾向と創作仮説を混同しないための開発用ページです。</p>
 <section><h2>音楽表現パラメータ辞書</h2><div id="dictionary"></div></section>
-<section><h2>A/B比較テスト</h2><label for="compareMode">比較する内容</label><select id="compareMode"><option value="character">キャラクターA / B（従来の比較）</option><option value="motif">フェーズ2：主題発展 OFF / ON（同一キャラ・同一seed）</option></select><p class="hint" id="compareHint">キャラクターの違いを比較します。</p>
+<section><h2>A/B比較テスト</h2><label for="compareMode">比較する内容</label><select id="compareMode"><option value="character">キャラクターA / B（従来の比較）</option><option value="motif">フェーズ2：主題発展 OFF / ON（同一キャラ・同一seed）</option><option value="m4">M4：声部対話 OFF / ON（M1〜M3は同じ）</option></select><p class="hint" id="compareHint">キャラクターの違いを比較します。</p>
 <label>キャラA</label><textarea id="characterA">ぽんぽんは小さな男の子。好奇心旺盛で元気。ちょこちょこ動き、ぴょんぴょん跳ねる。</textarea>
 <label>キャラB</label><textarea id="characterB">ゆきは静かで慎重な男の子。おとなしく、内気で人見知り。ゆっくりと動く。</textarea>
 <label>共通の世界観</label><textarea id="world">木造の家が建つ静かな村。あたたかな午後。</textarea>
@@ -36,12 +36,40 @@ $('dictionary').innerHTML=D.map(x=>'<p><b>'+x[1]+'</b> <small>（'+x[3]+'）</sm
 const dimensions=[['bounce','跳ねる印象'],['weight','音の重さ'],['child','幼さ'],['grief','悲しみの深さ'],['space','空間の広さ']];
 $('ratings').innerHTML=['A','B'].map(c=>'<h3>曲'+c+'</h3><div class="rating">'+dimensions.map(([id,label])=>'<label>'+label+'<select id="'+c+id+'">'+[1,2,3,4,5].map(v=>'<option value="'+v+'"'+(v===3?' selected':'')+'>'+v+'</option>').join('')+'</select></label>').join('')+'</div>').join('');
 let tracks={},ctx=null,node=null;
-$('compareMode').onchange=()=>{$('compareHint').textContent=$('compareMode').value==='motif'?'キャラAを固定し、曲の条件を変えずに主題発展だけ切り替えます。':'キャラクターAとBの違いを比較します。';$('playA').textContent=$('compareMode').value==='motif'?'従来方式 OFF を再生':'Aを再生';$('playB').textContent=$('compareMode').value==='motif'?'主題発展 ON を再生':'Bを再生';};
+$('compareMode').onchange=()=>{
+ const mode=$('compareMode').value;
+ $('compareHint').textContent=mode==='m4'?'キャラ・seed・M1〜M3を固定し、M4の掛け合いだけ切り替えます。':mode==='motif'?'キャラAを固定し、曲の条件を変えずに主題発展だけ切り替えます。':'キャラクターAとBの違いを比較します。';
+ $('playA').textContent=mode==='m4'?'声部対話 OFF を再生':mode==='motif'?'従来方式 OFF を再生':'Aを再生';
+ $('playB').textContent=mode==='m4'?'声部対話 ON を再生':mode==='motif'?'主題発展 ON を再生':'Bを再生';
+};
 function stop(){if(node){try{node.stop()}catch{}node=null;}}
 $('stop').onclick=stop;
 function input(char){return {title:'音楽印象ラボ',character:char,world:$('world').value,scene:$('scene').value,style:'handheld',duration:'30',engine:'resonare',gameStyle:$('style').value};}
 function build(char,motifDevelopment=false){const obj=input(char),analysis=PlotuneAnalysis.analyze(obj);const plan=PlotuneAnalysis.plan(obj,analysis,0);const structure=PlotuneStoryStructure.analyze(obj);const expression=PlotuneMusicPsychology.derive(structure,obj.gameStyle);const p={...PlotuneHandheld.prepare(plan,obj.gameStyle,null,false,obj.scene,[char,obj.world,obj.scene].join('\n')),structure,expression,motifDevelopment};return PlotuneHandheld.render(p);}
-$('generate').onclick=()=>{stop();try{const motif=$('compareMode').value==='motif';tracks.A=build($('characterA').value,false);tracks.B=build(motif?$('characterA').value:$('characterB').value,motif);for(const id of ['playA','playB','stop'])$(id).disabled=false;const a=tracks.A.score.notes.filter(n=>n.voice==='lead'),b=tracks.B.score.notes.filter(n=>n.voice==='lead');const comparable=Math.min(a.length,b.length);let diff=0;for(let i=0;i<comparable;i++)if(a[i].midi!==b[i].midi||Math.abs(a[i].t-b[i].t)>.001||Math.abs(a[i].d-b[i].d)>.001)diff++;$('diagnosis').textContent='A 主旋律 '+a.length+'音 / B '+b.length+'音\n対応する音の違い '+diff+'/'+comparable+'件\n※音符差は聴感の差と同義ではありません。';$('status').textContent=motif?'同一seed・同一キャラで主題発展 OFF / ON を生成':'2曲生成完了';}catch(e){$('status').textContent='作曲エラー：'+e.message;console.error(e);}};
+function buildM4(char,musicVoices){
+ const obj=input(char),analysis=PlotuneAnalysis.analyze(obj),plan=PlotuneAnalysis.plan(obj,analysis,0);
+ const structure=PlotuneStoryStructure.analyze(obj),expression=PlotuneMusicPsychology.derive(structure,obj.gameStyle);
+ const p={...PlotuneHandheld.prepare(plan,obj.gameStyle,null,false,obj.scene,[char,obj.world,obj.scene].join('\n')),
+  structure,expression,motifDevelopment:true,musicDevelopment:true,musicHarmony:true,musicVoices};
+ return PlotuneHandheld.render(p);
+}
+$('generate').onclick=()=>{
+ stop();
+ try{
+  const motif=$('compareMode').value==='motif',m4=$('compareMode').value==='m4';
+  if(m4){tracks.A=buildM4($('characterA').value,false);tracks.B=buildM4($('characterA').value,true);}
+  else{tracks.A=build($('characterA').value,false);tracks.B=build(motif?$('characterA').value:$('characterB').value,motif);}
+  for(const id of ['playA','playB','stop'])$(id).disabled=false;
+  const a=tracks.A.score.notes.filter(n=>n.voice==='lead'),b=tracks.B.score.notes.filter(n=>n.voice==='lead');
+  const comparable=Math.min(a.length,b.length);let diff=0;
+  for(let i=0;i<comparable;i++)if(a[i].midi!==b[i].midi||Math.abs(a[i].t-b[i].t)>.001||Math.abs(a[i].d-b[i].d)>.001)diff++;
+  const replies=tracks.B.score.details.voiceDialogue?.responseCount??0;
+  $('diagnosis').textContent='A 主旋律 '+a.length+'音 / B '+b.length+'音\n対応する音の違い '+diff+'/'+comparable+'件\n'+
+   (m4?'M4応答フレーズ '+replies+'件\nA/Bは同じM1〜M3の和声・旋律を使用\n':'')+
+   '※音符差は聴感の差と同義ではありません。';
+  $('status').textContent=m4?'同一seed・同一キャラ・同一M1〜M3で声部対話 OFF / ON を生成':motif?'同一seed・同一キャラで主題発展 OFF / ON を生成':'2曲生成完了';
+ }catch(e){$('status').textContent='作曲エラー：'+e.message;console.error(e);}
+};
 async function play(c){try{stop();const t=tracks[c];if(!t)return;ctx=ctx||new (window.AudioContext||window.webkitAudioContext)();await ctx.resume();const buffer=ctx.createBuffer(1,t.samples.length,t.sampleRate);buffer.copyToChannel(t.samples,0);node=ctx.createBufferSource();node.buffer=buffer;node.connect(ctx.destination);node.start();$('status').textContent=c+'を再生中';}catch(e){$('status').textContent='再生エラー：'+e.message;}}
 $('playA').onclick=()=>play('A');$('playB').onclick=()=>play('B');
 $('save').onclick=()=>{try{const items=JSON.parse(localStorage.getItem('plotune_impressions')||'[]');items.push({at:new Date().toISOString(),style:$('style').value,compareMode:$('compareMode').value,characterA:$('characterA').value,characterB:$('characterB').value,world:$('world').value,scene:$('scene').value,ratings:Object.fromEntries(['A','B'].flatMap(c=>dimensions.map(([id])=>[c+'_'+id,Number($(c+id).value)])))});localStorage.setItem('plotune_impressions',JSON.stringify(items));$('saved').textContent=items.length+'件保存済み';}catch(e){$('saved').textContent='保存失敗：'+e.message;}};
