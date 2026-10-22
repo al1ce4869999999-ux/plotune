@@ -84,7 +84,8 @@ function analyze(){
  // A/B opt-in: the baseline remains untouched; emotional rendition is
  // enabled only for the standard renderer, not the handheld/band engines.
  if($('emotionComposition')?.checked && !['handheld','band','bandpiano'].includes(input.style)){
-   enhanced={...enhanced,emotionComposition:true};
+   // Controlled Phase 1 comparison: identical plan and seed, no Resonare.
+   enhanced={...original,emotionComposition:true};
  }
 
  if(['band','bandpiano'].includes(input.style)){
@@ -176,7 +177,8 @@ function allWaveDiff(a,b){
 }
 async function compare(){
  if(!form().scene.trim()){status('シーンを入力してね',true);return;}
- clearComparison();current=null;busy(true);status('基準版とResonare版を作曲中…');
+ const phase1=$('emotionComposition')?.checked && !['handheld','band','bandpiano'].includes(form().style);
+ clearComparison();current=null;busy(true);status(phase1?'感情表現OFF/ONを作曲中…':'基準版とResonare版を作曲中…');
  await new Promise(resolve=>setTimeout(resolve,35));
  try{
   const a=analyze();
