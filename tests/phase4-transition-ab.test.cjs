@@ -1,0 +1,13 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+const root=path.join(__dirname,'..');
+const app=fs.readFileSync(path.join(root,'app-v13.js'),'utf8');
+const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+const engine=fs.readFileSync(path.join(root,'handheld-v21.js'),'utf8');
+assert.match(html,/id="phase4Comparison"/);
+assert.match(app,/musicTransitions:true/);
+assert.match(app,/phase4\?'▶ Phase 4 OFF'/);
+assert.match(app,/phase4\?'▶ Phase 4 ON'/);
+assert.match(engine,/plan\.musicTransitions===true/);
+assert.match(engine,/transitionMarker:'anticipation'/);
+assert.match(engine,/transitions,/);
+console.log('PASS Phase 4 transition control and opt-in engine gate');
