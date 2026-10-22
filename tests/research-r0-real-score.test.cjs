@@ -1,0 +1,24 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),vm=require('node:vm'),crypto=require('node:crypto'),path=require('node:path');
+const root=path.resolve(__dirname,'..');
+const ctx={window:{},console,Blob};
+for(const file of ['analyzer.js','resonare-v08.js','loop-arranger-v09.js','melodic-grammar-v01.js','handheld-v21.js','research-evaluation-r0.js'])
+ vm.runInNewContext(fs.readFileSync(path.join(root,file),'utf8'),ctx,{filename:file});
+const w=ctx.window,evalR0=w.PlotuneResearchEvaluation;
+const input={title:'R0基準',character:'旅人',world:'森',scene:'静かな森を歩く。',style:'handheld',duration:30};
+const analysis=w.PlotuneAnalysis.analyze(input);
+const raw=w.PlotuneAnalysis.plan(input,analysis,0);
+const plan=w.PlotuneHandheld.prepare({...raw,seed:42,characterSeed:42,duration:30},'journey',null,false,input.scene);
+const sha=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
+const make=()=>w.PlotuneHandheld.score({...plan,musicDevelopment:false});
+const first=make(),before=sha(first),planBefore=sha(plan);
+const report=evalR0.evaluate((score,p)=>({metrics:{noteCount:score.notes.length,leadCount:score.notes.filter(n=>n.voice==='lead').length},diagnostics:[]}),first,plan,{seed:42});
+assert.equal(report.status,'ok');
+assert(report.metrics.noteCount>0);assert(report.metrics.leadCount>0);
+assert.equal(sha(first),before,'R0 must not alter scored notes');
+assert.equal(sha(plan),planBefore,'R0 must not alter the original plan');
+assert.equal(sha(make()),before,'same plan and seed must preserve actual output');
+const trace=evalR0.record({version:'0.1',entries:[]},report,'score-only');
+assert.equal(trace.researchEvaluations[0].status,'ok');
+assert.equal(sha(make()),before,'trace recording must not change subsequent composition');
+console.log('PASS R0 handheld score-only invariant; score hash',before,'note count',report.metrics.noteCount);
