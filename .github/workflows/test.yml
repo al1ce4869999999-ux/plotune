@@ -59,6 +59,8 @@ jobs:
           node --check app-v07.js
       - name: Preflight UI and asset contracts
         run: node tests/preflight-contracts.test.cjs
+      - name: Guard rendered score schema and nonempty A/B selections
+        run: node tests/m1-renderer-opt-in.test.cjs
       - name: Run no-API engine tests
         run: |
           failed=0
@@ -67,7 +69,6 @@ jobs:
           node tests/m1-motif-registry.test.cjs || failed=1
           node tests/m1-motif-transform.test.cjs || failed=1
           node tests/m1-section-history.test.cjs || failed=1
-          node tests/m1-renderer-opt-in.test.cjs || failed=1
           node tests/engine.test.cjs || failed=1
           node tests/emotion-plan-phase1.test.cjs || failed=1
           node tests/emotion-audio-phase1.test.cjs || failed=1
