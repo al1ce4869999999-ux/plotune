@@ -1,0 +1,21 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const root=path.resolve(__dirname,'..'),ctx={window:{}};
+for(const file of ['melodic-grammar-v01.js','m1-motif-registry-v01.js'])
+ vm.runInNewContext(fs.readFileSync(path.join(root,file),'utf8'),ctx,{filename:file});
+const grammar=ctx.window.PlotuneMelodicGrammar.grammar({}, {}, 123);
+const events=ctx.window.PlotuneMelodicGrammar.composePhrase(grammar,0);
+const original=JSON.stringify(events),registry=ctx.window.PlotuneMotifRegistry;
+const motif=registry.register('opening',events,{expressiveRole:'theme'});
+assert.equal(motif.motifId,'opening');
+assert.equal(motif.events.length,events.length);
+assert.equal(motif.pitchIntervals.length,events.filter(e=>!e.rest).length-1);
+assert.equal(motif.rhythmPattern.length,events.length);
+assert.equal(JSON.stringify(events),original,'registration must not change legacy phrases');
+assert.equal(Object.isFrozen(motif.events[0]),true);
+const resolved=registry.references({motifReferences:['opening']},{opening:motif});
+assert.equal(resolved.length,1);assert.equal(resolved[0],motif);
+assert.throws(()=>registry.references({motifReferences:['absent']},{opening:motif}),/missing motif/);
+assert.throws(()=>registry.register('x',[{position:0,durationUnits:0,degree:1}]),/invalid motif/);
+assert.throws(()=>registry.register('x',[]),/nonempty/);
+console.log('PASS M1-1 motif registry, section references and legacy immutability');
