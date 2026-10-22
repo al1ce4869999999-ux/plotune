@@ -328,10 +328,17 @@ function score(plan){
  const wholeTrackArc=Array.from({length:bars},(_,b)=>({bar:b+1,...arcAt(b)}));
  const motifPhrase=sharedGrammar&&root.PlotuneMelodicGrammar?.composePhrase?
    root.PlotuneMelodicGrammar.composePhrase(sharedGrammar,0,{density:clamp(pulseDensity*.68,.25,.92)}):null;
+ const motifIdentity=plan.motifDevelopment===true&&motifPhrase&&root.PlotuneMotifPlanner?
+   root.PlotuneMotifPlanner.capture(motifPhrase):null;
  const sharedPhrases=motifPhrase?Array.from({length:bars},(_,b)=>
-   b===0?motifPhrase:root.PlotuneMelodicGrammar.composePhrase(sharedGrammar,b,{
-     density:clamp(pulseDensity*.68*arcAt(b).density,.25,.92),
-     motif:motifPhrase,stage:arcAt(b).stage})):null;
+   b===0?motifPhrase:root.PlotuneMelodicGrammar.composePhrase(sharedGrammar,b,
+     motifIdentity?{
+       motifIdentity,
+       motifTransform:arcAt(b).stage==='climax'?'contrast':
+         arcAt(b).stage==='resolution'?'return':'variation'
+     }:{
+       density:clamp(pulseDensity*.68*arcAt(b).density,.25,.92),
+       motif:motifPhrase,stage:arcAt(b).stage})):null;
  // Repeat 4-bar thematic material; vary density and fills but keep a looping identity.
  for(let b=0;b<bars;b++){
   const chord=chordAt(b),next=chordAt((b+1)%bars),barAt=b*meter;
