@@ -13,6 +13,7 @@ jobs:
           node-version: '22'
       - name: Check JavaScript syntax
         run: |
+          node --check research-evaluation-r0.js
           node --check m-comparison-v01.js
           node --check m-contract-v01.js
           node --check m1-motif-registry-v01.js
@@ -64,6 +65,7 @@ jobs:
       - name: Run no-API engine tests
         run: |
           failed=0
+          node tests/research-evaluation-r0.test.cjs || failed=1
           node tests/m0-comparison.test.cjs || failed=1
           node tests/m0-contract.test.cjs || failed=1
           node tests/m1-motif-registry.test.cjs || failed=1
