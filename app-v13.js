@@ -84,7 +84,8 @@ function analyze(){
  // A/B opt-in: the baseline remains untouched; emotional rendition is
  // enabled only for the standard renderer, not the handheld/band engines.
  if($('emotionComposition')?.checked && !['handheld','band','bandpiano'].includes(input.style)){
-   enhanced={...enhanced,emotionComposition:true};
+   // Controlled Phase 1 comparison: identical plan and seed, no Resonare.
+   enhanced={...original,emotionComposition:true};
  }
 
  if(['band','bandpiano'].includes(input.style)){
@@ -176,10 +177,13 @@ function allWaveDiff(a,b){
 }
 async function compare(){
  if(!form().scene.trim()){status('シーンを入力してね',true);return;}
- clearComparison();current=null;busy(true);status('基準版とResonare版を作曲中…');
+ const phase1=$('emotionComposition')?.checked && !['handheld','band','bandpiano'].includes(form().style);
+ clearComparison();current=null;busy(true);status(phase1?'感情表現OFF/ONを作曲中…':'基準版とResonare版を作曲中…');
  await new Promise(resolve=>setTimeout(resolve,35));
  try{
   const a=analyze();
+  $('classicPlay').textContent=phase1?'▶ 感情表現OFF':'▶ 基準版';
+  $('resonarePlay').textContent=phase1?'▶ 感情表現ON':'▶ Resonare版';
   const base=renderer(a.base).render(a.base);
   const enhanced=renderer(a.enhanced).render(a.enhanced);
   tracks={classic:base,resonare:enhanced};
@@ -210,7 +214,9 @@ async function compare(){
   const active=a.appraisal.events.filter(e=>e.cue!=='neutral');
   const relative=allWaveDiff(base,enhanced);
   let diagnosis;
-  if(global){
+  if(phase1){
+    diagnosis='同じ曲・同じシード・同じ編成で、感情表現の有無だけを変更しています。聴感上の改善は未判定です。';
+  }else if(global){
     diagnosis='曲の冒頭0秒から編曲を変更：'+global.label+'。'+global.reason+
      '。ギター・ベース・ドラムとコード進行を曲全体で設計し直しました。ループ前提のBGMです。';
   }else if(active.length===0||changedNotes===0&&relative<.02){
@@ -248,7 +254,7 @@ async function compare(){
   $('playerHint').textContent=global
     ? '0秒から編曲が違うよ。最初の10秒を「冒頭比較」ボタンで直接聴き比べてね。'
     : '物語の根拠が薄い場合は、基準版と同じループになります。';
-  $('summary').textContent='2曲生成済み（基準版 ＋ Resonare版） · '+styleName(a.base)+' · '+base.details.bpm.toFixed(1)+' BPM · '+base.score.duration+'秒'+
+  $('summary').textContent=(phase1?'2曲生成済み（感情表現OFF ＋ ON） · ':'2曲生成済み（基準版 ＋ Resonare版） · ')+styleName(a.base)+' · '+base.details.bpm.toFixed(1)+' BPM · '+base.score.duration+'秒'+
    (base.details.loopMode?' · 小節ぴったりのループ設計':'');
   save(true);
   status(global?'2曲完成！冒頭から異なるループ編曲で比較できます。':

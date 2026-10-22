@@ -101,5 +101,17 @@ vm.runInNewContext(fs.readFileSync(root+'/app-v13.js','utf8'),context,{filename:
  assert.equal(elems.zeta.disabled,false,'30-second track has M4A export enabled');
  assert.equal(typeof elems.zeta.handlers.click,'function');
  assert.ok(fs.readFileSync(root+'/index.html','utf8').includes('id="zetaHelp"'),'Zeta guidance is visible');
+ // Execute the actual UI click path, not merely inspect source strings.
+ elems.style.value='piano';elems.style.handlers.change();
+ elems.emotionComposition.checked=true;
+ await elems.make.handlers.click();
+ assert.equal(elems.comparison.hidden,false,'Phase 1 controls must render');
+ assert.ok(elems.classicPlay.textContent.includes('感情表現OFF'),'OFF player label');
+ assert.ok(elems.resonarePlay.textContent.includes('感情表現ON'),'ON player label');
+ assert.ok(elems.summary.textContent.includes('感情表現OFF ＋ ON'),'A/B mode summary');
+ assert.ok(elems.contrastAssessment.textContent.includes('感情表現の有無だけ'),'comparison must isolate Phase 1');
+ elems.emotionComposition.checked=false;
+ await elems.make.handlers.click();
+ assert.ok(elems.summary.textContent.includes('基準版 ＋ Resonare版'),'standard A/B preserved');
  console.log('PASS v1.3 UI: game style selector, seven layers, 2 versions, seamless loop UI, nonband compatibility');
 })().catch(e=>{console.error(e);process.exitCode=1});
