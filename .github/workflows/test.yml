@@ -59,6 +59,8 @@ jobs:
           node --check app-v07.js
       - name: Preflight UI and asset contracts
         run: node tests/preflight-contracts.test.cjs
+      - name: Guard rendered score schema and nonempty A/B selections
+        run: node tests/m1-renderer-opt-in.test.cjs
       - name: Run no-API engine tests
         run: |
           failed=0

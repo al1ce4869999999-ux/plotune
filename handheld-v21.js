@@ -332,6 +332,25 @@ function score(plan){
    b===0?motifPhrase:root.PlotuneMelodicGrammar.composePhrase(sharedGrammar,b,{
      density:clamp(pulseDensity*.68*arcAt(b).density,.25,.92),
      motif:motifPhrase,stage:arcAt(b).stage})):null;
+ // M1 experiment: keep the legacy score bit-for-bit when the feature is OFF.
+ // The first melody is registered once; later sections transform the same identity.
+ const motifEngine=plan.musicDevelopment===true?root.PlotuneMotifRegistry:null;
+ const transformEngine=plan.musicDevelopment===true?root.PlotuneMotifTransform:null;
+ const registeredMotif=motifPhrase&&motifEngine?.register&&transformEngine?.transform?
+  motifEngine.register('main-theme',motifPhrase):null;
+ const mPhrases=registeredMotif?sharedPhrases.map((phrase,b)=>{
+  if(b===0)return phrase;
+  const stage=arcAt(b).stage;
+  const kind=stage==='development'?'inversion':stage==='climax'?'transposition':'transposition';
+  const steps=stage==='climax'?1:0;
+  // Preserve the original phrase timing while transforming its sounded degrees.
+  const version=transformEngine.transform(registeredMotif,kind,{steps});
+  return phrase.map((event,i)=>{
+   const sourceDegree=version.events[i%version.events.length].degree;
+   const degree=stage==='climax'?Math.min(8,sourceDegree+2):sourceDegree;
+   return {...event,degree};
+  });
+ }):null;
  // Repeat 4-bar thematic material; vary density and fills but keep a looping identity.
  for(let b=0;b<bars;b++){
   const chord=chordAt(b),next=chordAt((b+1)%bars),barAt=b*meter;
@@ -347,7 +366,7 @@ function score(plan){
    const t=barAt+i*step,beat=i%4,on=i%8;
    // Shared melodic phrasing; arrangement and instruments remain style-specific.
    if(sharedPhrases){
-    for(const event of sharedPhrases[b]){
+    for(const event of (mPhrases||sharedPhrases)[b]){
      if(Math.floor(event.position)!==i||event.rest)continue;
      if(arcState.density<.8&&event.position>9&&event.position<13)continue;
      add(barAt+event.position*step,event.durationUnits*step,
@@ -854,6 +873,18 @@ function score(plan){
      }else if(n.voice==='chords'||n.voice==='pad') n.volume*=Math.sqrt(cues.dynamicsFactor);
    }
  }
+ // Specialist instrument layers can replace preliminary lead notes.
+ // Apply opt-in thematic development to the final audible score instead.
+ if(registeredMotif){
+  const leads=notes.filter(n=>n.voice==='lead').sort((a,b)=>a.t-b.t);
+  for(let i=0;i<leads.length;i++){
+   const n=leads[i],bar=Math.floor(n.t/meter);
+   const stage=arcAt(Math.min(bars-1,bar)).stage;
+   if(stage==='opening')continue;
+   const offset=stage==='development'?(i%2===0?2:-1):stage==='climax'?3:-2;
+   n.midi=clamp(n.midi+offset,36,100);
+  }
+ }
  const details={
   musicPsychology:expression,researchApplied:cues?{...cues,appliedTo:['lead register','lead/counter articulation','note dynamics','synth brightness','reflection wetness'],tempoStatus:'not applied (preset BPM retained)',modeStatus:'not applied (style harmony retained)'}:null,structuredStory:plan.structure||null,
   genre:'game',gameStyle:plan.gameStyle||'journey',gameName:game.name,emotionMode:game.mode,groove:game.drums,shape,
@@ -869,7 +900,8 @@ function score(plan){
   accompanimentNotes:voices.chords+voices.pad+voices.arp,
   bassNotes:voices.bass,percussionHits:voices.drums,
   breaks:0,shiftedChords:transform?bars:0,cueHits:transform?1:0,
-  harmonyChanges:harmony.length,rests,events:[],harmonies:harmony
+  harmonyChanges:harmony.length,rests,events:[],harmonies:harmony,
+  mDevelopmentActive:!!registeredMotif
  };
  return {notes,drums,rests,harmony,theme:motif,details,genre:'game',
   duration,bpm,sampleRate:SR};
