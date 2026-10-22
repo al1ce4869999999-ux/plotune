@@ -20,3 +20,9 @@ for(const output of [anxious,gentle]){
 }
 assert.throws(()=>M.selectPhrase([]),/source events/);
 console.log('PASS M2 emotion phrase planner: seed/emotion/legacy/bounds');
+
+const hh=fs.readFileSync(path.join(__dirname,'../handheld-v21.js'),'utf8');
+const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
+assert.match(hh,/plan\.musicDevelopment===true && root\.PlotuneM2Phrase/,'score integration is opt-in');
+assert.match(hh,/PlotuneM2Phrase\.selectPhrase\(sharedPhrases\[b\]/,'actual score selects M2 phrase');
+assert.match(html,/m2-emotion-phrase-v01\.js/,'active page loads M2');
