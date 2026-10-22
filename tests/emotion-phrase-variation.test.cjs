@@ -1,0 +1,14 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const window={},ctx={window,Blob,console},root=path.resolve(__dirname,'..');
+for(const file of ['analyzer.js','composer-v04.js'])vm.runInNewContext(fs.readFileSync(path.join(root,file),'utf8'),ctx,{filename:file});
+const A=window.PlotuneAnalysis,C=window.PlotuneComposerV4;
+const input={title:'phrase-variation',character:'ぽんぽん',world:'森',scene:'昔を思い出して悲しかったけれど、少し希望を感じた。',style:'piano',duration:30};
+const plan=A.plan(input,A.analyze(input)),off=C.buildScore(plan),on=C.buildScore({...plan,emotionComposition:true});
+const barSeconds=240/plan.bpm;
+const phrases=Array.from({length:4},(_,bar)=>on.notes.filter(n=>n.role==='lead'&&n.t>=bar*barSeconds-0.00001&&n.t<(bar+1)*barSeconds-0.00001).map(n=>[+(n.t-bar*barSeconds).toFixed(3),n.midi]));
+assert.equal(new Set(phrases.map(x=>JSON.stringify(x))).size,4,'four bars must not be identical');
+assert.deepEqual(Array.from(on.theme),Array.from(off.theme),'original motif kept');
+assert.deepEqual(C.buildScore({...plan,emotionComposition:true}).notes,on.notes,'deterministic');
+assert.deepEqual(C.buildScore(plan).notes,off.notes,'OFF unchanged');
+assert.ok(on.notes.every(n=>n.d>0&&n.t>=0&&n.t+n.d<=plan.duration+.001));
+console.log('PASS emotional phrase development: distinct 4-bar lead phrases, stable OFF and deterministic ON');
