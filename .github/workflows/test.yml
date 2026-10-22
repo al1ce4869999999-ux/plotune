@@ -67,6 +67,7 @@ jobs:
           node tests/m1-motif-registry.test.cjs || failed=1
           node tests/m1-motif-transform.test.cjs || failed=1
           node tests/m1-section-history.test.cjs || failed=1
+          node tests/m1-renderer-opt-in.test.cjs || failed=1
           node tests/engine.test.cjs || failed=1
           node tests/emotion-plan-phase1.test.cjs || failed=1
           node tests/emotion-audio-phase1.test.cjs || failed=1
