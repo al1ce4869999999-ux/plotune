@@ -14,6 +14,16 @@ const b=240/plan.bpm;
 const lead=Array.from({length:4},(_,k)=>expressive.notes.filter(n=>n.role==='lead'&&n.t>=k*b-.0001&&n.t<(k+1)*b-.0001).map(n=>n.midi));
 assert.equal(new Set(lead.map(x=>JSON.stringify(x))).size,4,'four-bar development differs by pitch/rhythm');
 assert.ok(expressive.notes.some(n=>n.role==='countermelody'),'counter voice must answer lead');
+const answers=expressive.notes.filter(n=>n.role==='countermelody');
+assert.ok(answers.length>0,'answer notes exist');
+for(const answer of answers){
+ const phraseBar=Math.floor(answer.t/b);
+ const position=(answer.t-phraseBar*b)/(b/8);
+ assert.ok([2.1,4.1,5.1].some(x=>Math.abs(position-x)<.02),'answer should start in a phrase rest');
+ const simultaneous=expressive.notes.some(n=>n.role==='lead'&&Math.abs(n.t-answer.t)<.0001);
+ assert.equal(simultaneous,false,'answer must not double the lead onset');
+}
+
 assert.notDeepEqual(expressive.notes,neutral.notes);
 assert.deepEqual(C.buildScore(emotionPlan).notes,expressive.notes,'deterministic');
 assert.deepEqual(C.buildScore(plan).notes,neutral.notes,'OFF unaffected');
