@@ -517,7 +517,12 @@ function score(plan){
        // Silent gaps and phrase resolution are intentional.
        if(!isBreath&&!isSynth&&slot>=12&&b%2===1)continue;
        const move=line[(ordinal+b%4)%8]+((isBreath||isSynth)&&b%4===3?2:0);
-       const midiValue=clamp(basis+move+(isBell?-12:0)+(palette.family==='strings'?-7:0),46,92);
+       // Carry the opt-in motif transformation through the palette renderer.
+       // Otherwise this renderer replaces the shared lead and loses the change.
+       const sourceEvent=motifIdentity&&motifPhrase[ordinal%motifPhrase.length];
+       const evolvedEvent=motifIdentity&&sharedPhrases[b]?.[ordinal%sharedPhrases[b].length];
+       const motifShift=sourceEvent&&evolvedEvent?evolvedEvent.degree-sourceEvent.degree:0;
+       const midiValue=clamp(basis+move+motifShift+(isBell?-12:0)+(palette.family==='strings'?-7:0),46,92);
        const len=step*(sadMode?(ordinal%4===3?5.5:3.7):
          heroicMode?(ordinal%4===3?3.2:1.8):
          playfulMode?1.35:isBreath?(ordinal%4===3?3.2:1.8):
