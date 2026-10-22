@@ -30,7 +30,7 @@ function transform(motif,kind){
    if(!rest)degree=Math.max(0,Math.min(8,origin-(degree-origin)));
    if(i%4===1)rest=true;
   }
-  if(kind==='return'&&!rest&&i===motif.events.length-1)degree=origin;
+  if(kind==='return'&&i===motif.events.length-1){degree=origin;rest=false;}
   return {position:round(position),durationUnits:round(durationUnits),degree,rest};
  });
  if(!events.some(e=>!e.rest))events[0].rest=false;
