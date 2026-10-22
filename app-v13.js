@@ -104,6 +104,10 @@ function analyze(){
   const expression=window.PlotuneMusicPsychology?.derive(structure,input.gameStyle);
   base={...handheld.prepare(original,input.gameStyle,appraisal,false,input.scene,storyContext),structure,expression};
   enhanced={...handheld.prepare(original,input.gameStyle,appraisal,false,input.scene,storyContext),structure,expression,motifDevelopment:true};
+  if($('handheldCompareMode')?.value==='harmony'){
+   base={...base,motifDevelopment:true,musicHarmony:false};
+   enhanced={...enhanced,musicHarmony:true};
+  }
  }
  const box=$('analysis');box.replaceChildren();
  box.append(textNode('h3','物語の解析結果'));
@@ -183,12 +187,13 @@ async function compare(){
  if(!form().scene.trim()){status('シーンを入力してね',true);return;}
  const phase1=$('emotionComposition')?.checked && !['handheld','band','bandpiano'].includes(form().style);
  const phase2=form().style==='handheld';
- clearComparison();current=null;busy(true);status(phase2?'フェーズ2 OFF/ONを作曲中…':phase1?'感情表現OFF/ONを作曲中…':'基準版とResonare版を作曲中…');
+ const harmony=phase2&&$('handheldCompareMode')?.value==='harmony';
+ clearComparison();current=null;busy(true);status(harmony?'M3 和声連動 OFF/ONを作曲中…':phase2?'フェーズ2 OFF/ONを作曲中…':phase1?'感情表現OFF/ONを作曲中…':'基準版とResonare版を作曲中…');
  await new Promise(resolve=>setTimeout(resolve,35));
  try{
   const a=analyze();
-  $('classicPlay').textContent=phase2?'▶ フェーズ2 OFF':phase1?'▶ 感情表現OFF':'▶ 基準版';
-  $('resonarePlay').textContent=phase2?'▶ フェーズ2 ON':phase1?'▶ 感情表現ON':'▶ Resonare版';
+  $('classicPlay').textContent=harmony?'▶ M3 和声OFF':phase2?'▶ フェーズ2 OFF':phase1?'▶ 感情表現OFF':'▶ 基準版';
+  $('resonarePlay').textContent=harmony?'▶ M3 和声ON':phase2?'▶ フェーズ2 ON':phase1?'▶ 感情表現ON':'▶ Resonare版';
   const base=renderer(a.base).render(a.base);
   const enhanced=renderer(a.enhanced).render(a.enhanced);
   tracks={classic:base,resonare:enhanced};
@@ -411,6 +416,7 @@ $('engine').addEventListener('change',()=>{reset();analyze();status('解析方�
 $('style').addEventListener('change',()=>{bandPanel();reset();status('曲調を切り替えました');});
 $('bandStyle').addEventListener('change',()=>{reset();status('バンドのスタイルを切り替えました');});
 $('gameStyle').addEventListener('change',()=>{reset();status('ゲームサウンドの編曲を切り替えました');});
+$('handheldCompareMode').addEventListener('change',()=>{reset();status('比較対象を切り替えました');});
 if(!zetaEncoder.supported()){
  $('zetaHelp').textContent='このSafariで直接のM4A書き出しは使えません。WAV保存後、ショートカットでM4Aへ変換してね。';
 }
