@@ -49,6 +49,7 @@ jobs:
           node --check band-piano-v15.js
           node --check comparison-v13.js
           node --check m7-generation-v01.js
+          node --check m7-listening-v01.js
           node --check app-v13.js
           node --check app.js
           node --check app-v03.js
@@ -79,6 +80,7 @@ jobs:
           node tests/m3-harmony-ab-ui.test.cjs || failed=1
           node tests/phase3-expressive-ab.test.cjs || failed=1
           node tests/m7-generation.test.cjs || failed=1
+          node tests/m7-listening.test.cjs || failed=1
           node tests/m7-real-engine.test.cjs || failed=1
           node tests/emotion-isolated-ab.test.cjs || failed=1
           node tests/resonare.test.cjs || failed=1
