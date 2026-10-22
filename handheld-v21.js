@@ -339,6 +339,13 @@ function score(plan){
      }:{
        density:clamp(pulseDensity*.68*arcAt(b).density,.25,.92),
        motif:motifPhrase,stage:arcAt(b).stage})):null;
+ // M2 opt-in: emotional candidate selection, preserving legacy output when disabled.
+ if(plan.musicDevelopment===true && root.PlotuneM2Phrase && sharedPhrases){
+  const stages={opening:{tension:.18,energy:.25,tenderness:.65},development:{tension:.55,energy:.65,tenderness:.35},climax:{tension:.93,energy:.95,tenderness:.08},resolution:{tension:.08,energy:.22,tenderness:.9}};
+  for(let b=0;b<bars;b++)sharedPhrases[b]=root.PlotuneM2Phrase.selectPhrase(sharedPhrases[b],
+    {...stages[arcAt(b).stage],...(plan.phraseEmotion||{})},
+    {seed:(seed^Math.imul(b+1,2654435761))>>>0,candidates:8}).events;
+ }
  // Repeat 4-bar thematic material; vary density and fills but keep a looping identity.
  for(let b=0;b<bars;b++){
   const chord=chordAt(b),next=chordAt((b+1)%bars),barAt=b*meter;
