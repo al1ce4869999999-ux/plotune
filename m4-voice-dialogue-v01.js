@@ -7,7 +7,7 @@ function chordPitch(target,chord,tonic,scale){
  if(!Number.isFinite(tonic)||!Array.isArray(scale)||scale.length!==7)return target;
  const degrees=[0,2,4].map(d=>(tonic+scale[(chord+d)%7])%12);
  let best=target,distance=Infinity;
- for(let midi=Math.max(46,Math.round(target)-3);midi<=Math.min(84,Math.round(target)+3);midi++){
+ for(let midi=Math.max(46,Math.round(target)-3);midi<=Math.min(83,Math.round(target)+3);midi++){
   if(degrees.includes(((midi%12)+12)%12)&&Math.abs(midi-target)<distance){best=midi;distance=Math.abs(midi-target);}
  }
  return best;
@@ -27,7 +27,7 @@ function arrange({notes,harmony=[],duration,meter,step,seed=1,wholeTrackArc=[],t
   const choice=random();
   const onsetUnit=9+Math.floor(random()*4);
   const imitateChoice=random();
-  if(b-previousResponse<2||choice>=likelihood)continue;
+  // A sparse or short song must still contain a clearly audible reply.\n  const essential=b===Math.floor(bars*.60)&&responses.length===0;\n  if(b-previousResponse<2||(!essential&&choice>=likelihood))continue;
   const from=b*meter+onsetUnit*step;
   const until=Math.min(duration,(b+1)*meter-step*.12);
   if(until-from<step*2)continue;
