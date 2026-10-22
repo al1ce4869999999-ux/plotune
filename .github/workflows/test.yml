@@ -73,6 +73,7 @@ jobs:
           node tests/motif-score-integration.test.cjs || failed=1
           node tests/phase2-ab-lab.test.cjs || failed=1
           node tests/phase2-main-comparison.test.cjs || failed=1
+          node tests/m3-harmony-ab-ui.test.cjs || failed=1
           node tests/emotion-isolated-ab.test.cjs || failed=1
           node tests/resonare.test.cjs || failed=1
           node tests/structural.test.cjs || failed=1
