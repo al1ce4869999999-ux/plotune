@@ -93,6 +93,21 @@ function composePhrase(g,bar,options={}){
    if(stage==='development'&&i%3===1)events[i].durationUnits=Math.min(events[i].durationUnits*1.2,16-events[i].position);
   }
  }
+ // Phase 2 is explicitly opt-in. Keep the original bar generator untouched otherwise.
+ if(options.motifIdentity){
+  const planner=root.PlotuneMotifPlanner;
+  if(!planner)throw new Error('PlotuneMotifPlanner is required for motifIdentity');
+  const identity=options.motifIdentity;
+  const kind=options.motifTransform||'variation';
+  const transformed=planner.transform(identity,kind).events;
+  // Preserve the original generator's per-bar cadence metadata, while
+  // restoring an audible closing anchor for the return section.
+  return transformed.map((event,i)=>({
+   ...event,
+   step:i?event.degree-transformed[i-1].degree:0,
+   cadence:kind==='return'&&i===transformed.length-1
+  }));
+ }
  if(events.length&&!events.some(n=>!n.rest))events[0].rest=false;
  return events;
 }
