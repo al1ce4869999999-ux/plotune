@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),path=require('node:path');
+const app=fs.readFileSync(path.join(__dirname,'../app-v13.js'),'utf8');
+const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
+const engine=fs.readFileSync(path.join(__dirname,'../handheld-v21.js'),'utf8');
+assert.match(app,/base=\{\.\.\.handheld\.prepare\(original,input\.gameStyle,appraisal,false,input\.scene,storyContext\),structure,expression\}/);
+assert.match(app,/enhanced=\{\.\.\.handheld\.prepare\(original,input\.gameStyle,appraisal,false,input\.scene,storyContext\),structure,expression,motifDevelopment:true\}/);
+assert.match(app,/phase2\?'▶ フェーズ2 OFF'/);
+assert.match(app,/phase2\?'▶ フェーズ2 ON'/);
+assert.match(app,/tracks=\{classic:base,resonare:enhanced\}/);
+assert.match(html,/id="classicPlay"/);
+assert.match(html,/id="resonarePlay"/);
+assert.match(html,/motif-planner-v01\.js/);
+assert.match(engine,/plan\.motifDevelopment===true/);
+assert.match(engine,/plan\.musicDevelopment===true && root\.PlotuneM2Phrase/);
+console.log('PASS same-condition Phase 2 A/B playback path and M2 coexistence');
