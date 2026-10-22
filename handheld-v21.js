@@ -896,7 +896,34 @@ function score(plan){
   for(const key of Object.keys(voices))
    if(key!=='drums')voices[key]=notes.filter(n=>n.voice===key).length;
  }
+ // Phase 4: phrase-boundary anticipation and breath. OFF remains unchanged.
+ const transitions=[];
+ if(plan.musicTransitions===true){
+  const sectionCount=4,sectionLength=duration/sectionCount;
+  for(let i=1;i<sectionCount;i++){
+   const boundary=i*sectionLength,lead=notes.filter(n=>n.voice==='lead'&&n.t<boundary&&n.t>=boundary-step*8).sort((a,b)=>b.t-a.t)[0];
+   const next=notes.filter(n=>n.voice==='lead'&&n.t>=boundary&&n.t<boundary+step*8).sort((a,b)=>a.t-b.t)[0];
+   if(!lead||!next)continue;
+   // Clear space for the next phrase without changing its pitch or seed.
+   const breathStart=Math.max(0,boundary-step*.65);
+   let shortened=0;
+   for(const n of notes){
+    if((n.voice==='lead'||n.voice==='counter')&&n.t<boundary&&n.t+n.d>breathStart){
+     n.d=Math.max(.04,breathStart-n.t);shortened++;
+    }
+   }
+   // Bass anticipates the next lead's pitch class, preparing the arrival.
+   const bassMidi=clamp(next.midi-24,30,65);
+   const t=Math.max(0,boundary-step*.55);
+   notes.push({t,d:Math.min(step*.40,duration-t),midi:bassMidi,voice:'bass',role:'bass',
+    timbre:'synthpad',volume:.065,transitionMarker:'anticipation'});
+   transitions.push({boundary,anticipation:t,breathStart,shortened});
+  }
+  notes.sort((a,b)=>a.t-b.t);
+  for(const key of Object.keys(voices))if(key!=='drums')voices[key]=notes.filter(n=>n.voice===key).length;
+ }
  const details={
+  transitions,
   performance:performance?performance.details:null,
   voiceDialogue:voiceDialogue?{responseCount:voiceDialogue.responseCount,
    replies:voiceDialogue.responses.map(x=>({bar:x.bar,stage:x.stage,mode:x.mode,from:x.from,until:x.until})),
