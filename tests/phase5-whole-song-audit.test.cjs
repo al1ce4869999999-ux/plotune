@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict');
+const {audit}=require('../phase5-whole-song-audit-v01.js');
+const plan={sections:[{id:'A',bars:4,targetDensity:2},{id:'B',bars:4,targetDensity:1}]};
+const score=[{id:'A',bars:4,notes:[{pitch:60},{pitch:62},{pitch:64},{pitch:65},{pitch:67},{pitch:69},{pitch:71},{pitch:72}]},{id:'B',bars:4,notes:[{pitch:60},{pitch:62},{pitch:64},{pitch:65}]}];
+const before=JSON.stringify({plan,score});
+assert.deepEqual(audit(plan,score).findings,[]);
+assert.equal(JSON.stringify({plan,score}),before,'audit must not mutate inputs');
+const wrong=score.map(s=>({...s,notes:s.notes.slice()}));
+wrong[1].bars=3;
+const report=audit(plan,wrong);
+assert.equal(report.ok,false);
+assert(report.findings.some(f=>f.code==='SECTION_LENGTH_MISMATCH'&&f.sectionId==='B'));
+assert(audit(plan,[score[0]]).findings.some(f=>f.code==='MISSING_SECTION'));
+assert(audit(plan,[...score,{id:'C',bars:2,notes:[]}]).findings.some(f=>f.code==='UNPLANNED_SECTION'));
+assert.deepEqual(audit(plan,score),audit(plan,score),'deterministic');
+console.log('PASS Phase 5 read-only whole-song audit');
