@@ -81,6 +81,7 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <script defer src="generation-trace-v01.js?v=20261019-research1"></script>
 <script defer src="m7-generation-v01.js?v=20261023-m71"></script>
 <script defer src="app-v13.js?v=20261019-trace1"></script>
+<script defer src="m7-listening-v01.js?v=20261023-m72"></script>
 </head>
 <body>
 <main>
@@ -148,6 +149,21 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <button id="save" class="alt" type="button">設定を保存</button>
 <button id="loadSaved" class="alt" type="button">保存した設定を読み込む</button>
 </div>
+</section>
+<section class="card" id="m7Panel" aria-label="M7 4条件聴き比べ">
+<h2>🎧 M7：4条件の聴き比べ</h2>
+<p class="note">DS風ゲームサウンド専用。同じseed・曲長で4曲を生成し、再生中に切り替えると同じ位置から続きます。</p>
+<label for="m7Seed">比較用seed</label><input id="m7Seed" type="number" min="0" max="4294967295" step="1" value="20261023">
+<div class="actions"><button id="m7Make" type="button">🎼 4曲を生成して聴き比べ</button></div>
+<div class="actions dual-tracks">
+<button id="m7Play-baseline" class="alt" disabled type="button">▶ Baseline</button>
+<button id="m7Play-phase" class="alt" disabled type="button">▶ Phase</button>
+<button id="m7Play-m" class="alt" disabled type="button">▶ M</button>
+<button id="m7Play-phase-m" class="alt" disabled type="button">▶ Phase + M</button>
+</div>
+<div class="actions"><button id="m7Stop" class="alt" disabled type="button">■ 4条件再生を停止</button></div>
+<p id="m7Status" role="status" aria-live="polite" class="note">4曲を生成すると再生できます。</p>
+<p class="note">音量は曲ごとに一定ゲインで補正し、曲中の強弱は維持します。</p>
 </section>
 <section class="card" id="analysis" hidden aria-live="polite"></section>
 <section class="card">
