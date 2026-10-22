@@ -887,7 +887,17 @@ function score(plan){
   for(const key of Object.keys(voices))
    if(key!=='drums')voices[key]=notes.filter(n=>n.voice===key).length;
  }
+ // M5 is applied after M4 to the final events actually rendered to PCM.
+ const performance=plan.musicPerformance===true&&root.PlotuneM5Performance?
+   root.PlotuneM5Performance.express({notes,duration,meter,seed,wholeTrackArc,
+     leadTone:palette?.family||game.lead,secondaryTone:palette?.secondary}):null;
+ if(performance){
+  notes.length=0;notes.push(...performance.notes);
+  for(const key of Object.keys(voices))
+   if(key!=='drums')voices[key]=notes.filter(n=>n.voice===key).length;
+ }
  const details={
+  performance:performance?performance.details:null,
   voiceDialogue:voiceDialogue?{responseCount:voiceDialogue.responseCount,
    replies:voiceDialogue.responses.map(x=>({bar:x.bar,stage:x.stage,mode:x.mode,from:x.from,until:x.until})),
    imitationTypes:voiceDialogue.imitationTypes}:null,
