@@ -28,6 +28,9 @@ function lead(s){
   'lead notes must expose midi/t/d');
  return selected.map(n=>[n.t,n.midi,n.d]);
 }
+assert.throws(()=>lead({notes:[]}),/nonempty score notes/,'empty score must not pass');
+assert.throws(()=>lead({notes:[{role:'lead',midi:60,t:0,d:1}]}),/actual voice field/,'wrong field must not pass');
+assert.throws(()=>lead({notes:[{voice:'bass',midi:48,t:0,d:1}]}),/lead voice must exist/,'empty selection must not pass');
 assert.ok(lead(baseline).length>0,'baseline must have lead events');
 assert.ok(lead(off).length>0,'OFF must have lead events');
 assert.ok(lead(on).length>0,'ON must have lead events');
