@@ -182,6 +182,8 @@ async function compare(){
  await new Promise(resolve=>setTimeout(resolve,35));
  try{
   const a=analyze();
+  $('classicPlay').textContent=phase1?'▶ 感情表現OFF':'▶ 基準版';
+  $('resonarePlay').textContent=phase1?'▶ 感情表現ON':'▶ Resonare版';
   const base=renderer(a.base).render(a.base);
   const enhanced=renderer(a.enhanced).render(a.enhanced);
   tracks={classic:base,resonare:enhanced};
