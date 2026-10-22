@@ -47,7 +47,8 @@ function save(quiet=false){
 }
 try{
  const saved=JSON.parse(localStorage.getItem('plotune')||'{}');
- fields.forEach(k=>{if(saved[k]!=null)$(k).value=saved[k]});
+ // Keep the editable HTML examples on startup; saved values are not auto-restored.
+ // Explicit saving still works, but cannot silently hide the listening example.
 }catch{}
 const gameSelect=$('gameStyle');
 const existing=gameSelect.value;
