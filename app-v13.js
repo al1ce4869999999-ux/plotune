@@ -45,11 +45,14 @@ function save(quiet=false){
  try{localStorage.setItem('plotune',JSON.stringify(form()));if(!quiet)status('設定を保存しました');}
  catch{if(!quiet)status('設定を保存できませんでした',true);}
 }
-try{
- const saved=JSON.parse(localStorage.getItem('plotune')||'{}');
- // Keep the editable HTML examples on startup; saved values are not auto-restored.
- // Explicit saving still works, but cannot silently hide the listening example.
-}catch{}
+function loadSaved(){
+ try{
+  const saved=JSON.parse(localStorage.getItem('plotune')||'{}');
+  if(!Object.keys(saved).length){status('保存された設定はありません');return;}
+  fields.forEach(k=>{if(saved[k]!=null)$(k).value=saved[k]});
+  bandPanel();reset();status('保存した設定を読み込みました');
+ }catch{status('保存した設定を読み込めませんでした',true);}
+}
 const gameSelect=$('gameStyle');
 const existing=gameSelect.value;
 gameSelect.replaceChildren();
@@ -381,6 +384,7 @@ async function exportForZeta(){
  }
 }
 $('save').addEventListener('click',()=>save());
+$('loadSaved').addEventListener('click',loadSaved);
 $('analyze').addEventListener('click',()=>{analyze();status('解析しました');});
 $('make').addEventListener('click',()=>generate(false));
 $('reroll').addEventListener('click',()=>generate(true));
