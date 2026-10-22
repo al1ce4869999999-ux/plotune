@@ -690,6 +690,66 @@ function score(plan){
     for(const key of Object.keys(voices))
       voices[key]=key==='drums'?0:notes.filter(n=>n.voice===key).length;
   }
+ // Phase 2 opt-in: motif evolution must affect the whole audible score,
+ // not just the lead pitch. Preserve legacy scores byte-for-byte when OFF.
+ if(plan.motifDevelopment===true&&motifIdentity){
+  const old=notes.splice(0);
+  for(const n of old){
+   const bar=Math.min(bars-1,Math.floor(n.t/meter));
+   const stage=arcAt(bar).stage;
+   const beat=(n.t-bar*meter)/step;
+   const copy={...n};
+   // Leave room to hear the statement; build an answering voice later.
+   if(stage==='opening'){
+    if(n.voice==='counter'||n.voice==='sparkle'||n.voice==='arp')continue;
+    if(n.voice==='chords')copy.volume*=.64;
+    if(n.voice==='lead')copy.volume*=.91;
+   }else if(stage==='development'){
+    if(n.voice==='lead'&&beat>=12)copy.volume*=.75;
+    if(n.voice==='pad')copy.volume*=.90;
+    if(n.voice==='counter')copy.volume*=1.16;
+   }else if(stage==='climax'){
+    // Widen harmony and reinforce the answer, without amplifying every layer.
+    if(n.voice==='chords'&&n.midi<82){
+     copy.midi=clamp(n.midi+(beat<1?12:0),24,105);
+     copy.volume=clamp(n.volume*.89,0,.26);
+    }
+    if(n.voice==='pad')copy.volume*=.72;
+    if(n.voice==='lead')copy.volume=clamp(n.volume*1.10,0,.26);
+   }else{
+    if(n.voice==='arp'||n.voice==='sparkle')continue;
+    if(n.voice==='counter'&&beat<10)continue;
+    if(n.voice==='chords')copy.volume*=.48;
+    if(n.voice==='bass')copy.volume*=.74;
+    if(n.voice==='lead'){copy.d=Math.min(duration-n.t,n.d*1.24);copy.volume*=.83;}
+   }
+   notes.push(copy);
+  }
+  // A diatonic answering figure is heard AFTER the principal motif.
+  // Sparse entrances articulate development rather than a constant pad.
+  for(let b=0;b<bars;b++){
+   const stage=arcAt(b).stage;
+   if(stage!=='development'&&stage!=='climax')continue;
+   const start=b*meter,degree=chordAt(b);
+   const offsets=stage==='climax'?[8,12]:[10];
+   for(const offset of offsets){
+    const t=start+offset*step;
+    if(t>=duration)continue;
+    const pitch=midi(tonic+12,scale,degree+(stage==='climax'?4:2));
+    notes.push({t,d:Math.min(duration-t,step*(stage==='climax'?3.3:2.4)),
+     midi:clamp(pitch,24,105),voice:'counter',role:'counter',
+     timbre:palette?.secondary||'softpiano',
+     volume:stage==='climax'?.041:.030});
+   }
+  }
+  for(const d of drums){
+   const stage=arcAt(Math.min(bars-1,Math.floor(d.t/meter))).stage;
+   d.volume*=stage==='opening'?.40:stage==='development'?.83:
+    stage==='climax'?1:.32;
+  }
+  for(const role of Object.keys(voices))
+   voices[role]=role==='drums'?drums.length:notes.filter(n=>n.voice===role).length;
+ }
  // A musically structural emotional arc, not an arbitrary volume fade:
  // hopeful ascent -> unresolved minor-second clash -> descending bass/lead
  // -> near-silence. The unresolved tone is intentionally brief and never
