@@ -79,6 +79,7 @@ jobs:
           node tests/m3-harmony-ab-ui.test.cjs || failed=1
           node tests/phase3-expressive-ab.test.cjs || failed=1
           node tests/m7-generation.test.cjs || failed=1
+          node tests/m7-real-engine.test.cjs || failed=1
           node tests/emotion-isolated-ab.test.cjs || failed=1
           node tests/resonare.test.cjs || failed=1
           node tests/structural.test.cjs || failed=1
