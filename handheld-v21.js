@@ -332,6 +332,23 @@ function score(plan){
    b===0?motifPhrase:root.PlotuneMelodicGrammar.composePhrase(sharedGrammar,b,{
      density:clamp(pulseDensity*.68*arcAt(b).density,.25,.92),
      motif:motifPhrase,stage:arcAt(b).stage})):null;
+ // M1 experiment: keep the legacy score bit-for-bit when the feature is OFF.
+ // The first melody is registered once; later sections transform the same identity.
+ const motifEngine=plan.musicDevelopment===true?root.PlotuneMotifRegistry:null;
+ const transformEngine=plan.musicDevelopment===true?root.PlotuneMotifTransform:null;
+ const registeredMotif=motifPhrase&&motifEngine?.register&&transformEngine?.transform?
+  motifEngine.register('main-theme',motifPhrase):null;
+ const mPhrases=registeredMotif?sharedPhrases.map((phrase,b)=>{
+  if(b===0)return phrase;
+  const stage=arcAt(b).stage;
+  const kind=stage==='development'?'inversion':stage==='climax'?'transposition':'transposition';
+  const steps=stage==='climax'?1:0;
+  // Preserve the original phrase timing while transforming its sounded degrees.
+  const version=transformEngine.transform(registeredMotif,kind,{steps});
+  return phrase.map((event,i)=>({
+   ...event,degree:version.events[i%version.events.length].degree
+  }));
+ }):null;
  // Repeat 4-bar thematic material; vary density and fills but keep a looping identity.
  for(let b=0;b<bars;b++){
   const chord=chordAt(b),next=chordAt((b+1)%bars),barAt=b*meter;
@@ -347,7 +364,7 @@ function score(plan){
    const t=barAt+i*step,beat=i%4,on=i%8;
    // Shared melodic phrasing; arrangement and instruments remain style-specific.
    if(sharedPhrases){
-    for(const event of sharedPhrases[b]){
+    for(const event of (mPhrases||sharedPhrases)[b]){
      if(Math.floor(event.position)!==i||event.rest)continue;
      if(arcState.density<.8&&event.position>9&&event.position<13)continue;
      add(barAt+event.position*step,event.durationUnits*step,
