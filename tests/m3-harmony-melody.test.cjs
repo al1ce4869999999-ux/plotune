@@ -1,0 +1,34 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const context={window:{},Blob,console};
+for(const name of ['analyzer.js','resonare-v08.js','loop-arranger-v09.js','motif-planner-v01.js','melodic-grammar-v01.js','m2-emotion-phrase-v01.js','m3-harmony-melody-v01.js','handheld-v21.js'])
+ vm.runInNewContext(fs.readFileSync(path.join(__dirname,'..',name),'utf8'),context,{filename:name});
+const A=context.window.PlotuneAnalysis,H=context.window.PlotuneHandheld,M=context.window.PlotuneM3Harmony;
+const sample=[{position:0,durationUnits:2,degree:1,rest:false},{position:4,durationUnits:2,degree:5,rest:false},{position:8,durationUnits:2,degree:4,rest:false},{position:12,durationUnits:2,degree:3,rest:false}];
+const source=Array.from({length:8},()=>sample.map(e=>({...e})));
+const saved=JSON.stringify(source);
+const plan=M.plan(source,{progression:[0,4,5,3],tension:.4});
+assert.equal(JSON.stringify(plan),JSON.stringify(M.plan(source,{progression:[0,4,5,3],tension:.4})),'deterministic');
+assert.equal(JSON.stringify(source),saved,'source preserved');
+assert.equal(plan.chords.length,8);assert.equal(plan.phrases.length,8);
+assert.equal(plan.chords.at(-1),0,'final tonic cadence');
+assert.ok(plan.chords.every(x=>Number.isInteger(x)&&x>=0&&x<7));
+assert.ok(plan.phrases.flat().every(e=>e.position>=0&&e.position+e.durationUnits<=16.001));
+assert.throws(()=>M.plan([]),/phrase bars/);
+const input={title:'harmonic movement',character:'小さな旅人',world:'森',scene:'森を進み、最後に帰る',style:'handheld',duration:30};
+const p=A.plan(input,A.analyze(input));
+for(const preset of ['journey','musicbox','forestflute']){
+ const prepared=H.prepare(p,preset,null,false,input.scene);
+ const legacy=H.score(prepared);
+ const on=H.score({...prepared,musicHarmony:true,musicDevelopment:true,motifDevelopment:true});
+ const again=H.score({...prepared,musicHarmony:true,musicDevelopment:true,motifDevelopment:true});
+ assert.equal(JSON.stringify(on.harmony),JSON.stringify(again.harmony),'seed stable harmony '+preset);
+ assert.equal(JSON.stringify(on.notes),JSON.stringify(again.notes),'seed stable notes '+preset);
+ assert.notEqual(JSON.stringify(on.harmony),JSON.stringify(legacy.harmony),'harmonic path changes '+preset);
+ assert.ok(on.notes.some(x=>x.voice==='lead'),'audible lead '+preset);
+ assert.ok(on.notes.some(x=>['chords','pad','arp','bass'].includes(x.voice)),'audible harmonic accompaniment '+preset);
+ assert.ok(on.notes.every(n=>n.t>=0&&n.d>0&&n.t+n.d<=on.duration+.001),'time bounds '+preset);
+ assert.equal(JSON.stringify(H.score(prepared).notes),JSON.stringify(legacy.notes),'legacy score remains fixed '+preset);
+}
+assert.match(fs.readFileSync(path.join(__dirname,'../index.html'),'utf8'),/m3-harmony-melody-v01\.js/);
+console.log('PASS M3 joint harmony melody: deterministic, cadence, instruments, legacy, bounds');
