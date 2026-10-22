@@ -17,6 +17,7 @@ jobs:
           node --check resonare.js
           node --check composer.js
           node --check composer-v04.js
+          node --check motif-planner-v01.js
           node --check band-v05.js
           node --check band-v07.js
           node --check resonare-v08.js
@@ -61,6 +62,7 @@ jobs:
           node tests/emotion-plan-phase1.test.cjs || failed=1
           node tests/emotion-audio-phase1.test.cjs || failed=1
           node tests/emotion-first-composition.test.cjs || failed=1
+          node tests/motif-planner-v01.test.cjs || failed=1
           node tests/emotion-isolated-ab.test.cjs || failed=1
           node tests/resonare.test.cjs || failed=1
           node tests/structural.test.cjs || failed=1
