@@ -34,6 +34,7 @@ jobs:
           node --check handheld-v18.js
           node --check handheld-v19.js
           node --check handheld-v20.js
+          node --check m2-emotion-phrase-v01.js
           node --check handheld-v21.js
           node --check app-v11.js
           node --check comparison-v10.js
@@ -64,6 +65,7 @@ jobs:
           node tests/emotion-first-composition.test.cjs || failed=1
           node tests/motif-planner-v01.test.cjs || failed=1
           node tests/motif-phrase-integration.test.cjs || failed=1
+          node tests/m2-emotion-phrase.test.cjs || failed=1
           node tests/motif-score-integration.test.cjs || failed=1
           node tests/phase2-ab-lab.test.cjs || failed=1
           node tests/emotion-isolated-ab.test.cjs || failed=1
