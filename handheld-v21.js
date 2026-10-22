@@ -888,7 +888,8 @@ function score(plan){
   accompanimentNotes:voices.chords+voices.pad+voices.arp,
   bassNotes:voices.bass,percussionHits:voices.drums,
   breaks:0,shiftedChords:transform?bars:0,cueHits:transform?1:0,
-  harmonyChanges:harmony.length,rests,events:[],harmonies:harmony
+  harmonyChanges:harmony.length,rests,events:[],harmonies:harmony,
+  mDevelopmentActive:!!registeredMotif
  };
  return {notes,drums,rests,harmony,theme:motif,details,genre:'game',
   duration,bpm,sampleRate:SR};
