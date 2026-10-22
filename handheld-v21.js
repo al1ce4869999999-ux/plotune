@@ -346,9 +346,13 @@ function score(plan){
     {...stages[arcAt(b).stage],...(plan.phraseEmotion||{})},
     {seed:(seed^Math.imul(b+1,2654435761))>>>0,candidates:8}).events;
  }
+ // M3 shared melody/harmony planning (opt-in).
+ const m3JointPlan=plan.musicHarmony===true && sharedPhrases && root.PlotuneM3Harmony?
+  root.PlotuneM3Harmony.plan(sharedPhrases,{progression:prog,tension:clamp(Number(plan.harmonicTension)||.45,0,1)}):null;
+ if(m3JointPlan)for(let b=0;b<bars;b++)sharedPhrases[b]=m3JointPlan.phrases[b];
  // Repeat 4-bar thematic material; vary density and fills but keep a looping identity.
  for(let b=0;b<bars;b++){
-  const chord=chordAt(b),next=chordAt((b+1)%bars),barAt=b*meter;
+  const chord=m3JointPlan?m3JointPlan.chords[b]:chordAt(b),next=m3JointPlan?m3JointPlan.chords[(b+1)%bars]:chordAt((b+1)%bars),barAt=b*meter;
   harmony.push({t:barAt,chord});
   const section=b%4;
   const lift=b%8===4||kind==='bright';
