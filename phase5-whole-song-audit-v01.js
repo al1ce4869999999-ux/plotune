@@ -39,7 +39,44 @@ function audit(plan, rendered) {
   });
   return {ok:!findings.some(f=>f.severity==='error'),findings,metrics};
 }
-const api={audit};
+
+/* Adapter for PlotuneHandheld.score(plan), which uses time in seconds,
+ * pitch key 'midi', and a duration in seconds. Section boundaries use
+ * the same four equal spans as the Phase 4 transition engine.
+ */
+function auditHandheld(plan,score){
+ if(!score||!Array.isArray(score.notes)||!(score.duration>0)||!(score.bpm>0))
+  throw new TypeError('Expected a rendered handheld score with notes, duration and bpm');
+ const count=4,seconds=score.duration/count,barSeconds=240/score.bpm;
+ const sections=Array.from({length:count},(_,i)=>({
+  id:'section-'+i,bars:seconds/barSeconds
+ }));
+ const rendered=sections.map((s,i)=>({
+  id:s.id,bars:s.bars,
+  notes:score.notes.filter(n=>Number.isFinite(n.t)&&n.t>=i*seconds&&
+    (i===count-1?n.t<=score.duration:n.t<(i+1)*seconds)).map(n=>({
+     pitch:n.midi,voice:n.voice,t:n.t,d:n.d,volume:n.volume
+    }))
+ }));
+ const report=audit({sections},rendered);
+ const leadMetrics=rendered.map(s=>{
+  const ns=s.notes.filter(n=>n.voice==='lead'&&Number.isFinite(n.pitch));
+  return {sectionId:s.id,leadCount:ns.length,
+   register:ns.length?[Math.min(...ns.map(n=>n.pitch)),Math.max(...ns.map(n=>n.pitch))]:null,
+   uniquePitches:new Set(ns.map(n=>n.pitch)).size};
+ });
+ const transitions=score.details?.transitions||[];
+ const transitionCount=Array.isArray(transitions)?transitions.length:0;
+ const findings=report.findings.slice();
+ if(!rendered.some(s=>s.notes.some(n=>n.voice==='lead')))
+  findings.push({code:'NO_LEAD_MELODY',severity:'error'});
+ if(plan?.musicTransitions===true&&transitionCount===0)
+  findings.push({code:'NO_SECTION_TRANSITIONS',severity:'warning'});
+ return {ok:!findings.some(f=>f.severity==='error'),findings,
+   metrics:report.metrics,leadMetrics,transitionCount,
+   song:{duration:score.duration,bpm:score.bpm,sectionCount:count}};
+}
+const api={audit,auditHandheld};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.PlotuneWholeSongAudit=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
