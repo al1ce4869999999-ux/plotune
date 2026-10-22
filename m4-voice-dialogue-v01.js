@@ -27,7 +27,8 @@ function arrange({notes,harmony=[],duration,meter,step,seed=1,wholeTrackArc=[],t
   const choice=random();
   const onsetUnit=9+Math.floor(random()*4);
   const imitateChoice=random();
-  // A sparse or short song must still contain a clearly audible reply.\n  const essential=b===Math.floor(bars*.60)&&responses.length===0;\n  if(b-previousResponse<2||(!essential&&choice>=likelihood))continue;
+  // A sparse or short song must still contain a clearly audible reply.
+  const essential=b===Math.floor(bars*.60)&&responses.length===0;\n  if(b-previousResponse<2||(!essential&&choice>=likelihood))continue;
   const from=b*meter+onsetUnit*step;
   const until=Math.min(duration,(b+1)*meter-step*.12);
   if(until-from<step*2)continue;
