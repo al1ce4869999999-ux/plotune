@@ -877,7 +877,20 @@ function score(plan){
      }else if(n.voice==='chords'||n.voice==='pad') n.volume*=Math.sqrt(cues.dynamicsFactor);
    }
  }
+ // M4 opt-in: rebuild counterpoint after the instrument-specific renderers.
+ // This affects the notes heard by the synthesizer, not just an abstract plan.
+ const voiceDialogue=plan.musicVoices===true&&root.PlotuneM4Voices?
+   root.PlotuneM4Voices.arrange({notes,harmony,duration,meter,step,seed,wholeTrackArc,tonic,scale,
+     secondaryTone:palette?.secondary}):null;
+ if(voiceDialogue){
+  notes.length=0;notes.push(...voiceDialogue.notes);
+  for(const key of Object.keys(voices))
+   if(key!=='drums')voices[key]=notes.filter(n=>n.voice===key).length;
+ }
  const details={
+  voiceDialogue:voiceDialogue?{responseCount:voiceDialogue.responseCount,
+   replies:voiceDialogue.responses.map(x=>({bar:x.bar,stage:x.stage,mode:x.mode,from:x.from,until:x.until})),
+   imitationTypes:voiceDialogue.imitationTypes}:null,
   musicPsychology:expression,researchApplied:cues?{...cues,appliedTo:['lead register','lead/counter articulation','note dynamics','synth brightness','reflection wetness'],tempoStatus:'not applied (preset BPM retained)',modeStatus:'not applied (style harmony retained)'}:null,structuredStory:plan.structure||null,
   genre:'game',gameStyle:plan.gameStyle||'journey',gameName:game.name,emotionMode:game.mode,groove:game.drums,shape,
   loopMode:true,loopBars:bars,bpm,theme:motif,parts:voices,wholeTrackArc,arrangementProfiles,motifDevelopment:sharedPhrases?'opening → variation → climax → reprise':null,
