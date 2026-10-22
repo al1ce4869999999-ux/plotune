@@ -345,9 +345,11 @@ function score(plan){
   const steps=stage==='climax'?1:0;
   // Preserve the original phrase timing while transforming its sounded degrees.
   const version=transformEngine.transform(registeredMotif,kind,{steps});
-  return phrase.map((event,i)=>({
-   ...event,degree:version.events[i%version.events.length].degree
-  }));
+  return phrase.map((event,i)=>{
+   const sourceDegree=version.events[i%version.events.length].degree;
+   const degree=stage==='climax'?Math.min(8,sourceDegree+2):sourceDegree;
+   return {...event,degree};
+  });
  }):null;
  // Repeat 4-bar thematic material; vary density and fills but keep a looping identity.
  for(let b=0;b<bars;b++){
