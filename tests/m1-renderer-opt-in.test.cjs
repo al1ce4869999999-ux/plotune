@@ -17,7 +17,20 @@ const baseline=legacy.PlotuneHandheld.score(prior);
 const off=modern.PlotuneHandheld.score({...current,musicDevelopment:false});
 const on=modern.PlotuneHandheld.score({...current,musicDevelopment:true});
 const onAgain=modern.PlotuneHandheld.score({...current,musicDevelopment:true});
-function lead(s){return s.notes.filter(n=>n.voice==='lead').map(n=>[n.t,n.midi,n.d]);}
+// Actual handheld score contract: note classification is `voice`, not `role`.
+function lead(s){
+ assert.ok(Array.isArray(s.notes)&&s.notes.length>0,'nonempty score notes required');
+ assert.ok(s.notes.every(n=>typeof n.voice==='string'&&n.voice.length>0),
+  'each handheld note must expose its actual voice field');
+ const selected=s.notes.filter(n=>n.voice==='lead');
+ assert.ok(selected.length>0,'lead voice must exist before comparing melody');
+ assert.ok(selected.every(n=>Number.isFinite(n.midi)&&Number.isFinite(n.t)&&Number.isFinite(n.d)),
+  'lead notes must expose midi/t/d');
+ return selected.map(n=>[n.t,n.midi,n.d]);
+}
+assert.ok(lead(baseline).length>0,'baseline must have lead events');
+assert.ok(lead(off).length>0,'OFF must have lead events');
+assert.ok(lead(on).length>0,'ON must have lead events');
 assert.equal(JSON.stringify(baseline.notes),JSON.stringify(off.notes),'OFF must preserve all legacy notes');
 assert.equal(JSON.stringify(baseline.drums),JSON.stringify(off.drums),'OFF must preserve percussion');
 assert.equal(JSON.stringify(baseline.harmony),JSON.stringify(off.harmony),'OFF must preserve harmony');
