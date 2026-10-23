@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "r0-m7-baseline-v1",
+  "cases": [
+    {
+      "duration": 15,
+      "seed": 42,
+      "conditions": {}
+    },
+    {
+      "duration": 30,
+      "seed": 0,
+      "conditions": {}
+    },
+    {
+      "duration": 60,
+      "seed": 4294967295,
+      "conditions": {}
+    }
+  ]
+}
