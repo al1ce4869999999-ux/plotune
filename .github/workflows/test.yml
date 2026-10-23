@@ -67,6 +67,7 @@ jobs:
           failed=0
           node tests/research-evaluation-r0.test.cjs || failed=1
           node tests/research-r0-real-score.test.cjs || failed=1
+          node tests/research-r0-rendered-pcm.test.cjs || failed=1
           node tests/m0-comparison.test.cjs || failed=1
           node tests/m0-contract.test.cjs || failed=1
           node tests/m1-motif-registry.test.cjs || failed=1
