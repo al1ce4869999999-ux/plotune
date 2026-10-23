@@ -11,3 +11,7 @@ assert.match(ui,/engine\.render\(entry\.plan\)/);
 assert.match(ui,/recordListening/);
 assert.match(ui,/\.wavBlob/);
 console.log('PASS Phase 6 four-condition audible entry point and review export');
+
+assert.match(page,/id="cadencePitch"/);
+assert.match(ui,/proposeCadenceRepair/);
+assert.match(ui,/engine\.render\(entry\.plan,repair\.score\)/);
