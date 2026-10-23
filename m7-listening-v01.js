@@ -52,6 +52,7 @@ function attach(doc,api,AudioContextClass){
    result=validate(api.generate(input,seed));
    buttons.forEach(b=>b.disabled=false);stopButton.disabled=false;
    if(root.PlotuneM7Evaluation?.controller)root.PlotuneM7Evaluation.controller.begin(result);
+   if(root.PlotuneM7Diagnostics?.controller)root.PlotuneM7Diagnostics.controller.show(result);
    report('4曲生成完了 · 同じ位置で切り替え可能 · 音量を静的補正');
   }catch(e){report('4条件生成エラー: '+e.message);}
  }
