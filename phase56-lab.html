@@ -10,13 +10,14 @@ label{display:block;margin:12px 0}input,textarea,select,button{font:inherit}text
 <script defer src="m2-emotion-phrase-v01.js"></script><script defer src="m3-harmony-melody-v01.js"></script>
 <script defer src="m4-voice-dialogue-v01.js"></script><script defer src="m5-performance-v01.js"></script>
 <script defer src="handheld-v21.js"></script><script defer src="phase5-whole-song-audit-v01.js"></script>
-<script defer src="phase6-evaluation-v01.js"></script><script defer src="phase56-integration-v01.js"></script>
+<script defer src="phase5-section-revision-v01.js"></script><script defer src="phase6-evaluation-v01.js"></script><script defer src="phase56-integration-v01.js"></script>
 <script defer src="phase56-lab-v01.js"></script></head>
 <body><h1>Phase 5/6 — 4条件聴き比べ</h1><p>同じ曲調・入力・seedで生成。Phaseは動機展開と接続、Mは音符・和声・声部・演奏表情を切り替えます。</p>
 <section><label>シーン<textarea id="scene">秋の夕暮れ、旅人が森の奥で光る道を見つけ、恐る恐る踏み出す。</textarea></label>
 <label>曲調<select id="style"><option value="mystery">ふしぎ・探索</option><option value="journey">冒険</option><option value="sadness">悲しみ</option><option value="village">街</option></select></label>
 <label>長さ<select id="duration"><option>15</option><option selected>30</option><option>60</option></select></label>
 <label>Seed <input id="seed" type="number" value="42023" min="0" max="4294967295"></label>
+<label>終止目標（MIDI音高・任意） <input id="cadencePitch" type="number" min="24" max="105" placeholder="例: 60"></label>
 <button id="generate" type="button">4条件を作曲</button><button id="export" type="button" disabled>評価JSONを保存</button>
 <p id="status" role="status">生成前</p></section>
 <section id="results" hidden><h2>再生と評価</h2><p>各曲を再生して、まとまり・展開・再聴意欲を1〜5で採点してください。</p><div id="tracks"></div><button id="rate" type="button">評価を確定</button><pre id="report"></pre></section>
