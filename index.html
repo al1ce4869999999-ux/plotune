@@ -81,7 +81,8 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <script defer src="generation-trace-v01.js?v=20261019-research1"></script>
 <script defer src="m7-generation-v01.js?v=20261023-m71"></script>
 <script defer src="app-v13.js?v=20261019-trace1"></script>
-<script defer src="m7-listening-v01.js?v=20261023-m72"></script>
+<script defer src="m7-listening-v01.js?v=20261023-m73"></script>
+<script defer src="m7-evaluation-v01.js?v=20261023-m73"></script>
 </head>
 <body>
 <main>
@@ -164,6 +165,13 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <div class="actions"><button id="m7Stop" class="alt" disabled type="button">■ 4条件再生を停止</button></div>
 <p id="m7Status" role="status" aria-live="polite" class="note">4曲を生成すると再生できます。</p>
 <p class="note">音量は曲ごとに一定ゲインで補正し、曲中の強弱は維持します。</p>
+</section>
+<section class="card" id="m7Evaluation" hidden>
+<h2>📝 M7.3：聴取評価</h2>
+<p class="note">4曲を聴いて各項目を1〜5で評価。未評価は空欄のまま保存できます。数値はあなたの主観評価で、自動採点ではありません。</p>
+<div id="m7RatingFields"></div>
+<div class="actions"><button id="m7RatingSave" type="button">評価を端末に保存</button><button id="m7RatingExport" class="alt" type="button">評価JSONを保存</button></div>
+<p id="m7RatingStatus" role="status" aria-live="polite"></p>
 </section>
 <section class="card" id="analysis" hidden aria-live="polite"></section>
 <section class="card">
