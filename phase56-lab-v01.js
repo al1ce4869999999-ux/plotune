@@ -13,6 +13,9 @@ function generate(){
  const engine=window.PlotuneHandheld;
  const input=engine.prepare({seed,characterSeed:seed,duration},$('style').value,null,false,$('scene').value,$('scene').value);
  const runner=window.PlotunePhase56Integration.createRunner(engine,window.PlotuneWholeSongAudit,window.PlotunePhase6Evaluation);
+ const requestedCadence=$('cadencePitch').value.trim();
+ const cadenceTarget=requestedCadence===''?null:Number(requestedCadence);
+ if(cadenceTarget!==null&&(!Number.isInteger(cadenceTarget)||cadenceTarget<24||cadenceTarget>105))throw new Error('終止目標は24〜105');
  generated=runner.generate(input,seed,{pcm:false});
  for(const condition of conditions){
   const entry=generated.cases[condition],root=add('article',$('tracks'));
@@ -28,6 +31,20 @@ function generate(){
    }
    audio=new Audio(entry.url);audio.play().catch(e=>{$('status').textContent='再生できません: '+e.message});
   });
+  if(cadenceTarget!==null){
+   const repair=runner.proposeCadenceRepair({plan:{...entry.plan,cadenceTargetPitch:cadenceTarget},score:entry.score},window.PlotunePhase5Revision);
+   if(repair.accepted){
+    const audition=add('button',root,'▶ 終止修正版を再生');
+    audition.type='button';
+    audition.addEventListener('click',()=>{
+     stop();
+     if(!repair.audio)repair.audio=engine.render(entry.plan,repair.score);
+     if(!repair.url){repair.url=URL.createObjectURL(engine.wavBlob(repair.audio.samples,repair.audio.sampleRate));urls.push(repair.url)}
+     audio=new Audio(repair.url);audio.play().catch(e=>{$('status').textContent='再生できません: '+e.message});
+    });
+    add('p',root,'終止の客観誤差: '+repair.before+' → '+repair.after+'（聴感は別途評価）');
+   }else add('p',root,'終止修正なし: '+repair.reason);
+  }
   for(const [key,label] of [['coherence','まとまり'],['development','展開'],['relisten','また聴きたい']]){
    const l=add('label',root,label+' ');
    const inp=add('input',l);inp.type='number';inp.min='1';inp.max='5';inp.step='1';inp.value='3';inp.dataset.condition=condition;inp.dataset.metric=key;
