@@ -29,7 +29,21 @@ function createRunner(engine,auditor,evaluator){
   const report=evaluator.compare(cases,seed,{audit:auditor.auditHandheld});
   return {cases,report};
  }
- return {generate};
+ function proposeCadenceRepair(entry,revision){
+  if(!entry||!entry.score||!revision||typeof revision.reviseSection!=='function')
+   throw new TypeError('Score and revision gate required');
+  const original=entry.score;
+  const length=original.duration/4,start=original.duration-length,end=original.duration;
+  const leads=original.notes.filter(n=>n.voice==='lead'&&n.t>=start&&n.t<end).sort((a,b)=>a.t-b.t);
+  if(!leads.length)return {accepted:false,reason:'NO_CADENCE_LEAD',score:original};
+  const last=leads[leads.length-1];
+  const target=Number.isFinite(entry.plan.cadenceTargetPitch)?entry.plan.cadenceTargetPitch:null;
+  if(target===null)return {accepted:false,reason:'NO_EXPLICIT_CADENCE_TARGET',score:original};
+  const candidate={...original,notes:original.notes.map(n=>n===last?{...n,midi:target}:n)};
+  const cost=notes=>{const lead=notes.filter(n=>n.voice==='lead').sort((a,b)=>a.t-b.t).at(-1);return lead?Math.abs(lead.midi-target):Infinity;};
+  return revision.reviseSection(original,candidate,{start,end,cost});
+ }
+ return {generate,proposeCadenceRepair};
 }
 const api={createRunner};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
