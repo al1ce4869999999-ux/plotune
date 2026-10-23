@@ -37,6 +37,33 @@ function audit(plan, rendered) {
     const id=String(s.id ?? index);
     if(!ids.has(id))findings.push({code:'UNPLANNED_SECTION',sectionId:id,severity:'warning'});
   });
+  // Only diagnose musical intent when the plan explicitly declares it.
+  const leads=rendered.map(s=>Array.isArray(s.notes)?s.notes.filter(n=>n.voice==='lead'&&Number.isFinite(n.pitch)):[]);
+  plan.sections.forEach((section,i)=>{
+    if(!rendered[i])return;
+    const lead=leads[i];
+    if(Number.isFinite(section.targetMeanPitch)&&lead.length){
+      const mean=lead.reduce((sum,n)=>sum+n.pitch,0)/lead.length;
+      if(Math.abs(mean-section.targetMeanPitch)>4)
+        findings.push({code:'REGISTER_TARGET_MISMATCH',sectionId:String(section.id??i),severity:'warning',planned:section.targetMeanPitch,actual:mean});
+    }
+    if(section.motifReference!==undefined && section.motifReference!==null){
+      const ref=Number(section.motifReference);
+      if(!Number.isInteger(ref)||ref<0||ref>=i||!leads[ref]?.length||!lead.length){
+        findings.push({code:'MOTIF_REFERENCE_UNVERIFIABLE',sectionId:String(section.id??i),severity:'warning'});
+      }else{
+        const fingerprint=ns=>ns.slice(0,5).map((n,j,a)=>j?Math.sign(n.pitch-a[j-1].pitch):0).slice(1);
+        const a=fingerprint(leads[ref]),b=fingerprint(lead);
+        if(a.length>=3&&b.length>=3&&a.filter((v,k)=>v===b[k]).length<2)
+          findings.push({code:'MOTIF_RETURN_DIVERGENCE',sectionId:String(section.id??i),severity:'warning'});
+      }
+    }
+    if(section.cadenceTargetPitch!==undefined){
+      const last=lead.at(-1);
+      if(last&&Number.isFinite(section.cadenceTargetPitch)&&Math.abs(last.pitch-section.cadenceTargetPitch)>2)
+        findings.push({code:'CADENCE_TARGET_MISMATCH',sectionId:String(section.id??i),severity:'warning',planned:section.cadenceTargetPitch,actual:last.pitch});
+    }
+  });
   return {ok:!findings.some(f=>f.severity==='error'),findings,metrics};
 }
 
