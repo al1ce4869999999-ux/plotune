@@ -39,6 +39,7 @@ jobs:
           node --check m4-voice-dialogue-v01.js
           node --check m5-performance-v01.js
           node --check phase5-whole-song-audit-v01.js
+          node --check phase5-section-revision-v01.js
           node --check phase6-evaluation-v01.js
           node --check phase56-integration-v01.js
           node --check phase56-lab-v01.js
@@ -83,6 +84,7 @@ jobs:
           node tests/phase3-expressive-ab.test.cjs || failed=1
           node tests/phase4-transition-ab.test.cjs || failed=1
           node tests/phase5-whole-song-audit.test.cjs || failed=1
+          node tests/phase5-section-revision.test.cjs || failed=1
           node tests/phase6-evaluation.test.cjs || failed=1
           node tests/phase56-integration.test.cjs || failed=1
           node tests/phase56-lab-ui.test.cjs || failed=1
