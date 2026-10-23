@@ -25,3 +25,11 @@ assert.equal(JSON.stringify(input),before);
 assert.deepEqual(runner.generate(input,42).report,first.report);
 assert.throws(()=>runner.generate(input,-1),/seed/);
 console.log('PASS Phase 5/6 four-condition actual score invocation contract');
+
+const revision=require('../phase5-section-revision-v01.js');
+const entry={plan:{cadenceTargetPitch:60},score:{duration:8,bpm:120,notes:[{t:0,midi:65,voice:'lead'},{t:7,midi:68,voice:'lead'}],drums:[]}};
+const repaired=runner.proposeCadenceRepair(entry,revision);
+assert.equal(repaired.accepted,true);
+assert.equal(repaired.score.notes[1].midi,60);
+assert.equal(entry.score.notes[1].midi,68);
+assert.equal(runner.proposeCadenceRepair({...entry,plan:{}},revision).reason,'NO_EXPLICIT_CADENCE_TARGET');
