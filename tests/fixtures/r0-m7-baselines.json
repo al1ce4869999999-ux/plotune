@@ -1,20 +1,72 @@
 {
   "schemaVersion": "r0-m7-baseline-v1",
+  "source": "M7.1 CI 39853861591 job 120086830886",
   "cases": [
     {
       "duration": 15,
       "seed": 42,
-      "conditions": {}
+      "conditions": {
+        "baseline": {
+          "notes": "a90846a6c61ff4fbaa0522e6b5873658f2042694e25d754a2e8bdaa729f2e79b",
+          "pcm": "5159032ac88bef7733cf66ff8aa2439f69bf139b137b23bfae54d9e10e96475c"
+        },
+        "phase": {
+          "notes": "74b8948eb07821ac48ac4d0e102832067fbdb9471800386a6ebed052a53e1209",
+          "pcm": "15a1c8f93059bdc7320c07298c3f58c6337f206646e3580887c61da4b288399b"
+        },
+        "m": {
+          "notes": "b7d0acc295a226637d4fe3638540e4437f66a28246deca76f035ee24cbf3bed9",
+          "pcm": "fa67aa42596164340d044b62982dc55cd72df0f0637ed9afff9ac338968aa28a"
+        },
+        "phase-m": {
+          "notes": "f01461228fd32be3ddf3f71e2f1618541f107f9e4ce3e984e0912f91747a449a",
+          "pcm": "a0a29c2b1d348f2717fdcafbd2e249652a6bfa8337f009be36484ccb3a940e28"
+        }
+      }
     },
     {
       "duration": 30,
       "seed": 0,
-      "conditions": {}
+      "conditions": {
+        "baseline": {
+          "notes": "b8d906777ab158907cb023e7437356ad63b62378e5e9df5eb9253151ef624002",
+          "pcm": "5b4191cf0fd931df2d5afd9cae22e5d6690df9fd75deb4ee37b3bcef52c88f33"
+        },
+        "phase": {
+          "notes": "e058bdda9317f848f454d6970a28938f74847409383664090f9b311e75ce9561",
+          "pcm": "2c96e33d0e40f9f9467f845e5003ac53003b0891aa700b39c0458e1c9fac42f3"
+        },
+        "m": {
+          "notes": "75c8ce39934dabe6f2623d454152c563b67caaefa316c2c5762bd3d5a1855003",
+          "pcm": "cc2e36d5c38216c1e0998157b64c1f22b42f188ca35d87c29457305eee141cea"
+        },
+        "phase-m": {
+          "notes": "dd88b6113be14e0b392fe239ca68bf05c723b71e1e8f251b325a6b6b8c85ab40",
+          "pcm": "b541667be78be6e98270f784450d86d8bcc3e28d0e24e63491ffabc8ffb017a3"
+        }
+      }
     },
     {
       "duration": 60,
       "seed": 4294967295,
-      "conditions": {}
+      "conditions": {
+        "baseline": {
+          "notes": "9632a3170889e0a5eecbb6dc3c840f70555c883254d053adbbe7869e86db18bf",
+          "pcm": "b321b92ebf4bf3fce29f3ea59f54b689b845b7568bbc49a1e3429e627eea1f80"
+        },
+        "phase": {
+          "notes": "1d819f11f1d798a19221baee086406d2f5c657cb687258019d1e73dc76923483",
+          "pcm": "bd6f3d2264b32603496db9c40d7f6bd72021edd6bdbc80081c7c9cc3956cbe5c"
+        },
+        "m": {
+          "notes": "c876c1bd7a6ef06c826a7fc566da7b16f44ca50778dbbeb6e3a07cc00e415379",
+          "pcm": "ab39cff3509fb05a61e35af2bc83d0163effe538b1b1be41e12b2d525ed86752"
+        },
+        "phase-m": {
+          "notes": "cf3b56468d9d68eb942977e737bf8e1c493e22b79446cfb920fc276a86f055e9",
+          "pcm": "22c49119036d4fe30fbb9fbe5604fdd21d2e483c179f881c2e44033c1f4660d0"
+        }
+      }
     }
   ]
 }
