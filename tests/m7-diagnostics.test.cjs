@@ -1,0 +1,13 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const ctx={};ctx.globalThis=ctx;vm.runInNewContext(fs.readFileSync('m7-diagnostics-v01.js','utf8'),ctx);
+const m=ctx.PlotuneM7Diagnostics;
+const track={score:{notes:[{t:0,d:.5,midi:60,voice:'lead'},{t:.5,d:.5,midi:64,voice:'lead'},{t:0,d:1,midi:48,voice:'bass'}],harmony:[{t:0}],drums:[{t:0}]},samples:Float32Array.from([.1,-.1,.2,-.2]),sampleRate:4};
+const a=m.inspect(track);assert.equal(a.noteCount,3);assert.equal(a.leadMeanInterval,4);assert.equal(a.voiceCount,2);assert.equal(a.harmonyEvents,1);assert.equal(a.drumEvents,1);assert.equal(a.duration,1);
+assert.throws(()=>m.inspect({...track,samples:Float32Array.from([NaN])}),{name:'RangeError'});
+const generation={request:{seed:9},tracks:m.IDS.map(conditionId=>({conditionId,track}))};
+assert.equal(Object.keys(m.analyze(generation).metrics).length,4);
+assert.throws(()=>m.analyze({...generation,tracks:generation.tracks.slice(1)}),{name:'TypeError'});
+const html=fs.readFileSync('index.html','utf8');
+assert(html.includes('id="m7Diagnostics"'));assert(html.includes('id="m7DiagnosticsBody"'));assert(html.includes('m7-diagnostics-v01.js'));
+assert(fs.readFileSync('m7-listening-v01.js','utf8').includes('controller.show(result)'));
+console.log('M7.4 diagnostics contract passed');
