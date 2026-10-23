@@ -947,8 +947,8 @@ function score(plan){
  return {notes,drums,rests,harmony,theme:motif,details,genre:'game',
   duration,bpm,sampleRate:SR};
 }
-function render(plan){
- const s=score(plan),N=Math.round(s.duration*SR),out=new Float32Array(N);
+function render(plan, suppliedScore){
+ const s=suppliedScore||score(plan),N=Math.round(s.duration*SR),out=new Float32Array(N);
  const leadTone=STYLES[plan.gameStyle]?.lead||'bright';
  const emotional=MOODS[plan.gameStyle]||null;
  const cues=plan.expression?.researchCues||null;
