@@ -83,6 +83,7 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <script defer src="app-v13.js?v=20261019-trace1"></script>
 <script defer src="m7-listening-v01.js?v=20261023-m73"></script>
 <script defer src="m7-evaluation-v01.js?v=20261023-m73"></script>
+<script defer src="m7-diagnostics-v01.js?v=20261024-m74"></script>
 </head>
 <body>
 <main>
@@ -173,6 +174,7 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <div class="actions"><button id="m7RatingSave" type="button">評価を端末に保存</button><button id="m7RatingExport" class="alt" type="button">評価JSONを保存</button></div>
 <p id="m7RatingStatus" role="status" aria-live="polite"></p>
 </section>
+<section class="card" id="m7Diagnostics" hidden><h2>📊 M7.4：4条件の客観診断</h2><p class="note">生成された音符とPCMの記述統計です。数値の大小は音楽の良し悪しを意味しません。</p><div id="m7DiagnosticsBody" style="overflow-x:auto"></div></section>
 <section class="card" id="analysis" hidden aria-live="polite"></section>
 <section class="card">
 <h2>🎶 プレイヤー</h2>
