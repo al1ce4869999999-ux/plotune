@@ -5,14 +5,15 @@ const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 function random(seed){let x=(seed>>>0)||1;return ()=>{x^=x<<13;x^=x>>>17;x^=x<<5;return (x>>>0)/4294967296;};}
 const sustained=new Set(['flute','ocarina','strings','synthpad','synthlead']);
 const struck=new Set(['musicbox','bell','kalimba','harp','marimba','celesta','softpiano']);
-function express({notes,duration,meter,seed=1,wholeTrackArc=[],leadTone='bright',secondaryTone=null}={}){
+function express({notes,duration,meter,seed=1,wholeTrackArc=[],leadTone='bright',secondaryTone=null,tensionDynamics=null}={}){
  if(!Array.isArray(notes)||!Number.isFinite(duration)||duration<=0||!Number.isFinite(meter)||meter<=0)
   throw new TypeError('M5 requires score notes and valid timing');
+ if(tensionDynamics!=null&&(!Array.isArray(tensionDynamics)||tensionDynamics.some(v=>v!==null&&(!Number.isFinite(v)||v<0||v>1))))throw new RangeError('invalid tensionDynamics');
  const rand=random((seed^0x5a31c9f1)>>>0);
  const parts=notes.map(n=>({...n}));
  const byVoice=new Map();
  for(const n of parts){if(!byVoice.has(n.voice))byVoice.set(n.voice,[]);byVoice.get(n.voice).push(n);}
- let breaths=0,ornaments=0,rubato=0,dynamics=0;
+ let breaths=0,ornaments=0,rubato=0,dynamics=0,tensionDynamicsApplied=0;
  for(const [voice,group] of byVoice){
   group.sort((a,b)=>a.t-b.t||a.midi-b.midi);
   if(!['lead','counter','chords','pad','arp','bass','sparkle'].includes(voice))continue;
@@ -29,7 +30,15 @@ function express({notes,duration,meter,seed=1,wholeTrackArc=[],leadTone='bright'
    const arch=.88+.18*Math.sin(Math.PI*point);
    const accent=(point<.07?1.08:point>.82?.85:1);
    const human=(rand()-.5)*.10;
-   n.volume=clamp(n.volume*shape*arch*accent*(1+human),.001,.95);dynamics++;
+   n.volume=clamp(n.volume*shape*arch*accent*(1+human),.001,.95);
+   // R2: explicit section dynamics target adjusts amplitude, not M2/M3 candidate selection.
+   const target=tensionDynamics?.[bar];
+   if(Number.isFinite(target)){
+    const factor=.8+.4*target;
+    n.volume=clamp(n.volume*factor,.001,.95);
+    tensionDynamicsApplied++;
+   }
+   dynamics++;
    if(voice==='lead'||voice==='counter'){
     // Timing movement is small, phrase-local and must not shift the whole song.
     const timeJitter=(rand()-.5)*Math.min(.045,meter*.012);
@@ -60,7 +69,7 @@ function express({notes,duration,meter,seed=1,wholeTrackArc=[],leadTone='bright'
  }
  // Keep ornaments before principals. All events remain in the finite score.
  parts.sort((a,b)=>a.t-b.t||Number(!!a.ornament)-Number(!!b.ornament)||a.midi-b.midi);
- return {notes:parts,details:{dynamics,breaths,rubato,ornaments}};
+ return {notes:parts,details:{dynamics,breaths,rubato,ornaments,...(tensionDynamics?{tensionDynamicsApplied}:{})}};
 }
 root.PlotuneM5Performance={express};
 })(window);
