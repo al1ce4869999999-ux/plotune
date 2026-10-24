@@ -25,4 +25,7 @@ assert.equal(on.tracks[1].track.samples[0],off.tracks[1].track.samples[0]);
 assert(Math.abs(on.tracks[2].track.samples[0]-.62)<1e-6);
 assert(Math.abs(on.tracks[3].track.samples[0]-.62)<1e-6);
 assert.equal(off.tracks.every(t=>t.m6Report===null),true);
+assert.throws(()=>M.generate(input,42,{...deps,m6Integration:null},{m6Repair:true}),{name:'TypeError'},'missing M6 integration must not silently disable ON');
+assert.throws(()=>M.generate(input,42,{...deps,m6Quality:null},{m6Repair:true}),{name:'TypeError'},'missing quality must reject ON');
+assert.throws(()=>M.generate(input,42,{...deps,handheld:{...deps.handheld,score:undefined}},{m6Repair:true}),{name:'TypeError'},'missing score builder must reject ON');
 console.log('PASS M7 optional M6 four-condition isolation');
