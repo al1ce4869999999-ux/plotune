@@ -40,7 +40,24 @@ function diagnose(cases,seed,{windowBars=2}={}){
  }
  return {schema:'plotune.h0.diagnostic',version:1,seed,conditions:CONDITIONS,summary,events};
 }
-const api={CONDITIONS,diagnose};
+function ablate(engine,entry,seed){
+ if(!engine||typeof engine.score!=='function'||!entry?.plan||!entry?.score)throw new TypeError('M condition entry and engine required');
+ const flagNames={M2:'musicDevelopment',M3:'musicHarmony',M4:'musicVoices',M5:'musicPerformance'};
+ const variants={};
+ const original=entry.score.notes||[];
+ for(const [stage,flag] of Object.entries(flagNames)){
+  const plan={...entry.plan,[flag]:false};
+  const score=engine.score(plan);
+  const notes=Array.isArray(score?.notes)?score.notes:[];
+  const fingerprint=n=>[n.voice,n.t,n.d,n.midi,n.volume].join('|');
+  const unchanged=original.length===notes.length&&original.every((n,i)=>fingerprint(n)===fingerprint(notes[i]));
+  variants[stage]={disabledFlag:flag,unchanged,baseCount:original.length,variantCount:notes.length,
+   firstDifference:unchanged?null:(()=>{const limit=Math.max(original.length,notes.length);for(let i=0;i<limit;i++)if(!original[i]||!notes[i]||fingerprint(original[i])!==fingerprint(notes[i]))return {index:i,originalNote:snapshot(original[i]),transformedNote:snapshot(notes[i])};return null;})(),
+   inference:'unconfirmed'};
+ }
+ return {schema:'plotune.h0.ablation',version:1,seed,condition:'M',variants};
+}
+const api={CONDITIONS,diagnose,ablate};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.PlotuneH0Diagnostics=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
