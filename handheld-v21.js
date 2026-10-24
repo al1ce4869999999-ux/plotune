@@ -339,16 +339,26 @@ function score(plan){
      }:{
        density:clamp(pulseDensity*.68*arcAt(b).density,.25,.92),
        motif:motifPhrase,stage:arcAt(b).stage})):null;
+ // R2 tension diagnostics use explicit per-section targets, never infer tension from emotion.
+ const r2Sections=plan.musicTensionR2===true&&plan.tensionPlan?.schema==='plotune.tension-plan'&&Array.isArray(plan.tensionPlan.sections)?plan.tensionPlan.sections:null;
+ const r2TargetAt=b=>r2Sections?.length?r2Sections[Math.min(r2Sections.length-1,Math.floor(b*r2Sections.length/bars))]?.target:null;
+ const r2PhraseDiagnostics=[];
  // M2 opt-in: emotional candidate selection, preserving legacy output when disabled.
  if(plan.musicDevelopment===true && root.PlotuneM2Phrase && sharedPhrases){
   const stages={opening:{tension:.18,energy:.25,tenderness:.65},development:{tension:.55,energy:.65,tenderness:.35},climax:{tension:.93,energy:.95,tenderness:.08},resolution:{tension:.08,energy:.22,tenderness:.9}};
-  for(let b=0;b<bars;b++)sharedPhrases[b]=root.PlotuneM2Phrase.selectPhrase(sharedPhrases[b],
+  for(let b=0;b<bars;b++){
+   const selected=root.PlotuneM2Phrase.selectPhrase(sharedPhrases[b],
     {...stages[arcAt(b).stage],...(plan.phraseEmotion||{})},
-    {seed:(seed^Math.imul(b+1,2654435761))>>>0,candidates:8}).events;
+    {seed:(seed^Math.imul(b+1,2654435761))>>>0,candidates:8,
+     ...(r2TargetAt(b)&&root.PlotuneTensionR2b?{tensionTarget:r2TargetAt(b)}:{})});
+   if(selected.tensionDiagnostics)r2PhraseDiagnostics.push({bar:b,candidateIndex:selected.candidateIndex,assessments:selected.tensionDiagnostics});
+   sharedPhrases[b]=selected.events;
+  }
  }
  // M3 shared melody/harmony planning (opt-in).
  const m3JointPlan=plan.musicHarmony===true && sharedPhrases && root.PlotuneM3Harmony?
-  root.PlotuneM3Harmony.plan(sharedPhrases,{progression:prog,tension:clamp(Number(plan.harmonicTension)||.45,0,1)}):null;
+  root.PlotuneM3Harmony.plan(sharedPhrases,{progression:prog,tension:clamp(Number(plan.harmonicTension)||.45,0,1),
+   ...(r2Sections&&root.PlotuneTensionR2b?{tensionTargets:Array.from({length:bars},(_,b)=>r2TargetAt(b)||{})}:{})}):null;
  if(m3JointPlan)for(let b=0;b<bars;b++)sharedPhrases[b]=m3JointPlan.phrases[b];
  // Repeat 4-bar thematic material; vary density and fills but keep a looping identity.
  for(let b=0;b<bars;b++){
@@ -917,6 +927,12 @@ function score(plan){
   breaks:0,shiftedChords:transform?bars:0,cueHits:transform?1:0,
   harmonyChanges:harmony.length,rests,events:[],harmonies:harmony
  };
+ if(r2Sections&&root.PlotuneTensionR2b){
+  details.tensionR2={version:'r2b.shadow.1',mode:'shadow-only',sections:r2Sections.length,
+   phrase:r2PhraseDiagnostics,
+   harmony:m3JointPlan?m3JointPlan.decisions.map(d=>({bar:d.bar,chord:d.chord,assessments:d.tensionDiagnostics||[]})):[]
+  };
+ }
  return {notes,drums,rests,harmony,theme:motif,details,genre:'game',
   duration,bpm,sampleRate:SR};
 }
