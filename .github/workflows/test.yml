@@ -105,6 +105,7 @@ jobs:
           node tests/m6-integration.test.cjs || failed=1
           node tests/m7-m6-integration.test.cjs || failed=1
           node tests/m7-browser-wiring.test.cjs || failed=1
+          node tests/phase-form-arrangement-integration.test.cjs || failed=1
           node tests/m7-ablation.test.cjs || failed=1
           node tests/m7-generation.test.cjs || failed=1
           node tests/m7-listening.test.cjs || failed=1
