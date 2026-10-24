@@ -10,7 +10,7 @@ const off=h.score(legacy);
 const explicitOff=h.score({...legacy,musicDevelopment:false});
 assert.equal(JSON.stringify(off.notes),JSON.stringify(explicitOff.notes),'M OFF score unchanged');
 const on=h.score({...legacy,motifDevelopment:true});
-const onAgain=h.score({...legacy,musicDevelopment:true});
+const onAgain=h.score({...legacy,motifDevelopment:true});
 assert.equal(JSON.stringify(on.notes),JSON.stringify(onAgain.notes),'M ON deterministic');
 const lead=s=>s.notes.filter(n=>n.role==='lead'||n.voice==='lead').map(n=>[n.t,n.midi,n.d]);
 assert.ok(lead(off).length>0);
