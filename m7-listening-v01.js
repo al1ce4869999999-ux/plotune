@@ -43,7 +43,7 @@ function attach(doc,api,AudioContextClass){
   if(restartButton)restartButton.disabled=!result;
   if(repeat)repeat.disabled=!result;
   if(sync)sync.disabled=!result;
-  buttons.forEach((b,i)=>{b.disabled=!result;b.setAttribute('aria-pressed',String(IDS[i]===active));});
+  buttons.forEach((b,i)=>{b.disabled=!result?.tracks?.some(t=>t.conditionId===IDS[i]);b.setAttribute('aria-pressed',String(IDS[i]===active));});
  }
  function halt(reset=false){
   epoch++;
@@ -100,14 +100,21 @@ function attach(doc,api,AudioContextClass){
   }catch{/* private mode or quota: playback still works */}
   showHistory();
  }
- function create(inputOverride=null,seedOverride=null){
+ async function create(inputOverride=null,seedOverride=null){
   if(generating)return;
   generating=true;make.disabled=true;report('4条件を生成中…');
-  halt(true);result=null;buffers.clear();
+  halt(true);result=null;buffers.clear();draw();
   const input=inputOverride||Object.fromEntries(['title','character','world','scene','style','gameStyle','duration'].map(k=>[k,byId(k)?.value]));
   const seed=seedOverride??Number(byId('m7Seed').value);
   try{
-   result=validate(api.generate(input,seed));active='baseline';pausedAt=0;
+   if(typeof api.generateProgressively==='function'){
+    const req=api.request(input,seed);
+    result={schemaVersion:'m7.1-v1',request:req,tracks:[]};
+    result=validate(await api.generateProgressively(input,seed,(item,count)=>{
+     result.tracks.push(item);draw();report('生成済み '+count+'/4曲 · '+LABELS[item.conditionId]+' を再生できます');
+    }));
+   }else result=validate(api.generate(input,seed));
+   active='baseline';pausedAt=0;
    if(root.PlotuneM7Evaluation?.controller)root.PlotuneM7Evaluation.controller.begin(result);
    if(root.PlotuneM7Diagnostics?.controller)root.PlotuneM7Diagnostics.controller.show(result);
    remember(input,seed);draw();
