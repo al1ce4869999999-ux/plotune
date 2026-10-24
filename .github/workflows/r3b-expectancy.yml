@@ -1,0 +1,33 @@
+name: R3b expectancy generation validation
+on:
+  pull_request:
+    paths:
+      - 'expectancy-r3.js'
+      - 'expectancy-r3b.js'
+      - 'm2-emotion-phrase-v01.js'
+      - 'handheld-v21.js'
+      - 'index.html'
+      - 'tests/expectancy-r3b.test.cjs'
+      - 'tests/r3-m7-real-engine.test.cjs'
+      - '.github/workflows/r3b-expectancy.yml'
+      - '.github/workflows/test.yml'
+jobs:
+  expectancy-generation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check R3 syntax and candidate selection
+        run: |
+          node --check expectancy-r3.js
+          node --check expectancy-r3b.js
+          node --check m2-emotion-phrase-v01.js
+          node --check handheld-v21.js
+          node tests/expectancy-r3a.test.cjs
+          node tests/expectancy-r3b.test.cjs
+      - name: Real engine OFF/ON, score and PCM
+        run: |
+          node tests/r3-m7-real-engine.test.cjs
+          node tests/r2-m7-real-engine.test.cjs

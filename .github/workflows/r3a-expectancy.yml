@@ -1,0 +1,24 @@
+name: R3a expectancy validation
+on:
+  pull_request:
+    paths:
+      - 'expectancy-r3.js'
+      - 'tests/expectancy-r3a.test.cjs'
+      - 'tests/r3a-m7-diagnostic.test.cjs'
+      - '.github/workflows/r3a-expectancy.yml'
+      - '.github/workflows/test.yml'
+jobs:
+  expectancy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: R3a model, input and RNG contract
+        run: |
+          node --check expectancy-r3.js
+          node tests/expectancy-r3a.test.cjs
+      - name: Four-condition real-engine baseline 15/30/60s
+        run: |
+          node tests/r3a-m7-diagnostic.test.cjs

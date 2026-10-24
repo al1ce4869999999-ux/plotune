@@ -57,7 +57,14 @@ function selectPhrase(source,emotion={},options={}){
   measured.sort((a,b)=>a.assessment.distance-b.assessment.distance||b.candidate.score-a.candidate.score||a.candidate.index-b.candidate.index);
   if(measured.length){chosen=measured[0].candidate;tensionSelected=chosen.index!==choices[0].index;}
  }
- return {events:chosen.events,score:chosen.score,candidateIndex:chosen.index,candidateScores:choices.map(c=>({index:c.index,score:c.score})),...(tensionDiagnostics?{tensionDiagnostics}: {}),...(options.tensionSelection===true?{tensionSelected}: {})};
+ const expectancyDecision=options.expectancyTarget&&root.PlotuneExpectancyR3b?
+  root.PlotuneExpectancyR3b.choose(choices,chosen,source,options):null;
+ if(options.expectancySelection===true&&expectancyDecision)chosen=expectancyDecision.chosen;
+ return {events:chosen.events,score:chosen.score,candidateIndex:chosen.index,candidateScores:choices.map(c=>({index:c.index,score:c.score})),
+  ...(tensionDiagnostics?{tensionDiagnostics}: {}),...(options.tensionSelection===true?{tensionSelected}: {}),
+  ...(expectancyDecision?{expectancyDiagnostics:expectancyDecision.diagnostics,
+   expectancyReason:expectancyDecision.reason,expectancySelected:options.expectancySelection===true&&expectancyDecision.selected,
+   expectancyModel:expectancyDecision.model||null}:{})};
 }
 root.PlotuneM2Phrase={profile,evaluate,selectPhrase};
 })(window);
