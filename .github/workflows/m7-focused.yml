@@ -24,6 +24,7 @@ jobs:
         run: |
           node --check m7-generation-v01.js
           node --check m7-aggregate-v01.js
+          node --check m7-worker-v01.js
           node --check m7-trial-ui-v01.js
           node --check m1-section-history-v01.js
       - name: Run fast M-series contracts
