@@ -29,7 +29,7 @@ function attach(doc,api,AudioContextClass){
  let context=null,source=null,transport=null,result=null,buffers=new Map(),epoch=0,generating=false;
  let active='baseline',pausedAt=0,playing=false,frame=null;
  const report=s=>{if(message)message.textContent=s;};
- const duration=()=>result?.tracks?.[0]?.track?.samples.length/result.tracks[0].track.sampleRate||0;
+ const duration=()=>{const t=result?.tracks?.[0]?.track;return t?.sampleRate>0?t.samples.length/t.sampleRate:0;};
  const clampTime=t=>Math.max(0,Math.min(duration(),Number(t)||0));
  function position(){
   if(!transport||!context)return pausedAt;
@@ -120,7 +120,7 @@ function attach(doc,api,AudioContextClass){
    if(root.PlotuneM7Diagnostics?.controller)root.PlotuneM7Diagnostics.controller.show(result);
    remember(input,seed);draw();
    report('4曲生成完了 · seed '+seed+' · '+result.request.duration+'秒 · ダウンロード不要');
-  }catch(e){report('4条件生成エラー: '+e.message);}
+  }catch(e){result=null;draw();report('4条件生成エラー: '+e.message);}
   finally{generating=false;make.disabled=false;draw();}
  }
  make.addEventListener('click',()=>create());
