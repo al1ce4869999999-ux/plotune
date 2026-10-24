@@ -1,0 +1,34 @@
+name: R7 transition diagnostic validation
+on:
+  push:
+    branches: [feature/r7-arrangement-arc]
+  pull_request:
+    paths:
+      - 'transition-evaluation-r7.js'
+      - 'handheld-v21.js'
+      - 'index.html'
+      - 'tests/transition-evaluation-r7.test.cjs'
+      - '.github/workflows/r7-transition-diagnostics.yml'
+jobs:
+  r7:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and R7 real engine contract
+        run: |
+          node --check transition-evaluation-r7.js
+          node --check handheld-v21.js
+          node tests/transition-evaluation-r7.test.cjs
+      - name: R0-R6 impacted regressions
+        run: |
+          node tests/arrangement-optimization-r6.test.cjs
+          node tests/arrangement-perception-r5.test.cjs
+          node tests/r4-m7-real-engine.test.cjs
+          node tests/r3-m7-real-engine.test.cjs
+          node tests/r0-m7-integration.test.cjs
+          node tests/motif-similarity-r1.test.cjs
+          node tests/m2-emotion-phrase.test.cjs
+          node tests/preflight-contracts.test.cjs
