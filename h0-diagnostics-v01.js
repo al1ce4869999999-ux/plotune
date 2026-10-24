@@ -57,7 +57,28 @@ function ablate(engine,entry,seed){
  }
  return {schema:'plotune.h0.ablation',version:1,seed,condition:'M',variants};
 }
-const api={CONDITIONS,diagnose,ablate};
+function compareStages(stages,seed,condition='M'){
+ if(!Number.isInteger(seed)||seed<0)throw new TypeError('invalid seed');
+ if(!stages||typeof stages!=='object')throw new TypeError('stages required');
+ const order=['preM4','postM4','postM5','postTransition'];
+ const events=[];
+ for(let i=1;i<order.length;i++){
+  const previous=stages[order[i-1]],current=stages[order[i]];
+  if(!Array.isArray(previous)||!Array.isArray(current))continue;
+  const max=Math.max(previous.length,current.length);
+  for(let j=0;j<max;j++){
+   const a=snapshot(previous[j]),b=snapshot(current[j]);
+   if(JSON.stringify(a)===JSON.stringify(b))continue;
+   events.push({seed,condition,section:null,bar:null,timestamp:b?.onset??a?.onset??null,voice:b?.voice??a?.voice??null,
+    sourceStage:order[i],originalNote:a,transformedNote:b,activeChord:null,
+    suspectedProblem:'unconfirmed',evidence:{index:j,comparison:'ordered-score-snapshot',noteCountBefore:previous.length,noteCountAfter:current.length},
+    confidence:'unconfirmed'});
+  }
+ }
+ return {schema:'plotune.h0.stage-diff',version:1,seed,condition,events,
+  limitations:['INDEX_MATCHING_NOT_NOTE_IDENTITY','NO_CAUSAL_ATTRIBUTION']};
+}
+const api={CONDITIONS,diagnose,ablate,compareStages};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.PlotuneH0Diagnostics=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
