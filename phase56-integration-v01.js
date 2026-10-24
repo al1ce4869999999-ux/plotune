@@ -30,7 +30,7 @@ function createRunner(engine,auditor,evaluator){
   if(!h0&&!h0Ablations)return {cases,report};
   const diagnostics=typeof require==='function'?require('./h0-diagnostics-v01.js'):root.PlotuneH0Diagnostics;
   if(!diagnostics||typeof diagnostics.diagnose!=='function')throw new TypeError('H0 diagnostics unavailable');
-  return {cases,report,...(h0?{h0:{...diagnostics.diagnose(cases,seed),stageDiffs:Object.fromEntries(evaluator.CONDITIONS.map(condition=>[condition,diagnostics.compareStages(cases[condition].score.details?.h0Stages||{},seed,condition)]))}}:{}),...(h0Ablations?{h0Ablations:diagnostics.ablate(engine,cases.M,seed)}:{})};
+  return {cases,report,...(h0?{h0:{...diagnostics.diagnose(cases,seed),stageDiffs:Object.fromEntries(evaluator.CONDITIONS.map(condition=>[condition,diagnostics.compareStages(cases[condition].score.details?.h0Stages||{},seed,condition)])),phraseDiffs:Object.fromEntries(evaluator.CONDITIONS.map(condition=>[condition,diagnostics.comparePhrases(cases[condition].score.details?.h0Phrases||{},seed,condition)]))}}:{}),...(h0Ablations?{h0Ablations:diagnostics.ablate(engine,cases.M,seed)}:{})};
  }
  function proposeCadenceRepair(entry,revision){
   if(!entry||!entry.score||!revision||typeof revision.reviseSection!=='function')
