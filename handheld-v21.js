@@ -900,7 +900,8 @@ function score(plan){
  // M5 is applied after M4 to the final events actually rendered to PCM.
  const performance=plan.musicPerformance===true&&root.PlotuneM5Performance?
    root.PlotuneM5Performance.express({notes,duration,meter,seed,wholeTrackArc,
-     leadTone:palette?.family||game.lead,secondaryTone:palette?.secondary}):null;
+     leadTone:palette?.family||game.lead,secondaryTone:palette?.secondary,
+     ...(r2Sections?{tensionDynamics:Array.from({length:bars},(_,b)=>r2TargetAt(b)?.dynamic??null)}:{})}):null;
  if(performance){
   notes.length=0;notes.push(...performance.notes);
   for(const key of Object.keys(voices))
@@ -928,7 +929,8 @@ function score(plan){
   harmonyChanges:harmony.length,rests,events:[],harmonies:harmony
  };
  if(r2Sections&&root.PlotuneTensionR2b){
-  details.tensionR2={version:'r2b.shadow.1',mode:'shadow-only',sections:r2Sections.length,
+  details.tensionR2={version:'r2b.shadow.1',mode:performance?.details?.tensionDynamicsApplied?'dynamics-applied':'shadow-only',sections:r2Sections.length,
+   dynamicsApplied:performance?.details?.tensionDynamicsApplied||0,
    phrase:r2PhraseDiagnostics,
    harmony:m3JointPlan?m3JointPlan.decisions.map(d=>({bar:d.bar,chord:d.chord,assessments:d.tensionDiagnostics||[]})):[]
   };
