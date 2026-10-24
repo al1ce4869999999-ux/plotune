@@ -343,7 +343,7 @@ function score(plan){
  const r2Sections=plan.musicTensionR2===true&&plan.tensionPlan?.schema==='plotune.tension-plan'&&Array.isArray(plan.tensionPlan.sections)?plan.tensionPlan.sections:null;
  const r2TargetAt=b=>r2Sections?.length?r2Sections[Math.min(r2Sections.length-1,Math.floor(b*r2Sections.length/bars))]?.target:null;
  const r2PhraseDiagnostics=[];
- const r3PhraseDiagnostics=[];
+ const r3PhraseDiagnostics=[];const r4PhraseDiagnostics=[];
  const r3TargetAt=b=>{
   const item=Array.isArray(plan.expectancyTargets)?plan.expectancyTargets[Math.min(b,plan.expectancyTargets.length-1)]:plan.expectancyTarget;
   return typeof item==='number'?{targetBits:item}:item&&typeof item==='object'?item:null;
@@ -356,8 +356,10 @@ function score(plan){
     {...stages[arcAt(b).stage],...(plan.phraseEmotion||{})},
     {seed:(seed^Math.imul(b+1,2654435761))>>>0,candidates:8,
      ...(r2TargetAt(b)&&root.PlotuneTensionR2b?{tensionTarget:r2TargetAt(b),tensionSelection:plan.musicTensionR2Selection===true}:{}),
-     ...(plan.musicExpectancyR3===true&&r3TargetAt(b)&&root.PlotuneExpectancyR3b?{expectancyTarget:r3TargetAt(b),expectancySelection:plan.musicExpectancyR3Selection===true,expectancyScoreBudget:plan.expectancyScoreBudget??.25}:{})});
+     ...(plan.musicExpectancyR3===true&&r3TargetAt(b)&&root.PlotuneExpectancyR3b?{expectancyTarget:r3TargetAt(b),expectancySelection:plan.musicExpectancyR3Selection===true,expectancyScoreBudget:plan.expectancyScoreBudget??.25}:{}),
+     ...(plan.musicIdentityNoveltyR4===true?{identityNoveltyR4:true,identityNoveltyR4Selection:plan.musicIdentityNoveltyR4Selection===true,sectionRoleR4:plan.sectionRoleR4??'variation',originMotifR4:sharedPhrases[0],originMotifIdR4:'opening-theme',identityNoveltyScoreBudget:plan.identityNoveltyScoreBudget??.25}:{})});
    if(selected.tensionDiagnostics)r2PhraseDiagnostics.push({bar:b,candidateIndex:selected.candidateIndex,assessments:selected.tensionDiagnostics,tensionSelected:selected.tensionSelected||false});
+   if(selected.identityNoveltyR4Diagnostics)r4PhraseDiagnostics.push({bar:b,reason:selected.identityNoveltyR4Reason,selected:selected.identityNoveltyR4Selected,trace:selected.identityNoveltyR4Trace,assessments:selected.identityNoveltyR4Diagnostics});
    if(selected.expectancyDiagnostics)r3PhraseDiagnostics.push({bar:b,candidateIndex:selected.candidateIndex,reason:selected.expectancyReason,selected:selected.expectancySelected,model:selected.expectancyModel,assessments:selected.expectancyDiagnostics});
    sharedPhrases[b]=selected.events;
   }
@@ -943,6 +945,7 @@ function score(plan){
    realized:root.PlotuneTensionR2b.realized(notes,r2Sections,duration)
   };
  }
+ if(plan.musicIdentityNoveltyR4===true)details.identityNoveltyR4={version:'r4b.1',mode:plan.musicIdentityNoveltyR4Selection===true?'selection-enabled':'diagnostic-only',phrase:r4PhraseDiagnostics};
  if(plan.musicExpectancyR3===true&&root.PlotuneExpectancyR3){
   try{
    const lead=notes.filter(n=>n.voice==='lead').sort((a,b)=>a.t-b.t);
