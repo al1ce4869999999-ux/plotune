@@ -4,6 +4,9 @@ const ctx={window:{},Math:math};vm.runInNewContext(fs.readFileSync('expectancy-r
 const R=ctx.window.PlotuneExpectancyR3;
 const phrase=[0,2,4,2,0].map((degree,i)=>({degree,position:i*2,durationUnits:1,phraseStart:i===0}));
 const corpus=[phrase,phrase,phrase],model=R.train(corpus,{source:'synthetic-test-fixtures',style:'test'});
+const once=R.train([phrase]),repeated=R.train([phrase,phrase,phrase,phrase]);
+const repeatedSymbol=R.eventsOf(phrase)[1].rhythm;
+assert(R.distribution(repeated,'rhythm',[]).probabilities[repeatedSymbol]>R.distribution(once,'rhythm',[]).probabilities[repeatedSymbol],'repetition increases expected symbol probability');
 const before=JSON.stringify(phrase),a=R.evaluate(phrase,{}, {model}),b=R.evaluate(phrase,{}, {model});
 assert.equal(JSON.stringify(a),JSON.stringify(b));assert.equal(JSON.stringify(phrase),before);
 assert(a.trace.every(x=>Number.isFinite(x.axes.joint.ic)&&Number.isFinite(x.axes.joint.entropy)));
