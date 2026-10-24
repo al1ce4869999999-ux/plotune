@@ -1,12 +1,12 @@
 /* M7.1: four-condition generation contract. No playback/UI changes. */
 (function(root){'use strict';
 const IDS=Object.freeze(['baseline','phase','m','phase-m']);
-const FLAG_KEYS=Object.freeze(['motifDevelopment','musicDevelopment','musicHarmony','musicVoices','musicPerformance','musicTransitions']);
+const FLAG_KEYS=Object.freeze(['motifDevelopment','musicDevelopment','musicHarmony','musicVoices','musicPerformance','musicTransitions','musicTonalJourney']);
 function condition(id){
  if(!IDS.includes(id))throw new RangeError('unknown M7 condition: '+id);
  const phase=id==='phase'||id==='phase-m',m=id==='m'||id==='phase-m';
  return Object.freeze({id,phase,m,phaseScope:phase?'motif-development-and-section-transitions':'off',m6Repair:false,flags:Object.freeze({
-  motifDevelopment:phase,musicTransitions:phase,musicDevelopment:m,musicHarmony:m,musicVoices:m,musicPerformance:m
+  motifDevelopment:phase,musicTransitions:phase,musicTonalJourney:m,musicDevelopment:m,musicHarmony:m,musicVoices:m,musicPerformance:m
  })});
 }
 function request(input,seed){
@@ -24,7 +24,7 @@ function request(input,seed){
 }
 function dependenciesFromRoot(){
  const required=['PlotuneAnalysis','PlotuneResonare','PlotuneHandheld','PlotuneStoryStructure','PlotuneMusicPsychology',
-  'PlotuneMelodicGrammar','PlotuneMotifPlanner','PlotuneM2Phrase','PlotuneM3Harmony','PlotuneM4Voices','PlotuneM5Performance'];
+  'PlotuneMelodicGrammar','PlotuneMotifPlanner','PlotuneM2Phrase','PlotuneM3Harmony','PlotuneM3TonalJourney','PlotuneM4Voices','PlotuneM5Performance'];
  for(const name of required)if(!root[name])throw new TypeError('M7 engine dependency missing: '+name);
  return {analyze:root.PlotuneAnalysis.analyze,plan:root.PlotuneAnalysis.plan,
   resonare:root.PlotuneResonare.analyze,handheld:root.PlotuneHandheld,
