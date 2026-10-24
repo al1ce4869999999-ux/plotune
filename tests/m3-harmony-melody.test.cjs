@@ -8,6 +8,13 @@ const sample=[{position:0,durationUnits:2,degree:1,rest:false},{position:4,durat
 const source=Array.from({length:8},()=>sample.map(e=>({...e})));
 const tonicProbe=[{position:0,durationUnits:2,degree:0,rest:false}];
 assert(M.phraseFit(tonicProbe,0,.4)>M.phraseFit(tonicProbe,1,.4),'harmonic fit must depend on chord root');
+const interpretations=M.reinterpret(sample,{tension:.4});
+assert.equal(interpretations.length,3);
+assert.equal(new Set(interpretations.map(x=>x.chords.join(','))).size,3);
+assert(interpretations.some(x=>x.borrowed));
+assert(interpretations.every(x=>JSON.stringify(x.motif)===JSON.stringify(sample)),'motif survives reinterpretation');
+assert(interpretations.every(x=>x.decisions.at(-1).reason==='return to tonic'));
+assert.equal(JSON.stringify(interpretations),JSON.stringify(M.reinterpret(sample,{tension:.4})));
 const saved=JSON.stringify(source);
 const plan=M.plan(source,{progression:[0,4,5,3],tension:.4});
 assert.equal(JSON.stringify(plan),JSON.stringify(M.plan(source,{progression:[0,4,5,3],tension:.4})),'deterministic');
