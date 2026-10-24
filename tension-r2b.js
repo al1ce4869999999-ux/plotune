@@ -42,5 +42,27 @@ function fromHarmony(phrases){
 }
 function phrase(events,target){return assess(fromPhrase(events),target);}
 function harmony(phrases,target){return assess(fromHarmony(phrases),target);}
-root.PlotuneTensionR2b={VERSION:'r2b.shadow.1',assess,phrase,harmony};
+
+// Evaluate actual post-expression score section by section. This does not alter generation.
+function realized(notes,sections,duration){
+ if(!Array.isArray(notes)||!Array.isArray(sections)||!sections.length||!finite(duration)||duration<=0)throw new TypeError('invalid realized input');
+ if(!root.PlotuneTensionR2a)throw new Error('R2a evaluator missing');
+ return sections.map((section,i)=>{
+  const start=duration*i/sections.length,end=duration*(i+1)/sections.length;
+  const slice=notes.filter(n=>n&&finite(n.t)&&n.t>=start&&n.t<end&&n.voice!=='drums').map(n=>({
+   t:n.t-start,d:n.d,midi:n.midi,velocity:n.volume,
+   instrument:n.timbre||n.voice,rest:false
+  }));
+  try{
+   const measured=root.PlotuneTensionR2a.evaluate({notes:slice});
+   const assessment=assess(measured.metrics,section?.target||{});
+   return {index:i,name:section?.name??String(i),start:round(start),end:round(end),notes:slice.length,
+    assessment,diagnostics:measured.diagnostics};
+  }catch(error){
+   return {index:i,name:section?.name??String(i),start:round(start),end:round(end),notes:slice.length,
+    assessment:null,diagnostics:[{code:'EVALUATOR_FALLBACK',message:String(error?.message||error)}]};
+  }
+ });
+}
+root.PlotuneTensionR2b={VERSION:'r2b.shadow.1',assess,phrase,harmony,realized};
 })(typeof window!=='undefined'?window:globalThis);
