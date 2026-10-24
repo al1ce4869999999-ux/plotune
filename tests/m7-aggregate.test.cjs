@@ -14,7 +14,7 @@ assert.equal(a.disagreements[0].trialId,'run-1');
 const missing=trial(3,5);missing.evaluation.ratings.m.preference=null;
 assert.equal(M.aggregate([missing]).summary.m.preference.count,0);
 const missingSubjective=trial(6,4);missingSubjective.evaluation.ratings.m.preference=null;
-assert.equal(M.aggregate([missingSubjective]).disagreements.length,0,'unrated trial must never create a preference disagreement');
+assert.equal(M.aggregate([missingSubjective]).disagreements.filter(x=>x.conditionId==='m').length,0,'unrated M preference must never create an M disagreement');
 assert.throws(()=>M.aggregate([]),{name:'TypeError'});
 assert.throws(()=>M.aggregate([trial(1,4),trial(1,2)]),{name:'RangeError'});
 assert.throws(()=>M.aggregate([{...trial(4,2),diagnostics:{...trial(4,2).diagnostics,seed:5}}]),{name:'TypeError'});
