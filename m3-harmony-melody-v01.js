@@ -70,7 +70,7 @@ function reinterpret(motif,options={}){
  const schemes=[
   {name:'home',progression:[0,4,0],borrowed:false},
   {name:'relative',progression:[5,3,0],borrowed:false},
-  {name:'borrowed-minor',progression:[0,3,0],borrowed:true}
+  {name:'subdominant',progression:[0,3,0],borrowed:false}
  ];
  return schemes.map(scheme=>{
   const fit=scheme.progression.map(chord=>phraseFit(motif,chord,options.tension??.4));
@@ -78,7 +78,7 @@ function reinterpret(motif,options={}){
    chords:[...scheme.progression],borrowed:scheme.borrowed,
    score:fit.reduce((a,b)=>a+b,0)/fit.length,
    decisions:fit.map((value,i)=>({index:i,chord:scheme.progression[i],fit:value,
-    reason:i===2?'return to tonic':scheme.borrowed?'modal borrowing candidate':'alternative harmonic context'}))};
+    reason:i===2?'return to tonic':'alternative harmonic context'}))};
  });
 }
 root.PlotuneM3Harmony={plan,phraseFit,voiceLeading,reinterpret};
