@@ -49,3 +49,21 @@ for(const [duration,seed] of [[15,42],[30,0],[60,0xffffffff]]){
  for(let i=0;i<4;i++)assert.deepEqual(fingerprint(on.tracks[i].track),fingerprint(second.tracks[i].track),'M6 ON reproducible');
  console.log('PASS M7 real engine M6 opt-in',duration,seed);
 }
+
+// Real PCM/score acceptance for each independently disabled M1-M5 flag.
+{
+ const first=m.generateAblations({...input,duration:15},2026,deps);
+ const second=m.generateAblations({...input,duration:15},2026,deps);
+ assert.equal(first.tracks.length,6);
+ for(let i=0;i<first.tracks.length;i++){
+  const a=first.tracks[i],b=second.tracks[i];
+  assert.equal(a.ablationId,b.ablationId);
+  assert.deepEqual(fingerprint(a.track),fingerprint(b.track),'deterministic ablation '+a.ablationId);
+  assert.equal(a.track.samples.length,15*a.track.sampleRate);
+  assert(a.track.samples.every(Number.isFinite));
+ }
+ const base=fingerprint(first.tracks[0].track);
+ assert(first.tracks.slice(1).some(x=>fingerprint(x.track).notes!==base.notes),
+  'at least one individually disabled stage must visibly change the score');
+ console.log('PASS M7 real engine M1-M5 ablations');
+}
