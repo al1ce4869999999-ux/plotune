@@ -3,7 +3,7 @@
 const clone=n=>({...n});
 function apply(original,{seed=1,quality=root.PlotuneM6Quality}={}){
  if(!quality||!original||!Array.isArray(original.notes))throw new TypeError('M6 score/quality required');
- const meter=original.duration*4/original.bpm; // 4 quarter-note beats per bar
+ const meter=240/original.bpm; // seconds per 4-beat bar
  const duration=original.duration;
  if(!Number.isFinite(meter)||meter<=0)throw new TypeError('M6 invalid meter');
  let notes=original.notes.map(clone);
