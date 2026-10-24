@@ -877,6 +877,10 @@ function score(plan){
      }else if(n.voice==='chords'||n.voice==='pad') n.volume*=Math.sqrt(cues.dynamicsFactor);
    }
  }
+ // H0 opt-in: capture immutable note snapshots; never consume random state.
+ const h0Stages=plan.h0Trace===true?{}:null;
+ const h0Capture=name=>{if(h0Stages)h0Stages[name]=notes.map(n=>({...n}));};
+ h0Capture('preM4');
  // M4 opt-in: rebuild counterpoint after the instrument-specific renderers.
  // This affects the notes heard by the synthesizer, not just an abstract plan.
  const voiceDialogue=plan.musicVoices===true&&root.PlotuneM4Voices?
@@ -887,6 +891,7 @@ function score(plan){
   for(const key of Object.keys(voices))
    if(key!=='drums')voices[key]=notes.filter(n=>n.voice===key).length;
  }
+ h0Capture('postM4');
  // M5 is applied after M4 to the final events actually rendered to PCM.
  const performance=plan.musicPerformance===true&&root.PlotuneM5Performance?
    root.PlotuneM5Performance.express({notes,duration,meter,seed,wholeTrackArc,
@@ -896,6 +901,7 @@ function score(plan){
   for(const key of Object.keys(voices))
    if(key!=='drums')voices[key]=notes.filter(n=>n.voice===key).length;
  }
+ h0Capture('postM5');
  // Disable speculative inserted seam notes: diagnose original M events first.
  const mSeamBridges=[];
  // Phase 4: phrase-boundary anticipation and breath. OFF remains unchanged.
@@ -924,8 +930,10 @@ function score(plan){
   notes.sort((a,b)=>a.t-b.t);
   for(const key of Object.keys(voices))if(key!=='drums')voices[key]=notes.filter(n=>n.voice===key).length;
  }
+ h0Capture('postTransition');
  const details={
   transitions,mSeamBridges,
+  ...(h0Stages?{h0Stages}:{}),
   performance:performance?performance.details:null,
   voiceDialogue:voiceDialogue?{responseCount:voiceDialogue.responseCount,
    replies:voiceDialogue.responses.map(x=>({bar:x.bar,stage:x.stage,mode:x.mode,from:x.from,until:x.until})),
