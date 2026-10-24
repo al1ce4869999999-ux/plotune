@@ -6,6 +6,9 @@ const m=sandbox.PlotuneM7Generation;
 assert.deepEqual(Array.from(m.IDS),['baseline','phase','m','phase-m']);
 assert.deepEqual(Array.from(m.IDS, id=>[m.condition(id).phase,m.condition(id).m]),[[false,false],[true,false],[false,true],[true,true]]);
 for(const id of m.IDS)assert.equal(m.condition(id).m6Repair,false);
+assert.equal(m.condition('phase').phaseScope,'motif-development-only');
+assert.equal(m.condition('phase-m').phaseScope,'motif-development-only');
+assert.equal(m.condition('m').phaseScope,'off');
 assert.throws(()=>m.condition('unknown'),{name:'RangeError'});
 const input={scene:'A quiet forest',style:'handheld',gameStyle:'musicbox',duration:15};
 const deps={
