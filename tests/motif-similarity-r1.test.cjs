@@ -18,7 +18,7 @@ test('rests',[notes[0],{position:1,durationUnits:1,degree:0,rest:true},...notes.
 test('bar boundary',notes.map((n,i)=>({...n,bar:i<2?0:1})),m=>{assert.equal(m.rhythm,1);});
 const empty=E.compare({events:[{position:0,durationUnits:1,rest:true}]},{events:notes});
 assert.equal(empty.metrics.coverage,0);
-assert.equal(empty.metrics.accent,null);
+assert.equal(empty.metrics.accent,undefined);
 assert.equal(R.evaluate(()=>E.compare([{t:-1,d:1,midi:60}],notes),{}, {},{}).status,'fallback');
 const config=E.compare(notes,notes,{intervalScale:24});
 assert.equal(config.configuration.intervalScale,24);
