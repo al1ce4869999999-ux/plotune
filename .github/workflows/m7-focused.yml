@@ -1,0 +1,37 @@
+name: M7 focused regression
+on:
+  push:
+    branches: [feature/m7-1-four-condition-generation]
+  pull_request:
+    paths:
+      - 'm?-*.js'
+      - 'm7-*.js'
+      - 'tests/m*.test.cjs'
+      - 'index.html'
+      - '.github/workflows/m7-focused.yml'
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate JavaScript
+        run: |
+          node --check m7-generation-v01.js
+          node --check m7-aggregate-v01.js
+          node --check m7-trial-ui-v01.js
+          node --check m1-section-history-v01.js
+      - name: Run fast M-series contracts
+        run: |
+          node tests/m0-contract.test.cjs
+          node tests/m0-comparison.test.cjs
+          node tests/m1-motif-registry.test.cjs
+          node tests/m1-motif-transform.test.cjs
+          node tests/m1-section-history.test.cjs
+          node tests/m1-score-integration.test.cjs
+          node tests/m7-ablation.test.cjs
+          node tests/m7-aggregate.test.cjs
+          node tests/m7-browser-wiring.test.cjs
+          node tests/m7-trial-ui.test.cjs
