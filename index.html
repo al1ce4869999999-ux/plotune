@@ -65,6 +65,32 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
  border:1px solid #514669;border-radius:12px;padding:12px;margin:12px 0 16px}
 .footer{font-size:12px;color:#aca6bf;line-height:1.7;padding:0 2px}
 @media(max-width:380px){.two{grid-template-columns:1fr}.card{padding:16px}.actions button{flex:1}}
+/* M7 now-playing screen: responsive mobile music-player layout */
+#m7Panel .m7-player{background:linear-gradient(160deg,#28213f 0%,#171723 55%,#11151f 100%);border:1px solid #55476d;border-radius:22px;padding:18px 16px 22px;margin:22px -5px 12px;box-shadow:0 16px 35px #08091666}
+#m7Panel .m7-cover{position:relative;isolation:isolate;overflow:hidden;width:min(100%,290px);aspect-ratio:1;margin:5px auto 22px;border-radius:19px;background:radial-gradient(circle at 30% 25%,#c9c2e5 0%,#8277ba 22%,#4a3e74 48%,#211f37 79%,#111522 100%);box-shadow:0 17px 33px #05041188;display:grid;place-items:center}
+#m7Panel .m7-cover-glow{position:absolute;inset:16%;background:radial-gradient(circle,#f7e8ff88,transparent 68%);filter:blur(12px)}
+#m7Panel .m7-cover-disc{position:relative;font-size:100px;color:#f3eaff;text-shadow:0 0 30px #f0d9ff88;font-weight:300}
+#m7Panel .m7-cover>span{position:absolute;bottom:15px;letter-spacing:.34em;font-size:9px;font-weight:800;color:#dfd3ff}
+#m7Panel .m7-track-meta{text-align:center;margin:0 0 17px}
+#m7Panel .m7-kicker,.m7-versions-heading{font-size:10px;letter-spacing:.18em;color:#aca3cf;font-weight:800}
+#m7Panel #m7TrackTitle{font-size:21px;margin:7px 0 3px;overflow-wrap:anywhere}
+#m7Panel #m7TrackVariant{font-size:13px;margin:3px 0;color:#bfb6d5}
+#m7Panel .m7-seek-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+#m7Panel #m7Seek{display:block;width:100%;height:25px;min-height:25px;padding:0;accent-color:#dac4ff;background:transparent;border:0;touch-action:pan-y;box-shadow:none}
+#m7Panel #m7Clock{font-size:12px;text-align:right;color:#c6bdd7;font-variant-numeric:tabular-nums;margin:0 0 17px}
+#m7Panel .m7-transport{display:flex;align-items:center;justify-content:center;gap:20px}
+#m7Panel .m7-transport button{min-width:58px;min-height:53px;padding:10px;border-radius:50%;background:#323043;color:#f9f3ff;font-size:21px;border:1px solid #59536b}
+#m7Panel .m7-transport .m7-main-play{min-width:100px;min-height:64px;padding:10px 16px;background:#d9c6ff;color:#1e1635;border:0;border-radius:38px;font-size:16px}
+#m7Panel .m7-play-options{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:18px;margin:18px 0 26px}
+#m7Panel .m7-play-options label{display:flex;align-items:center;gap:8px;margin:0;font-size:12px;color:#d9d1e9}
+#m7Panel .m7-play-options input{appearance:auto;width:18px;height:18px;margin:0;padding:0;accent-color:#c0a5ff}
+#m7Panel .m7-versions-heading{text-align:center;margin-bottom:10px}
+#m7Panel .m7-versions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+#m7Panel .m7-versions button{min-width:0;min-height:45px;font-size:11px;line-height:1.25;padding:9px 3px;border-radius:11px;background:#302b40;color:#ded7ec;border:1px solid #544b65;overflow-wrap:anywhere}
+#m7Panel .m7-versions button[aria-pressed="true"]{color:#1c1533;background:#d8c4ff;border-color:#d8c4ff}
+#m7Panel .m7-library{margin-top:15px}
+@media(max-width:400px){#m7Panel .m7-cover{width:min(100%,240px)}#m7Panel .m7-transport{gap:12px}#m7Panel .m7-versions button{font-size:10px}}
+
 </style>
 <script defer src="analyzer.js"></script>
 <script defer src="resonare-v08.js"></script>
@@ -166,29 +192,32 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <p class="note">DS風ゲームサウンド専用。同じseed・曲長で4曲を生成。各バージョンを冒頭から再生でき、同期切替も選べます。現行の「Phase」は楽曲構成・主題発展・楽器の出入り・セクション接続の4機能を有効にした実験条件です。</p>
 <label for="m7Seed">比較用seed</label><input id="m7Seed" type="number" min="0" max="4294967295" step="1" value="20261023">
 <div class="actions"><button id="m7Make" type="button">🎼 4曲を生成して聴き比べ</button></div>
-<div class="actions dual-tracks">
-<button id="m7Play-baseline" class="alt" disabled type="button">▶ Baseline</button>
-<button id="m7Play-phase" class="alt" disabled type="button">▶ Phase</button>
-<button id="m7Play-m" class="alt" disabled type="button">▶ M</button>
-<button id="m7Play-phase-m" class="alt" disabled type="button">▶ Phase + M</button>
+<div class="m7-player" aria-label="Plotune ミュージックプレイヤー">
+  <div class="m7-cover" aria-hidden="true"><div class="m7-cover-glow"></div><div class="m7-cover-disc">♫</div><span>PLOTUNE</span></div>
+  <div class="m7-track-meta"><span class="m7-kicker">NOW PLAYING · 4 VERSIONS</span><h3 id="m7TrackTitle">まだ生成されていません</h3><p id="m7TrackVariant">Baseline</p></div>
+  <label class="m7-seek-label" for="m7Seek">再生位置</label>
+  <input id="m7Seek" type="range" min="0" max="30" step="0.1" value="0" disabled aria-label="再生位置" />
+  <p id="m7Clock">0:00 / 0:00</p>
+  <div class="m7-transport">
+    <button id="m7Restart" type="button" disabled aria-label="最初から再生">⏮</button>
+    <button id="m7Pause" class="m7-main-play" type="button" disabled>▶ 再生</button>
+    <button id="m7Stop" type="button" disabled aria-label="停止">■</button>
+  </div>
+  <div class="m7-play-options">
+    <label><input id="m7Repeat" type="checkbox"> リピート</label>
+    <label><input id="m7Sync" type="checkbox"> 切替位置を同期</label>
+  </div>
+  <div class="m7-versions-heading">VERSION SELECT</div>
+  <div class="m7-versions" role="group" aria-label="4条件バージョン切替">
+    <button id="m7Play-baseline" disabled type="button">Baseline</button>
+    <button id="m7Play-phase" disabled type="button">Phase</button>
+    <button id="m7Play-m" disabled type="button">M</button>
+    <button id="m7Play-phase-m" disabled type="button">Phase + M</button>
+  </div>
 </div>
-<div style="margin:16px 0;padding:16px;border:1px solid #615e80;border-radius:16px;background:#191929">
-<label for="m7Seek">再生位置</label>
-<input id="m7Seek" type="range" min="0" max="30" step="0.1" value="0" disabled style="width:100%;touch-action:pan-y">
-<p id="m7Clock" style="text-align:center;font-variant-numeric:tabular-nums">0:00 / 0:00</p>
-<div class="actions">
-<button id="m7Restart" class="alt" type="button" disabled>⏮ 最初から</button>
-<button id="m7Pause" type="button" disabled>▶ 再生</button>
-<button id="m7Stop" class="alt" disabled type="button">■ 停止</button>
-</div>
-<div style="display:flex;flex-wrap:wrap;gap:18px;margin-top:12px">
-<label><input id="m7Repeat" type="checkbox"> 🔁 リピート</label>
-<label><input id="m7Sync" type="checkbox"> 切替時に再生位置を同期</label>
-</div>
-</div>
-<label for="m7History">🎵 生成した曲の履歴（最大12曲・再生成）</label>
+<div class="m7-library"><label for="m7History">再生履歴 · 最大12曲</label>
 <select id="m7History"><option value="">保存した曲を選択</option></select>
-<p class="note">履歴には曲の設定とseedのみ保存します。再生時に音源をブラウザ内で再生成するため、端末へのダウンロードは不要です。</p>
+<p class="note">設定とseedのみ保存。音源はブラウザ内で再生成します。</p></div>
 <p id="m7Status" role="status" aria-live="polite" class="note">4曲を生成すると再生できます。</p>
 <p class="note">音量は曲ごとに一定ゲインで補正し、曲中の強弱は維持します。</p>
 </section>
