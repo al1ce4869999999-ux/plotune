@@ -328,7 +328,7 @@ function score(plan){
  const wholeTrackArc=Array.from({length:bars},(_,b)=>({bar:b+1,...arcAt(b)}));
  const motifPhrase=sharedGrammar&&root.PlotuneMelodicGrammar?.composePhrase?
    root.PlotuneMelodicGrammar.composePhrase(sharedGrammar,0,{density:clamp(pulseDensity*.68,.25,.92)}):null;
- const motifIdentity=plan.motifDevelopment===true&&motifPhrase&&root.PlotuneMotifPlanner?
+ const motifIdentity=(plan.motifDevelopment===true||plan.musicMotifMemory===true)&&motifPhrase&&root.PlotuneMotifPlanner?
    root.PlotuneMotifPlanner.capture(motifPhrase):null;
  const sharedPhrases=motifPhrase?Array.from({length:bars},(_,b)=>
    b===0?motifPhrase:root.PlotuneMelodicGrammar.composePhrase(sharedGrammar,b,
@@ -349,7 +349,7 @@ function score(plan){
  // M1 section memory: explicitly register the opening motif and realize a
  // deterministic return from the same motif identity. Keep legacy OFF untouched.
  let m1History=null;
- if(plan.motifDevelopment===true&&sharedPhrases&&bars>=4&&
+ if(plan.musicMotifMemory===true&&sharedPhrases&&bars>=4&&
     root.PlotuneMotifRegistry?.register&&root.PlotuneMotifSectionHistory?.realize){
   const sectionCount=4;
   const opening=root.PlotuneMotifRegistry.register('main-theme',sharedPhrases[0],
