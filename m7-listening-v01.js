@@ -107,10 +107,11 @@ function attach(doc,api,AudioContextClass){
   const input=inputOverride||Object.fromEntries(['title','character','world','scene','style','gameStyle','duration'].map(k=>[k,byId(k)?.value]));
   const seed=seedOverride??Number(byId('m7Seed').value);
   try{
-   if(typeof api.generateProgressively==='function'){
+   if(typeof api.generateForListening==='function'||typeof api.generateProgressively==='function'){
     const req=api.request(input,seed);
     result={schemaVersion:'m7.1-v1',request:req,tracks:[]};
-    result=validate(await api.generateProgressively(input,seed,(item,count)=>{
+    const generator=api.generateForListening||api.generateProgressively;
+    result=validate(await generator(input,seed,(item,count)=>{
      result.tracks.push(item);draw();report('生成済み '+count+'/4曲 · '+LABELS[item.conditionId]+' を再生できます');
     }));
    }else result=validate(api.generate(input,seed));
