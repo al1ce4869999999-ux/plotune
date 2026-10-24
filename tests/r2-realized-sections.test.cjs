@@ -24,4 +24,10 @@ assert.equal(JSON.stringify(on.notes),original,'evaluation is read-only');
 const fallback=R.realized([{t:0,d:-1,midi:60,volume:.2,voice:'lead'}],tensionPlan.sections,15);
 assert.equal(fallback[0].assessment,null,'invalid score metric falls back without abort');
 assert(fallback[0].diagnostics.some(d=>d.code==='EVALUATOR_FALLBACK'));
+
+for(const page of ['index.html','impression-lab.html']){
+ const html=fs.readFileSync(page,'utf8');
+ const a=html.indexOf('tension-r2a.js'),b=html.indexOf('tension-r2b.js'),c=html.indexOf('handheld-v21.js');
+ assert(a>=0&&b>a&&c>b,'browser script load order '+page);
+}
 console.log('PASS R2 real score six-axis sections, deterministic metrics, read-only and fallback');
