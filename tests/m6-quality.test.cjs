@@ -8,6 +8,14 @@ const notes=[...bar(0),...bar(4)];
 const input=JSON.stringify(notes);
 const a=M.assess({notes,meter:4,duration:8});
 assert.equal(a.metrics.repetition,1);
+assert.equal(a.metrics.motifContourSimilarity,1,'identical contour recognized');
+const observed=M.assess({notes:[{t:0,d:.5,midi:60,voice:'lead',volume:.2},
+ {t:0,d:.5,midi:64,voice:'chords',volume:.2},
+ {t:0,d:.5,midi:60,voice:'counter',volume:.2}],meter:4,duration:4});
+assert.equal(observed.metrics.harmonicSamples,1);
+assert.equal(observed.metrics.harmonicNonChordStrongBeats,1);
+assert.equal(observed.metrics.leadCounterUnisons,1);
+assert.equal(observed.metrics.finalNoteChordTone,false);
 const result=M.repair({notes,meter:4,duration:8,issue:a.issues[0],seed:1});
 assert.equal(result.accepted,true);
 assert.equal(result.after.metrics.repetition,0);
