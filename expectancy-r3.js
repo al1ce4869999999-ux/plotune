@@ -14,7 +14,7 @@ function eventsOf(input){
   if(!rest)previous=p;
   const duration=Number(e.durationUnits??e.d??e.duration??e.length??1);
   if(!Number.isFinite(duration)||duration<=0)throw new RangeError('invalid duration');
-  const rhythm=(e.rest?'rest:':'note:')+String(Math.round(duration*1000)/1000);
+  const rhythm=(rest?'rest:':'note:')+String(Math.round(duration*1000)/1000);
   return {index:i,interval,boundary,rhythm,rest};
  });
 }
