@@ -41,6 +41,16 @@ function apply(original,{seed=1,quality=root.PlotuneM6Quality}={}){
        accepted=false;reason='candidate violates voice/rhythm/register/chord guard';break;
     }
    }
+   if(accepted){
+    const beforeMetrics=quality.assess({notes,meter,duration}).metrics||{};
+    const afterMetrics=quality.assess({notes:candidate.notes,meter,duration}).metrics||{};
+    for(const key of ['repetition','unresolvedEnding','harmonicNonChordStrongBeats','leadCounterUnisons']){
+     if(Number.isFinite(beforeMetrics[key])&&Number.isFinite(afterMetrics[key])&&
+        afterMetrics[key]>beforeMetrics[key]){
+      accepted=false;reason='candidate worsens '+key;break;
+     }
+    }
+   }
    if(!changes.length){accepted=false;reason='empty candidate';}
   }
   attempts.push({bar:issue.bar,metric:issue.metric,accepted,reason});
