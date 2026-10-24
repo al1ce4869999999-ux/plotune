@@ -20,4 +20,17 @@ const noBudget=R.choose([{index:0,events:source,score:0}],{index:0,events:source
 assert.match(noBudget.reason,/invalid quality budget/);
 const snapshot=JSON.stringify(source);
 assert.equal(JSON.stringify(source),snapshot);
+
+const thematic=[2,4,5,2].map((degree,i)=>({degree,position:i,durationUnits:1,cadence:false}));
+const contrasting=[{degree:20,position:0,durationUnits:1,cadence:false},{degree:0,position:7,durationUnits:1,cadence:false}];
+const options={identityNoveltyScoreBudget:2,originMotifIdR4:'opening-theme'};
+const alternatives=[{index:0,score:10,events:thematic},{index:1,score:9.8,events:contrasting}];
+const statement=R.choose(alternatives,alternatives[0],thematic,{...options,sectionRoleR4:'statement'});
+const contrast=R.choose(alternatives,alternatives[0],thematic,{...options,sectionRoleR4:'contrast'});
+assert.equal(statement.chosen.index,0,'statement retains clearly recognizable original');
+assert.equal(contrast.chosen.index,1,'contrast selects structurally distinct candidate');
+assert.equal(contrast.trace.originMotifId,'opening-theme','whole-song original motif lineage');
+assert.notEqual(statement.chosen.index,contrast.chosen.index,'same candidate pool, role-specific choice');
+console.log('PASS R4 role-dependent statement/contrast selection with shared candidates');
+
 console.log('PASS R4b quality gate, fallback, opt-in, score-only, deterministic and no RNG');
