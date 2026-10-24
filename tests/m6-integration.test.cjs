@@ -23,5 +23,5 @@ const accepted=M.apply(s,{quality:fake});
 assert.equal(accepted.report.accepted,1,'allowed counter chord-tone correction');
 assert.equal(accepted.score.notes[1].midi,64);
 assert.equal(s.notes[1].midi,60);
-assert.deepEqual(accepted.score.notes[0],s.notes[0],'outside-target unchanged');
+assert.equal(JSON.stringify(accepted.score.notes[0]),JSON.stringify(s.notes[0]),'outside-target unchanged');
 console.log('PASS M6 conservative score integration');
