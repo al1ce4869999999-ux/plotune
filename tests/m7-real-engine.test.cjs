@@ -5,7 +5,7 @@ const math=Object.create(Math);math.random=()=>{throw Error('ambient RNG forbidd
 const context={window:{},Blob,console,Math:math};
 for(const file of ['analyzer.js','resonare-v08.js','loop-arranger-v09.js','story-structure-v01.js',
  'music-psychology-v01.js','motif-planner-v01.js','melodic-grammar-v01.js','m2-emotion-phrase-v01.js',
- 'm3-harmony-melody-v01.js','m4-voice-dialogue-v01.js','m5-performance-v01.js','handheld-v21.js','m6-quality-v01.js','m6-integration-v01.js','m7-generation-v01.js'])
+ 'm3-harmony-melody-v01.js','m3-tonal-journey-v01.js','m4-voice-dialogue-v01.js','m5-performance-v01.js','handheld-v21.js','m6-quality-v01.js','m6-integration-v01.js','m7-generation-v01.js'])
  vm.runInNewContext(fs.readFileSync(file,'utf8'),context,{filename:file});
 const m=context.window.PlotuneM7Generation,deps=m.dependenciesFromRoot();
 const hash=s=>crypto.createHash('sha256').update(s).digest('hex');
