@@ -1,0 +1,25 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const math=Object.create(Math);math.random=()=>{throw Error('RNG consumed');};
+const ctx={window:{},Math:math};vm.runInNewContext(fs.readFileSync('expectancy-r3.js','utf8'),ctx);
+const R=ctx.window.PlotuneExpectancyR3;
+const phrase=[0,2,4,2,0].map((degree,i)=>({degree,position:i*2,durationUnits:1,phraseStart:i===0}));
+const corpus=[phrase,phrase,phrase],model=R.train(corpus,{source:'synthetic-test-fixtures',style:'test'});
+const before=JSON.stringify(phrase),a=R.evaluate(phrase,{}, {model}),b=R.evaluate(phrase,{}, {model});
+assert.equal(JSON.stringify(a),JSON.stringify(b));assert.equal(JSON.stringify(phrase),before);
+assert(a.trace.every(x=>Number.isFinite(x.axes.joint.ic)&&Number.isFinite(x.axes.joint.entropy)));
+assert(a.trace.every(x=>Object.keys(x.axes).every(k=>Number.isFinite(x.axes[k].probability))));
+for(const axis of ['interval','rhythm','joint']){
+ const d=R.distribution(model,axis,['missing','context']);
+ assert(Math.abs(Object.values(d.probabilities).reduce((a,b)=>a+b,0)-1)<1e-12);
+}
+const unseen=R.evaluate([{degree:88,durationUnits:17},{rest:true,durationUnits:3}],{}, {model});
+assert(unseen.trace.every(x=>Number.isFinite(x.axes.joint.ic)));
+const altered=phrase.map(x=>({...x}));altered[2].durationUnits=3;
+assert.notEqual(R.evaluate(altered,{}, {model}).trace[2].axes.rhythm.symbol,a.trace[2].axes.rhythm.symbol);
+assert.equal(R.evaluate(altered,{}, {model}).trace[2].axes.interval.symbol,a.trace[2].axes.interval.symbol);
+const pitch=phrase.map(x=>({...x}));pitch[2].degree=6;
+assert.notEqual(R.evaluate(pitch,{}, {model}).trace[2].axes.interval.symbol,a.trace[2].axes.interval.symbol);
+const boundary=phrase.map(x=>({...x}));boundary[2].phraseStart=true;
+assert.equal(R.evaluate(boundary,{}, {model}).trace[2].axes.joint.order,0);
+const uniform=R.evaluate(phrase);assert.equal(uniform.model.metadata.training,'untrained-uniform');
+console.log('PASS R3a deterministic scoring, normalized distributions, finite unknowns, no RNG/mutation, rhythmic and melodic separation');
