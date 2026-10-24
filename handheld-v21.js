@@ -963,7 +963,7 @@ function score(plan){
  if(plan.musicArrangementPerceptionR5===true){
   try{
    if(!root.PlotuneArrangementPerceptionR5?.evaluate)throw new Error('R5 evaluator unavailable');
-   const assessment=root.PlotuneArrangementPerceptionR5.evaluate({notes,duration,bpm},{},{});
+   const assessment=root.PlotuneArrangementPerceptionR5.evaluate({notes,duration,bpm},{},{wholeTrackArc,timbres:{lead:palette?.lead??game.lead,counter:palette?.secondary??null,chords:palette?.chords??null,arp:palette?.arp??null,bass:palette?.bass??game.bass,pad:palette?.pad??null,sparkle:palette?.sparkle??null}});
    details.arrangementPerceptionR5=assessment;
    if(root.PlotuneResearchEvaluation?.record){
     const r0=root.PlotuneResearchEvaluation.record(details,{status:assessment.status==='fallback'?'fallback':'ok',metrics:assessment.metrics,diagnostics:assessment.diagnostics},'R5 score-only diagnostics; no candidate selection');
