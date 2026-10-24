@@ -320,7 +320,7 @@ function score(plan){
  const arcAt=b=>{
   const fraction=(b+.5)/bars;
   const stage=Math.min(3,Math.floor(fraction*4));
-  const profile=[.70,.94,1.23,.77][stage];
+  const profile=(plan.phaseSongForm===true?[.55,.88,1.36,.62]:[.70,.94,1.23,.77])[stage];
   return {stage:arcStages[stage],energy:profile,
     density:[.72,.96,1.12,.68][stage],
     register:[-1,0,2,-1][stage]};
@@ -921,6 +921,22 @@ function score(plan){
   for(const key of Object.keys(voices))
    if(key!=='drums')voices[key]=notes.filter(n=>n.voice===key).length;
  }
+ // Phase 3: instrumentation follows the four-section song form. Off is untouched.
+ if(plan.phaseArrangement===true){
+  const kept=notes.filter(n=>{
+   const stage=Math.min(3,Math.floor(n.t/duration*4));
+   return !(stage===0&&['counter','sparkle'].includes(n.voice))&&
+          !(stage===3&&n.voice==='arp');
+  });
+  notes.length=0;notes.push(...kept);
+  for(const n of notes){
+   const stage=Math.min(3,Math.floor(n.t/duration*4));
+   if(n.voice==='pad'&&stage===0)n.volume*=.7;
+   if(n.voice==='lead'&&stage===2)n.volume*=1.08;
+   if(n.voice==='bass'&&stage===3)n.volume*=.82;
+  }
+  for(const key of Object.keys(voices))if(key!=='drums')voices[key]=notes.filter(n=>n.voice===key).length;
+ }
  // Phase 4: opt-in phrase-boundary breath and arrival anticipation.
  const transitions=[];
  if(plan.musicTransitions===true){
@@ -944,6 +960,8 @@ function score(plan){
  }
  const details={
   transitions,
+  phaseArrangement:plan.phaseArrangement===true?'four-section instrument entrance/exit plan':null,
+  phaseSongForm:plan.phaseSongForm===true?'four-section dynamic arc':null,
   performance:performance?performance.details:null,
   voiceDialogue:voiceDialogue?{responseCount:voiceDialogue.responseCount,
    replies:voiceDialogue.responses.map(x=>({bar:x.bar,stage:x.stage,mode:x.mode,from:x.from,until:x.until})),
