@@ -38,6 +38,8 @@ jobs:
           node tests/m3-harmony-melody.test.cjs
           node tests/m6-quality.test.cjs
           node tests/m6-integration.test.cjs
+          node tests/phase-form-arrangement-integration.test.cjs
+          node tests/m7-generation.test.cjs
           node tests/m7-ablation.test.cjs
           node tests/m7-aggregate.test.cjs
           node tests/m7-browser-wiring.test.cjs
