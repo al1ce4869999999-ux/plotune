@@ -27,5 +27,8 @@ assert(selected.score.details.tensionR2.phrase.every(p=>typeof p.tensionSelected
 assert(selected.score.details.tensionR2.harmony.every(p=>typeof p.tensionSelected==='boolean'),'M3 selection reasons recorded');
 assert.deepEqual(fingerprint(H.render(selector)),fingerprint(selected),'R2 tension selection deterministic');
 assert(selected.samples.every(Number.isFinite),'R2 selection renders finite PCM');
+assert.notEqual(fingerprint(selected).notes,fingerprint(on).notes,'R2 M2/M3 target selection must cause real note difference on fixed seed');
+assert.notEqual(fingerprint(selected).pcm,fingerprint(on).pcm,'R2 target selection must cause real PCM difference on fixed seed');
+assert.equal(JSON.stringify(selected.score.harmony),JSON.stringify(on.score.harmony),'R2 test case changes melody without disturbing chord progression');
 assert.equal(selected.score.harmony.at(-1).chord,0,'R2 retains tonic cadence');
 console.log('PASS R2 M7 phase-m real render PCM/dynamics diff, R4 selection untouched, OFF/ON deterministic');
