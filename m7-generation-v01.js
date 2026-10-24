@@ -1,12 +1,12 @@
 /* M7.1: four-condition generation contract. No playback/UI changes. */
 (function(root){'use strict';
 const IDS=Object.freeze(['baseline','phase','m','phase-m']);
-const FLAG_KEYS=Object.freeze(['motifDevelopment','musicDevelopment','musicHarmony','musicVoices','musicPerformance','musicTransitions','musicTonalJourney','phaseSongForm','phaseArrangement']);
+const FLAG_KEYS=Object.freeze(['motifDevelopment','musicDevelopment','musicHarmony','musicVoices','musicPerformance','musicTransitions','musicTonalJourney','musicMotifMemory','phaseSongForm','phaseArrangement']);
 function condition(id){
  if(!IDS.includes(id))throw new RangeError('unknown M7 condition: '+id);
  const phase=id==='phase'||id==='phase-m',m=id==='m'||id==='phase-m';
  return Object.freeze({id,phase,m,phaseScope:phase?'form-motif-arrangement-transitions':'off',m6Repair:false,flags:Object.freeze({
-  phaseSongForm:phase,phaseArrangement:phase,motifDevelopment:phase,musicTransitions:phase,musicTonalJourney:m,musicDevelopment:m,musicHarmony:m,musicVoices:m,musicPerformance:m
+  phaseSongForm:phase,phaseArrangement:phase,motifDevelopment:phase,musicTransitions:phase,musicTonalJourney:m,musicMotifMemory:m,musicDevelopment:m,musicHarmony:m,musicVoices:m,musicPerformance:m
  })});
 }
 function request(input,seed){
@@ -76,7 +76,7 @@ function generate(input,seed,dependencies,options={}){
 }
 // Individual flag ablations are additional tracks, not substitutions for the fixed four.
 const ABLATIONS=Object.freeze({
- m1:'motifDevelopment',m2:'musicDevelopment',m3:'musicHarmony',
+ m1:'musicMotifMemory',m2:'musicDevelopment',m3:'musicHarmony',
  m4:'musicVoices',m5:'musicPerformance'
 });
 function generateAblations(input,seed,dependencies){
