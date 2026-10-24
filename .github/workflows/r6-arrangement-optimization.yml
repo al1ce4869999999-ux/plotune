@@ -1,0 +1,30 @@
+name: R6 arrangement perception validation
+on:
+  push:
+    branches: [feature/r6-arrangement-optimization]
+  pull_request:
+    paths:
+      - 'arrangement-optimization-r6.js'
+      - 'handheld-v21.js'
+      - 'tests/arrangement-optimization-r6.test.cjs'
+      - '.github/workflows/r6-arrangement-optimization.yml'
+jobs:
+  r5:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: R6 syntax and integration
+        run: |
+          node --check arrangement-optimization-r6.js
+          node --check handheld-v21.js
+          node tests/arrangement-optimization-r6.test.cjs
+      - name: R0-R4 and M7 regressions
+        run: |
+          node tests/r4-m7-real-engine.test.cjs
+          node tests/r3-m7-real-engine.test.cjs
+          node tests/r0-m7-integration.test.cjs
+          node tests/motif-similarity-r1.test.cjs
+          node tests/m2-emotion-phrase.test.cjs
