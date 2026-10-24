@@ -346,10 +346,35 @@ function score(plan){
     {...stages[arcAt(b).stage],...(plan.phraseEmotion||{})},
     {seed:(seed^Math.imul(b+1,2654435761))>>>0,candidates:8}).events;
  }
+ // M1 section memory: explicitly register the opening motif and realize a
+ // deterministic return from the same motif identity. Keep legacy OFF untouched.
+ let m1History=null;
+ if(plan.motifDevelopment===true&&sharedPhrases&&bars>=4&&
+    root.PlotuneMotifRegistry?.register&&root.PlotuneMotifSectionHistory?.realize){
+  const sectionCount=4;
+  const opening=root.PlotuneMotifRegistry.register('main-theme',sharedPhrases[0],
+   {expressiveRole:'opening identity'});
+  const sections=Array.from({length:sectionCount},(_,i)=>({
+   sectionId:'section-'+i,motifReferences:['main-theme']
+  }));
+  const rules={
+   'section-0':{kind:'transposition',options:{steps:0}},
+   'section-1':{kind:'rhythmic-shift',options:{offset:.25}},
+   'section-2':{kind:'inversion',options:{}},
+   'section-3':{kind:'transposition',options:{steps:0}}
+  };
+  m1History=root.PlotuneMotifSectionHistory.realize(sections,{'main-theme':opening},{rules});
+  const returnBar=Math.floor(bars*3/4);
+  const reference=m1History.variations.find(v=>v.sectionId==='section-3');
+  // Reappearance is recognizable because its rhythm and pitch intervals are
+  // copied from the original, with no mutation to earlier sections.
+  if(reference)sharedPhrases[returnBar]=reference.events.map(e=>({...e}));
+ }
  // M3 shared melody/harmony planning (opt-in).
  const m3JointPlan=plan.musicHarmony===true && sharedPhrases && root.PlotuneM3Harmony?
   root.PlotuneM3Harmony.plan(sharedPhrases,{progression:prog,tension:clamp(Number(plan.harmonicTension)||.45,0,1)}):null;
  if(m3JointPlan)for(let b=0;b<bars;b++)sharedPhrases[b]=m3JointPlan.phrases[b];
+ if(m1History)plan={...plan,m1HistoryTrace:m1History.trace};
  // Repeat 4-bar thematic material; vary density and fills but keep a looping identity.
  for(let b=0;b<bars;b++){
   const chord=m3JointPlan?m3JointPlan.chords[b]:chordAt(b),next=m3JointPlan?m3JointPlan.chords[(b+1)%bars]:chordAt((b+1)%bars),barAt=b*meter;
