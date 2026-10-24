@@ -24,4 +24,10 @@ assert.equal(accepted.report.accepted,1,'allowed counter chord-tone correction')
 assert.equal(accepted.score.notes[1].midi,64);
 assert.equal(s.notes[1].midi,60);
 assert.equal(JSON.stringify(accepted.score.notes[0]),JSON.stringify(s.notes[0]),'outside-target unchanged');
+const invalid={assess:()=>({issues:[{bar:0,metric:'voiceCollision'}],metrics:{}}),
+ repair:({notes})=>({accepted:true,notes:notes.map((n,i)=>i===2?{...n,midi:64}:n),reason:'claimed improvement'})};
+const anotherBar={duration:8,bpm:60,notes:[note(0,64,'chords'),note(0,60,'counter'),note(4,60,'counter')]};
+const rejected=M.apply(anotherBar,{quality:invalid});
+assert.equal(rejected.report.accepted,0,'another bar must never change');
+assert.equal(JSON.stringify(rejected.score.notes),JSON.stringify(anotherBar.notes));
 console.log('PASS M6 conservative score integration');
