@@ -42,6 +42,22 @@ function fromHarmony(phrases){
 }
 function phrase(events,target){return assess(fromPhrase(events),target);}
 function harmony(phrases,target){return assess(fromHarmony(phrases),target);}
+function harmonyCandidate(events,chord,previous,target){
+ if(!Number.isInteger(chord)||chord<0||chord>6)throw new RangeError('invalid candidate chord');
+ if(previous!=null&&(!Number.isInteger(previous)||previous<0||previous>6))throw new RangeError('invalid previous chord');
+ const metrics=fromPhrase(events);
+ // Diatonic root movement is a chord-context proxy, not harmonic dissonance.
+ // Missing previous chord => unknown tonal score, not a fabricated baseline.
+ if(previous==null)delete metrics.tonal;
+ else {
+  const steps=Math.abs(chord-previous);
+  metrics.tonal=round(Math.min(steps,7-steps)/3);
+ }
+ const result=assess(metrics,target);
+ result.diagnostics.push({code:'HARMONIC_MOTION_PROXY',message:'Tonal dimension measures diatonic root movement from previous chord, not perceptual dissonance'});
+ return result;
+}
+
 
 // Evaluate actual post-expression score section by section. This does not alter generation.
 function realized(notes,sections,duration){
@@ -64,5 +80,5 @@ function realized(notes,sections,duration){
   }
  });
 }
-root.PlotuneTensionR2b={VERSION:'r2b.shadow.1',assess,phrase,harmony,realized};
+root.PlotuneTensionR2b={VERSION:'r2b.shadow.1',assess,phrase,harmony,harmonyCandidate,realized};
 })(typeof window!=='undefined'?window:globalThis);
