@@ -5,7 +5,7 @@ const FLAG_KEYS=Object.freeze(['motifDevelopment','musicDevelopment','musicHarmo
 function condition(id){
  if(!IDS.includes(id))throw new RangeError('unknown M7 condition: '+id);
  const phase=id==='phase'||id==='phase-m',m=id==='m'||id==='phase-m';
- return Object.freeze({id,phase,m,m6Repair:false,flags:Object.freeze({
+ return Object.freeze({id,phase,m,phaseScope:phase?'motif-development-only':'off',m6Repair:false,flags:Object.freeze({
   motifDevelopment:phase,musicDevelopment:m,musicHarmony:m,musicVoices:m,musicPerformance:m
  })});
 }
