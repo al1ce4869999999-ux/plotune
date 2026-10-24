@@ -350,15 +350,15 @@ function score(plan){
    const selected=root.PlotuneM2Phrase.selectPhrase(sharedPhrases[b],
     {...stages[arcAt(b).stage],...(plan.phraseEmotion||{})},
     {seed:(seed^Math.imul(b+1,2654435761))>>>0,candidates:8,
-     ...(r2TargetAt(b)&&root.PlotuneTensionR2b?{tensionTarget:r2TargetAt(b)}:{})});
-   if(selected.tensionDiagnostics)r2PhraseDiagnostics.push({bar:b,candidateIndex:selected.candidateIndex,assessments:selected.tensionDiagnostics});
+     ...(r2TargetAt(b)&&root.PlotuneTensionR2b?{tensionTarget:r2TargetAt(b),tensionSelection:plan.musicTensionR2Selection===true}:{})});
+   if(selected.tensionDiagnostics)r2PhraseDiagnostics.push({bar:b,candidateIndex:selected.candidateIndex,assessments:selected.tensionDiagnostics,tensionSelected:selected.tensionSelected||false});
    sharedPhrases[b]=selected.events;
   }
  }
  // M3 shared melody/harmony planning (opt-in).
  const m3JointPlan=plan.musicHarmony===true && sharedPhrases && root.PlotuneM3Harmony?
   root.PlotuneM3Harmony.plan(sharedPhrases,{progression:prog,tension:clamp(Number(plan.harmonicTension)||.45,0,1),
-   ...(r2Sections&&root.PlotuneTensionR2b?{tensionTargets:Array.from({length:bars},(_,b)=>r2TargetAt(b)||{})}:{})}):null;
+   ...(r2Sections&&root.PlotuneTensionR2b?{tensionTargets:Array.from({length:bars},(_,b)=>r2TargetAt(b)||{}),tensionSelection:plan.musicTensionR2Selection===true}:{})}):null;
  if(m3JointPlan)for(let b=0;b<bars;b++)sharedPhrases[b]=m3JointPlan.phrases[b];
  // Repeat 4-bar thematic material; vary density and fills but keep a looping identity.
  for(let b=0;b<bars;b++){
@@ -932,7 +932,7 @@ function score(plan){
   details.tensionR2={version:'r2b.shadow.1',mode:performance?.details?.tensionDynamicsApplied?'dynamics-applied':'shadow-only',sections:r2Sections.length,
    dynamicsApplied:performance?.details?.tensionDynamicsApplied||0,
    phrase:r2PhraseDiagnostics,
-   harmony:m3JointPlan?m3JointPlan.decisions.map(d=>({bar:d.bar,chord:d.chord,assessments:d.tensionDiagnostics||[]})):[],
+   harmony:m3JointPlan?m3JointPlan.decisions.map(d=>({bar:d.bar,chord:d.chord,assessments:d.tensionDiagnostics||[],tensionSelected:d.tensionSelected||false})):[],
    realized:root.PlotuneTensionR2b.realized(notes,r2Sections,duration)
   };
  }
