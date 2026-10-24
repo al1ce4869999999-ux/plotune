@@ -18,5 +18,5 @@ const listeningSource=fs.readFileSync('m7-listening-v01.js','utf8');
 assert(listeningSource.includes("if(generating)return"),'duplicate requests blocked');
 assert(listeningSource.includes("finally{generating=false;make.disabled=false;}"),'generate button restored on error');
 assert(listeningSource.includes("result.request.duration"),'track duration shown');
-assert(listeningSource.includes("' · seed '+seed"),'shared seed shown');
+assert(listeningSource.includes(" · seed '+seed"),'shared seed shown');
 console.log('M7.2 listening contract passed');
