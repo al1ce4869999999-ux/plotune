@@ -8,14 +8,12 @@ function eventsOf(input){
  let previous=null;
  return xs.map((e,i)=>{
   const p=pitch(e),rest=e.rest===true||p===null;
+  const boundary=!!(e.phraseStart||e.phraseBoundary||e.sectionStart||i===0);
+  if(boundary)previous=null;
   const interval=rest?'rest':previous===null?'initial':String(p-previous);
   if(!rest)previous=p;
-  const duration=Number(e.durationUnits??e.duration??e.length??1);
+  const duration=Number(e.durationUnits??e.d??e.duration??e.length??1);
   if(!Number.isFinite(duration)||duration<=0)throw new RangeError('invalid duration');
-  const boundary=!!(e.phraseStart||e.phraseBoundary||e.sectionStart||i===0);
-  if(boundary&&i>0&&p!==null){ // restart melodic interval at explicit phrase breaks
-   previous=p;
-  }
   const rhythm=(e.rest?'rest:':'note:')+String(Math.round(duration*1000)/1000);
   return {index:i,interval,boundary,rhythm,rest};
  });
