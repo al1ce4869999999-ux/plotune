@@ -896,6 +896,33 @@ function score(plan){
   for(const key of Object.keys(voices))
    if(key!=='drums')voices[key]=notes.filter(n=>n.voice===key).length;
  }
+ // M-layer phrase selection may cause sharp section-seam jumps.
+ // Only bridge audible gaps at large lead leaps; legacy/Phase untouched.
+ const mSeamBridges=[];
+ if(plan.musicDevelopment===true){
+  const sectionLength=duration/4;
+  for(let i=1;i<4;i++){
+   const boundary=i*sectionLength;
+   const before=notes.filter(n=>n.voice==='lead'&&n.t<boundary&&n.t>=boundary-step*8)
+    .sort((a,b)=>b.t-a.t)[0];
+   const after=notes.filter(n=>n.voice==='lead'&&n.t>=boundary&&n.t<boundary+step*8)
+    .sort((a,b)=>a.t-b.t)[0];
+   if(!before||!after||!Number.isFinite(before.midi)||!Number.isFinite(after.midi))continue;
+   const leap=Math.abs(after.midi-before.midi);
+   const gap=after.t-(before.t+before.d);
+   if(leap<8||gap<step*.9)continue;
+   const t=Math.max(before.t+before.d,boundary-step*.45);
+   const available=after.t-t;
+   if(available<step*.35)continue;
+   const bridgePitch=Math.round((before.midi+after.midi)/2);
+   notes.push({t,d:Math.min(step*.55,available*.75),midi:bridgePitch,
+    voice:'lead',role:'lead',timbre:after.timbre||before.timbre,
+    volume:Math.min(before.volume||.1,after.volume||.1)*.52,
+    transitionMarker:'m-seam-bridge'});
+   mSeamBridges.push({boundary,leap,bridgePitch});
+  }
+  if(mSeamBridges.length)notes.sort((a,b)=>a.t-b.t);
+ }
  // Phase 4: phrase-boundary anticipation and breath. OFF remains unchanged.
  const transitions=[];
  if(plan.musicTransitions===true){
@@ -923,7 +950,7 @@ function score(plan){
   for(const key of Object.keys(voices))if(key!=='drums')voices[key]=notes.filter(n=>n.voice===key).length;
  }
  const details={
-  transitions,
+  transitions,mSeamBridges,
   performance:performance?performance.details:null,
   voiceDialogue:voiceDialogue?{responseCount:voiceDialogue.responseCount,
    replies:voiceDialogue.responses.map(x=>({bar:x.bar,stage:x.stage,mode:x.mode,from:x.from,until:x.until})),
