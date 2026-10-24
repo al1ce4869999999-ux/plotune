@@ -18,6 +18,12 @@ assert.equal(d.metrics.roleConflict,0,'register overlap not identical to role co
 const changed=assess([n('lead',0,72),n('chords',3,67)]);
 assert(changed.entrances.some(x=>x.entered.includes('chords')),'entry tracking');
 assert(changed.sections.length===4&&changed.windows.length===2);
+assert(changed.phrases.length===1&&changed.events.length===2);
+const arc=assess([n('lead',0,72)]);
+const staged=E.evaluate(score([n('lead',0,72)]),{}, {wholeTrackArc:[{stage:'opening'},{stage:'climax'}],timbres:{lead:'flute'}});
+assert.deepEqual(Array.from(staged.sections,x=>x.section),['opening','climax']);
+assert.equal(staged.sectionSource,'wholeTrackArc');
+assert.equal(staged.sections[0].features.timbres.lead,'flute');
 assert(Object.keys(changed.metrics).length===8);
 const fallback=E.evaluate({notes:[{voice:'lead'}],duration:4});
 assert.equal(fallback.status,'partial');
@@ -37,3 +43,14 @@ for(const duration of [15,30,60]){
  }
 }
 console.log('PASS R5 symbolic metrics, time windows, entries, fallback and M7 4x3 unchanged audio');
+
+// Immutable R0 baseline must remain unchanged when R5 is enabled.
+const fixture=JSON.parse(fs.readFileSync('tests/fixtures/r0-m7-baselines.json','utf8'));
+const reference={scene:'森の道を歩き、友との別れを思い出して涙をこらえる',character:'静かな旅人',world:'森',style:'handheld',gameStyle:'journey'};
+for(const {duration,seed,conditions} of fixture.cases){
+ const req=G.request({...reference,duration},seed);
+ for(const {conditionId,plan} of G.makePlans(req,G.dependenciesFromRoot())){
+  assert.deepEqual(sha(H.render({...plan,musicArrangementPerceptionR5:true})),conditions[conditionId], 'R5 ON must match immutable R0 '+duration+' '+conditionId);
+ }
+}
+console.log('PASS R5 vs immutable R0 baseline across four M7 conditions');
