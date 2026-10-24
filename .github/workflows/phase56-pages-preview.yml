@@ -1,0 +1,74 @@
+name: Publish Plotune with Phase 5/6 preview
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: plotune-pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Checkout stable public site
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: stable
+
+      - name: Checkout unmerged listening branch
+        uses: actions/checkout@v4
+        with:
+          ref: pages-phase56-listening
+          path: preview
+
+      - name: Prepare Pages artifact and isolated preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p public/phase56-preview
+          cp -a stable/. public/
+          rm -rf public/.git public/.github
+          for asset in \
+            phase56-lab.html \
+            phase56-lab-v01.js \
+            phase56-integration-v01.js \
+            phase6-evaluation-v01.js \
+            phase5-whole-song-audit-v01.js \
+            phase5-section-revision-v01.js \
+            handheld-v21.js \
+            melodic-grammar-v01.js \
+            motif-planner-v01.js \
+            m2-emotion-phrase-v01.js \
+            m3-harmony-melody-v01.js \
+            m4-voice-dialogue-v01.js \
+            m5-performance-v01.js
+          do
+            test -s "preview/$asset"
+            cp "preview/$asset" public/phase56-preview/
+          done
+          mv public/phase56-preview/phase56-lab.html public/phase56-preview/index.html
+          touch public/.nojekyll
+          test -s public/index.html
+          test -s public/phase56-preview/index.html
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - name: Deploy Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
