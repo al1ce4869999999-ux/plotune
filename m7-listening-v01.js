@@ -32,16 +32,17 @@ function attach(doc,api,AudioContextClass){
  async function play(id){
   if(!result)return;
   const item=result.tracks.find(x=>x.conditionId===id);if(!item)return;
-  const offset=transport?position():0;stop();const ticket=epoch;
+  const offset=0;stop();const ticket=epoch;
   try{
    if(!AudioContextClass)throw new Error('Web Audio unavailable');
    context=context||new AudioContextClass();await context.resume();if(ticket!==epoch)return;
    let buffer=buffers.get(id);
    if(!buffer){const t=item.track;buffer=context.createBuffer(1,t.samples.length,t.sampleRate);buffer.copyToChannel(t.samples,0);buffers.set(id,buffer);}
    const node=context.createBufferSource(),gain=context.createGain();
-   gain.gain.value=gainFor(item.track);node.buffer=buffer;node.loop=true;node.connect(gain);gain.connect(context.destination);
+   gain.gain.value=gainFor(item.track);node.buffer=buffer;node.loop=false;node.connect(gain);gain.connect(context.destination);
    node.start(0,offset);source=node;transport={id,offset,started:context.currentTime,duration:buffer.duration};
-   report(LABELS[id]+' · '+offset.toFixed(1)+'秒から再生');
+   node.onended=()=>{if(source===node){source=null;transport=null;report(LABELS[id]+' · 再生終了');}};
+   report(LABELS[id]+' · 冒頭から再生');
   }catch(e){stop();report('再生エラー: '+e.message);}
  }
  function create(){
@@ -55,7 +56,7 @@ function attach(doc,api,AudioContextClass){
    buttons.forEach(b=>b.disabled=false);stopButton.disabled=false;
    if(root.PlotuneM7Evaluation?.controller)root.PlotuneM7Evaluation.controller.begin(result);
    if(root.PlotuneM7Diagnostics?.controller)root.PlotuneM7Diagnostics.controller.show(result);
-   report('4曲生成完了 · seed '+seed+' · '+result.request.duration+'秒 · 同じ位置で切り替え可能 · 音量を静的補正');
+   report('4曲生成完了 · seed '+seed+' · '+result.request.duration+'秒 · 各曲の冒頭から再生 · 音量を静的補正');
   }catch(e){report('4条件生成エラー: '+e.message);}
   finally{generating=false;make.disabled=false;}
  }
