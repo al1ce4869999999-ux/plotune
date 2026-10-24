@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const root={};root.globalThis=root;vm.runInNewContext(fs.readFileSync('m7-trial-ui-v01.js','utf8'),root);
+const api=root.PlotuneM7TrialUI;
+const generation={request:{seed:42,scene:'forest',duration:15}};
+const evaluation={seed:42,input:{scene:'forest',duration:15},ratings:{}};
+const diagnostics={seed:42,metrics:{}};
+const trial=api.createTrial(generation,evaluation,diagnostics);
+assert.equal(trial.trialId,'forest:42:15');
+evaluation.input.scene='modified';assert.equal(trial.evaluation.input.scene,'forest','snapshot does not alias mutable rating');
+assert.throws(()=>api.createTrial(generation,{...evaluation,seed:1},diagnostics),{name:'RangeError'});
+assert.throws(()=>api.createTrial(generation,{...evaluation,input:{scene:'another',duration:15}},diagnostics),{name:'RangeError'});
+assert.throws(()=>api.createTrial(generation,evaluation,{seed:12,metrics:{}}),{name:'RangeError'});
+const html=fs.readFileSync('index.html','utf8');
+for(const id of ['m7TrialAdd','m7TrialExport','m7TrialStatus'])assert(html.includes('id="'+id+'"'));
+assert(html.indexOf('m7-trial-ui-v01.js')>html.indexOf('m7-aggregate-v01.js'));
+console.log('PASS M7 multi-trial browser UI contracts');
