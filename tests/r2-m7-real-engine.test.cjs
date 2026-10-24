@@ -20,4 +20,12 @@ assert.equal(on.score.details.tensionR2.realized.length,2);
 assert.equal(on.score.details.tensionR2.mode,'dynamics-applied');
 assert.deepEqual(fingerprint(H.render(plan)),fingerprint(off),'OFF PCM stable');
 assert.deepEqual(fingerprint(H.render({...plan,musicTensionR2:true,tensionPlan})),fingerprint(on),'ON PCM stable');
+
+const selector={...plan,musicTensionR2:true,musicTensionR2Selection:true,tensionPlan};
+const selected=H.render(selector);
+assert(selected.score.details.tensionR2.phrase.every(p=>typeof p.tensionSelected==='boolean'),'M2 selection reasons recorded');
+assert(selected.score.details.tensionR2.harmony.every(p=>typeof p.tensionSelected==='boolean'),'M3 selection reasons recorded');
+assert.deepEqual(fingerprint(H.render(selector)),fingerprint(selected),'R2 tension selection deterministic');
+assert(selected.samples.every(Number.isFinite),'R2 selection renders finite PCM');
+assert.equal(selected.score.harmony.at(-1).chord,0,'R2 retains tonic cadence');
 console.log('PASS R2 M7 phase-m real render PCM/dynamics diff, R4 selection untouched, OFF/ON deterministic');
