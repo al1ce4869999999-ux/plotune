@@ -15,5 +15,14 @@ assert.equal(out.notes[6].midi,35,'drums unchanged');
 assert.deepEqual(out.harmony.map(h=>h.keyOffset),[0,0,2,0]);
 assert.equal(JSON.stringify(score),saved,'source preserved');
 assert.equal(JSON.stringify(out),JSON.stringify(apply(score)),'deterministic');
+const major={duration:16,bpm:60,harmony:[{t:0,chord:0},{t:4,chord:3},{t:8,chord:4},{t:12,chord:0}],
+ notes:[{t:4,d:1,midi:65,voice:'pad'},{t:4,d:1,midi:69,voice:'pad'},
+ {t:4,d:1,midi:72,voice:'pad'},{t:4,d:1,midi:69,voice:'lead'}]};
+const minorIV=apply(major,{tonic:60,mode:'major'});
+assert.equal(minorIV.notes[1].midi,68,'minor iv third borrowed from parallel minor');
+assert.equal(minorIV.notes[3].midi,69,'melody identity stays unchanged');
+assert.equal(minorIV.tonalJourney.borrowed.function,'iv borrowed from parallel minor');
+assert.equal(JSON.stringify(major.notes[1]),JSON.stringify({t:4,d:1,midi:69,voice:'pad'}));
+assert.equal(apply(major,{tonic:60,mode:'minor'}).tonalJourney.borrowed,null);
 assert.throws(()=>apply(score,{semitones:8}),{name:'TypeError'});
 console.log('PASS M3 resolved temporary tonicization');
