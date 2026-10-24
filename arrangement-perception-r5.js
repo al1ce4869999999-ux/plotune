@@ -19,12 +19,15 @@ function evaluate(score,plan={},context={}){
  const meter=Number(context.meter)|| (Number.isFinite(score.bpm)&&score.bpm>0?240/score.bpm:Math.min(4,duration));
  const bars=Math.max(1,Math.ceil(duration/meter));
  const arc=['opening','development','climax','resolution'];
+ const stages=Array.isArray(context.wholeTrackArc)&&context.wholeTrackArc.length===bars?context.wholeTrackArc.map((x,i)=>({start:i*meter,end:Math.min(duration,(i+1)*meter),name:String(x.stage||'unknown')})):null;
+ const timbres=context.timbres&&typeof context.timbres==='object'?context.timbres:{};
+ const sectionAt=t=>stages?stages[Math.min(bars-1,Math.floor(t/meter))].name:arc[Math.min(3,Math.floor(t/duration*4))];
  const windows=[];
  const sample=(start,end,unit,section)=>{
   const involved=valid.filter(n=>n.t<end&&n.t+n.d>start);
   const attacks=involved.filter(n=>n.t>=start&&n.t<end);
   const voices=[...new Set(involved.map(n=>n.voice))].sort();
-  const foreground=involved.filter(n=>n.role==='foreground'||n.voice==='lead');
+  const foreground=involved.filter(n=>n.role==='foreground'||n.voice==='lead'||n.voice==='counter');
   let overlap=0,simultaneous=0,conflict=0,pairs=0,blended=0;
   const evidence=[];
   for(let i=0;i<involved.length;i++)for(let j=i+1;j<involved.length;j++){
@@ -47,21 +50,24 @@ function evaluate(score,plan={},context={}){
   let weightedVoices=0;
   for(let i=1;i<segments.length;i++){const at=(segments[i-1]+segments[i])/2;const active=new Set(involved.filter(n=>n.t<=at&&n.t+n.d>at).map(n=>n.voice));weightedVoices+=active.size*(segments[i]-segments[i-1]);}
   const density=attacks.length/(end-start);
-  const features={events:involved.length,attacks:attacks.length,voices,foregroundVoices:[...new Set(foreground.map(n=>n.voice))].sort(),invalidNotes:invalid.length};
+  const features={events:involved.length,attacks:attacks.length,voices,timbres:Object.fromEntries(voices.map(v=>[v,timbres[v]??null])),foregroundVoices:[...new Set(foreground.map(n=>n.voice))].sort(),invalidNotes:invalid.length};
   const metrics={registerOverlap:round(pairs?overlap/pairs:0),simultaneousOnset:round(pairs?simultaneous/pairs:0),activeVoiceCount:round(weightedVoices/(end-start)),noteDensity:round(density),roleConflict:round(pairs?conflict/pairs:0),foregroundClarity:round(foreground.length?clamp(1-conflict/Math.max(1,foreground.length)):0),blendFit:round(pairs?blended/pairs:0),instrumentChangeDistance:0};
   return {unit,start:round(start),end:round(end),section,metrics,features,evidence,unavailable:[...(foreground.length?[]:['FOREGROUND_ABSENT']), 'SPECTRAL_MASKING_NOT_MEASURED','TIMBRE_FUSION_NOT_MEASURED']};
  };
- for(let b=0;b<bars;b++){const start=b*meter,end=Math.min(duration,(b+1)*meter);windows.push(sample(start,end,'bar',arc[Math.min(3,Math.floor((b+.5)/bars*4))]));}
+ for(let b=0;b<bars;b++){const start=b*meter,end=Math.min(duration,(b+1)*meter);windows.push(sample(start,end,'bar',sectionAt((start+end)/2)));}
  const phraseWindows=[];
  for(let b=0;b<bars;b+=4)phraseWindows.push(sample(b*meter,Math.min(duration,(b+4)*meter),'phrase',arc[Math.min(3,Math.floor((b+.5)/bars*4))]));
- const sectionWindows=arc.map((section,i)=>sample(duration*i/4,duration*(i+1)/4,'section',section));
+ const sections=[];
+ if(stages){for(const stage of stages){const previous=sections[sections.length-1];if(previous&&previous.name===stage.name)previous.end=stage.end;else sections.push({...stage});}}
+ else for(let i=0;i<4;i++)sections.push({name:arc[i],start:duration*i/4,end:duration*(i+1)/4});
+ const sectionWindows=sections.map(x=>sample(x.start,x.end,'section',x.name));
  const whole=sample(0,duration,'song','whole');
  const distance=(a,b)=>{const s=new Set(a.features.voices),t=new Set(b.features.voices);return round(new Set([...s,...t]).size? [...new Set([...s,...t])].filter(v=>s.has(v)!==t.has(v)).length/new Set([...s,...t]).size:0);};
  for(let i=1;i<windows.length;i++)windows[i].metrics.instrumentChangeDistance=distance(windows[i-1],windows[i]);
  for(let i=1;i<sectionWindows.length;i++)sectionWindows[i].metrics.instrumentChangeDistance=distance(sectionWindows[i-1],sectionWindows[i]);
- whole.metrics.instrumentChangeDistance=round(sectionWindows.slice(1).reduce((a,w)=>a+w.metrics.instrumentChangeDistance,0)/3);
+ whole.metrics.instrumentChangeDistance=round(sectionWindows.slice(1).reduce((a,w)=>a+w.metrics.instrumentChangeDistance,0)/Math.max(1,sectionWindows.length-1));
  const entrances=windows.map((w,i)=>({bar:i+1,entered:i?[...w.features.voices].filter(v=>!windows[i-1].features.voices.includes(v)):w.features.voices,exited:i?windows[i-1].features.voices.filter(v=>!w.features.voices.includes(v)):[],foreground:w.features.foregroundVoices}));
- return {version:VERSION,status:invalid.length?'partial':'ok',kind:'symbolic-proxy',metrics:whole.metrics,windows,phrases:phraseWindows,sections:sectionWindows,events:valid.map(n=>({index:n.index,voice:n.voice,role:n.role,start:round(n.t),end:round(n.t+n.d),midi:n.midi,volume:n.volume})),whole,entrances,diagnostics:invalid.map(index=>({code:'INVALID_NOTE',index})),limits:['Foreground clarity and blend fit are symbolic proxies, not listening judgments','No spectral masking or acoustic timbre similarity inferred'],featureFlag:'musicArrangementPerceptionR5'};
+ return {version:VERSION,status:invalid.length?'partial':'ok',kind:'symbolic-proxy',metrics:whole.metrics,windows,phrases:phraseWindows,sections:sectionWindows,events:valid.map(n=>({index:n.index,voice:n.voice,role:n.role,start:round(n.t),end:round(n.t+n.d),midi:n.midi,volume:n.volume})),whole,entrances,diagnostics:invalid.map(index=>({code:'INVALID_NOTE',index})),sectionSource:stages?'wholeTrackArc':'fallback-equal-quarters',timbreSource:Object.keys(timbres).length?'render-palette-metadata':'unavailable',limits:['Foreground clarity and blend fit are symbolic proxies, not listening judgments','No spectral masking or acoustic timbre similarity inferred'],featureFlag:'musicArrangementPerceptionR5'};
 }
 root.PlotuneArrangementPerceptionR5={VERSION,evaluate};
 })(typeof window!=='undefined'?window:globalThis);
