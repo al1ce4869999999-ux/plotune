@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict');
+const {reviseSection}=require('../phase5-section-revision-v01.js');
+const a={duration:8,bpm:120,notes:[{t:0,midi:60},{t:2,midi:70},{t:4,midi:75},{t:6,midi:60}],drums:[]};
+const b={...a,notes:[a.notes[0],{t:2,midi:61},{t:4,midi:62},a.notes[3]]};
+const cost=ns=>ns.reduce((s,n)=>s+Math.abs(n.midi-60),0);
+const before=JSON.stringify(a);
+const ok=reviseSection(a,b,{start:2,end:6,cost});
+assert.equal(ok.accepted,true);
+assert.equal(ok.score.notes[0].midi,60);
+assert.equal(ok.score.notes.at(-1).midi,60);
+assert.equal(JSON.stringify(a),before,'original not mutated');
+const unsafe={...b,notes:[{t:0,midi:61},...b.notes.slice(1)]};
+assert.equal(reviseSection(a,unsafe,{start:2,end:6,cost}).reason,'OUTSIDE_SECTION_CHANGED');
+assert.equal(reviseSection(b,a,{start:2,end:6,cost}).reason,'NO_OBJECTIVE_IMPROVEMENT');
+assert.equal(reviseSection(a,{...b,drums:[{t:0}]},{start:2,end:6,cost}).reason,'GLOBAL_SCORE_CHANGED');
+console.log('PASS Phase 5 section-local conservative repair gate');

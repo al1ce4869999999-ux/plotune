@@ -38,6 +38,11 @@ jobs:
           node --check m3-harmony-melody-v01.js
           node --check m4-voice-dialogue-v01.js
           node --check m5-performance-v01.js
+          node --check phase5-whole-song-audit-v01.js
+          node --check phase5-section-revision-v01.js
+          node --check phase6-evaluation-v01.js
+          node --check phase56-integration-v01.js
+          node --check phase56-lab-v01.js
           node --check handheld-v21.js
           node --check app-v11.js
           node --check comparison-v10.js
@@ -72,12 +77,18 @@ jobs:
           node tests/m3-harmony-melody.test.cjs || failed=1
           node tests/m4-voice-dialogue.test.cjs || failed=1
           node tests/m5-performance.test.cjs || failed=1
+          node tests/m-section-seams.test.cjs || failed=1
           node tests/motif-score-integration.test.cjs || failed=1
           node tests/phase2-ab-lab.test.cjs || failed=1
           node tests/phase2-main-comparison.test.cjs || failed=1
           node tests/m3-harmony-ab-ui.test.cjs || failed=1
           node tests/phase3-expressive-ab.test.cjs || failed=1
           node tests/phase4-transition-ab.test.cjs || failed=1
+          node tests/phase5-whole-song-audit.test.cjs || failed=1
+          node tests/phase5-section-revision.test.cjs || failed=1
+          node tests/phase6-evaluation.test.cjs || failed=1
+          node tests/phase56-integration.test.cjs || failed=1
+          node tests/phase56-lab-ui.test.cjs || failed=1
           node tests/emotion-isolated-ab.test.cjs || failed=1
           node tests/resonare.test.cjs || failed=1
           node tests/structural.test.cjs || failed=1

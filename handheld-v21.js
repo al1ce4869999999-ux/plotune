@@ -896,6 +896,8 @@ function score(plan){
   for(const key of Object.keys(voices))
    if(key!=='drums')voices[key]=notes.filter(n=>n.voice===key).length;
  }
+ // Disable speculative inserted seam notes: diagnose original M events first.
+ const mSeamBridges=[];
  // Phase 4: phrase-boundary anticipation and breath. OFF remains unchanged.
  const transitions=[];
  if(plan.musicTransitions===true){
@@ -923,7 +925,7 @@ function score(plan){
   for(const key of Object.keys(voices))if(key!=='drums')voices[key]=notes.filter(n=>n.voice===key).length;
  }
  const details={
-  transitions,
+  transitions,mSeamBridges,
   performance:performance?performance.details:null,
   voiceDialogue:voiceDialogue?{responseCount:voiceDialogue.responseCount,
    replies:voiceDialogue.responses.map(x=>({bar:x.bar,stage:x.stage,mode:x.mode,from:x.from,until:x.until})),
@@ -947,8 +949,8 @@ function score(plan){
  return {notes,drums,rests,harmony,theme:motif,details,genre:'game',
   duration,bpm,sampleRate:SR};
 }
-function render(plan){
- const s=score(plan),N=Math.round(s.duration*SR),out=new Float32Array(N);
+function render(plan, suppliedScore){
+ const s=suppliedScore||score(plan),N=Math.round(s.duration*SR),out=new Float32Array(N);
  const leadTone=STYLES[plan.gameStyle]?.lead||'bright';
  const emotional=MOODS[plan.gameStyle]||null;
  const cues=plan.expression?.researchCues||null;

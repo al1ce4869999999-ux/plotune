@@ -1,0 +1,35 @@
+const assert=require('node:assert/strict');
+const {createRunner}=require('../phase56-integration-v01.js');
+const audit=require('../phase5-whole-song-audit-v01.js');
+const evaluation=require('../phase6-evaluation-v01.js');
+const captured=[];
+const engine={score(plan){
+ captured.push({...plan});
+ const noteCount=8+(plan.motifDevelopment?2:0)+(plan.musicDevelopment?3:0)+(plan.musicTransitions?1:0);
+ return {duration:16,bpm:120,notes:Array.from({length:noteCount},(_,i)=>({t:i*16/noteCount,d:.2,midi:60+i%7,voice:'lead'})),details:{transitions:plan.musicTransitions?[{boundary:4}]:[]}};
+},render(plan){return {samples:new Float32Array([plan.musicTransitions?1:0])}}};
+const runner=createRunner(engine,audit,evaluation);
+const input={duration:15,gameStyle:'sadness',seed:999};
+const before=JSON.stringify(input);
+const first=runner.generate(input,42,{pcm:true});
+assert.deepEqual(Object.keys(first.cases),evaluation.CONDITIONS);
+assert.equal(captured.length,4);
+assert(captured.every(p=>p.seed===42&&p.gameStyle==='sadness'));
+assert.equal(captured[0].musicTransitions,false);
+assert.equal(captured[1].musicTransitions,true);
+assert.equal(captured[2].musicDevelopment,true);
+assert.equal(captured[3].musicPerformance,true);
+assert.equal(first.report.differences['Phase+M'].notes,6);
+assert.equal(first.cases.Phase.audio.samples[0],1);
+assert.equal(JSON.stringify(input),before);
+assert.deepEqual(runner.generate(input,42).report,first.report);
+assert.throws(()=>runner.generate(input,-1),/seed/);
+console.log('PASS Phase 5/6 four-condition actual score invocation contract');
+
+const revision=require('../phase5-section-revision-v01.js');
+const entry={plan:{cadenceTargetPitch:60},score:{duration:8,bpm:120,notes:[{t:0,midi:65,voice:'lead'},{t:7,midi:68,voice:'lead'}],drums:[]}};
+const repaired=runner.proposeCadenceRepair(entry,revision);
+assert.equal(repaired.accepted,true);
+assert.equal(repaired.score.notes[1].midi,60);
+assert.equal(entry.score.notes[1].midi,68);
+assert.equal(runner.proposeCadenceRepair({...entry,plan:{}},revision).reason,'NO_EXPLICIT_CADENCE_TARGET');
