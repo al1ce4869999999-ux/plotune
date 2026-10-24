@@ -351,13 +351,15 @@ function score(plan){
  // M2 opt-in: emotional candidate selection, preserving legacy output when disabled.
  if(plan.musicDevelopment===true && root.PlotuneM2Phrase && sharedPhrases){
   const stages={opening:{tension:.18,energy:.25,tenderness:.65},development:{tension:.55,energy:.65,tenderness:.35},climax:{tension:.93,energy:.95,tenderness:.08},resolution:{tension:.08,energy:.22,tenderness:.9}};
+  const r4OpeningMotif=sharedPhrases[0].map(event=>({...event}));
+  const r4SectionRoleAt=bar=>{const stage=arcAt(bar).stage;return plan.sectionRoleR4??(bar===0?'statement':stage==='resolution'?'return':stage==='climax'?'contrast':stage==='development'?'development':'variation');};
   for(let b=0;b<bars;b++){
    const selected=root.PlotuneM2Phrase.selectPhrase(sharedPhrases[b],
     {...stages[arcAt(b).stage],...(plan.phraseEmotion||{})},
     {seed:(seed^Math.imul(b+1,2654435761))>>>0,candidates:8,
      ...(r2TargetAt(b)&&root.PlotuneTensionR2b?{tensionTarget:r2TargetAt(b),tensionSelection:plan.musicTensionR2Selection===true}:{}),
      ...(plan.musicExpectancyR3===true&&r3TargetAt(b)&&root.PlotuneExpectancyR3b?{expectancyTarget:r3TargetAt(b),expectancySelection:plan.musicExpectancyR3Selection===true,expectancyScoreBudget:plan.expectancyScoreBudget??.25}:{}),
-     ...(plan.musicIdentityNoveltyR4===true?{identityNoveltyR4:true,identityNoveltyR4Selection:plan.musicIdentityNoveltyR4Selection===true,sectionRoleR4:plan.sectionRoleR4??'variation',originMotifR4:sharedPhrases[0],originMotifIdR4:'opening-theme',identityNoveltyScoreBudget:plan.identityNoveltyScoreBudget??.25}:{})});
+     ...(plan.musicIdentityNoveltyR4===true?{identityNoveltyR4:true,identityNoveltyR4Selection:plan.musicIdentityNoveltyR4Selection===true,sectionRoleR4:r4SectionRoleAt(b),originMotifR4:r4OpeningMotif,originMotifIdR4:'opening-theme',identityNoveltyScoreBudget:plan.identityNoveltyScoreBudget??.25}:{})});
    if(selected.tensionDiagnostics)r2PhraseDiagnostics.push({bar:b,candidateIndex:selected.candidateIndex,assessments:selected.tensionDiagnostics,tensionSelected:selected.tensionSelected||false});
    if(selected.identityNoveltyR4Diagnostics)r4PhraseDiagnostics.push({bar:b,reason:selected.identityNoveltyR4Reason,selected:selected.identityNoveltyR4Selected,trace:selected.identityNoveltyR4Trace,assessments:selected.identityNoveltyR4Diagnostics});
    if(selected.expectancyDiagnostics)r3PhraseDiagnostics.push({bar:b,candidateIndex:selected.candidateIndex,reason:selected.expectancyReason,selected:selected.expectancySelected,model:selected.expectancyModel,assessments:selected.expectancyDiagnostics});
