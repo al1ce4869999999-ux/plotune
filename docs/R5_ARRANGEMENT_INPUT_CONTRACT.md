@@ -28,3 +28,8 @@
 
 ## 影響する既存テスト
 `r4-m7-real-engine`、`r3-m7-real-engine`、`r0-m7-integration`、`motif-similarity-r1`、`m2-emotion-phrase`、R0 fixture / M7 compare UI。
+
+## Phase 3 セクション境界・音色情報の修正（2026-10-24）
+- `handheld.score` の `wholeTrackArc` は小節別の実使用ステージ（opening / development / climax / resolution）を持つため、R5はこれを `context.wholeTrackArc` として受け取り、隣接する同一ステージを連結してセクション窓を構成する。四等分は明示データがないときだけのfallback。
+- `palette` は instrumentChoice.palette または STORY_INSTRUMENTS で決まる。render側から声部別 `timbres` metadata を渡す。ただし未指定はnullを保持し、`timbreSource` に由来を記録。声部ラベルだけから音色融合やスペクトルマスキングを推論しない。
+- スコアで発音する前景は lead と counter を検出。セクション境界と音色情報は診断trace専用でありnotes/PCMへ逆流しない。
