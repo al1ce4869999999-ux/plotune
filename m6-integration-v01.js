@@ -25,6 +25,9 @@ function apply(original,{seed=1,quality=root.PlotuneM6Quality}={}){
    // is diagnostics-only until a motif-safe pitch validator is available.
    if(issue.metric!=='voiceCollision') {accepted=false;reason='lead motif identity is not proven safe';}
    if(!Array.isArray(candidate.notes)||candidate.notes.length!==notes.length){accepted=false;reason='candidate note count changed';}
+   if(accepted&&changes.some(i=>notes[i].t<issue.bar*meter||notes[i].t>=(issue.bar+1)*meter)){
+    accepted=false;reason='candidate modified another bar';
+   }
    for(const i of changes){
     const before=notes[i],after=candidate.notes[i];
     if(before.t<issue.bar*meter||before.t>=(issue.bar+1)*meter){accepted=false;reason='candidate modified another bar';break;}
