@@ -16,6 +16,7 @@ for(const [duration,seed] of [[15,42],[30,0],[60,0xffffffff]]){
  const base=JSON.stringify(plans.map(p=>{const x={...p.plan};for(const k of Object.keys(p.config.flags))delete x[k];return x;}));
  const normalized=JSON.parse(base);for(const p of normalized)assert.deepEqual(p,normalized[0],'only treatment flags differ');
  assert.notEqual(plans[0].plan.structure,plans[1].plan.structure,'nested data isolated');
+ assert.deepEqual(plans.map(p=>p.plan.musicTransitions),[false,true,false,true],'Phase transitions isolated');
  const before=JSON.stringify(plans),first=m.generate({...input,duration},seed);
  const fingerprints=new Map(first.tracks.map(t=>[t.conditionId,fingerprint(t.track)]));
  for(const {conditionId,plan} of [...plans].reverse()){
