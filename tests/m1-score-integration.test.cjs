@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const root=path.resolve(__dirname,'..'),ctx={window:{},Blob,console};
-for(const name of ['analyzer.js','resonare-v08.js','loop-arranger-v09.js','melodic-grammar-v01.js','m1-motif-registry-v01.js','m1-motif-transform-v01.js','m2-emotion-phrase-v01.js','motif-planner-v01.js','handheld-v21.js'])
+for(const name of ['analyzer.js','resonare-v08.js','loop-arranger-v09.js','melodic-grammar-v01.js','m1-motif-registry-v01.js','m1-motif-transform-v01.js','m2-emotion-phrase-v01.js','motif-planner-v01.js','m1-section-history-v01.js','handheld-v21.js'])
  vm.runInNewContext(fs.readFileSync(path.join(root,name),'utf8'),ctx,{filename:name});
 const a=ctx.window.PlotuneAnalysis,h=ctx.window.PlotuneHandheld;
 const input={title:'theme',character:'curious',world:'forest',scene:'道を歩いて、星を見つけた。',style:'handheld',duration:30};
@@ -14,6 +14,11 @@ const onAgain=h.score({...legacy,motifDevelopment:true});
 assert.equal(JSON.stringify(on.notes),JSON.stringify(onAgain.notes),'M ON deterministic');
 const lead=s=>s.notes.filter(n=>n.role==='lead'||n.voice==='lead').map(n=>[n.t,n.midi,n.d]);
 assert.ok(lead(off).length>0);
+assert.equal(off.details.m1HistoryTrace,null,'legacy score has no M1 section record');
+assert.equal(on.details.m1HistoryTrace.length,4,'M1 registers four section operations');
+assert.equal(on.details.m1HistoryTrace[3].motifId,'main-theme');
+assert.equal(on.details.m1HistoryTrace[3].operation,'transposition');
+assert.equal(JSON.stringify(on.details.m1HistoryTrace),JSON.stringify(onAgain.details.m1HistoryTrace));
 assert.notEqual(JSON.stringify(lead(on)),JSON.stringify(lead(off)),'M ON must change rendered lead notes');
 assert.ok(on.notes.every(n=>Number.isFinite(n.t)&&Number.isFinite(n.d)&&n.t>=0&&n.d>0&&n.t+n.d<=30+.001));
 console.log('PASS M1 score integration: OFF stable, ON audible note changes, deterministic and bounded');
