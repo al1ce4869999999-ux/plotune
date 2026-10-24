@@ -44,6 +44,7 @@ jobs:
           node --check m1-section-history-v01.js
           node --check m2-emotion-phrase-v01.js
           node --check m3-harmony-melody-v01.js
+          node --check m3-tonal-journey-v01.js
           node --check m4-voice-dialogue-v01.js
           node --check m5-performance-v01.js
           node --check handheld-v21.js
@@ -91,6 +92,7 @@ jobs:
           node tests/m1-section-history.test.cjs || failed=1
           node tests/m1-score-integration.test.cjs || failed=1
           node tests/m2-emotion-phrase.test.cjs || failed=1
+          node tests/m3-tonal-journey.test.cjs || failed=1
           node tests/m3-harmony-melody.test.cjs || failed=1
           node tests/m4-voice-dialogue.test.cjs || failed=1
           node tests/m5-performance.test.cjs || failed=1
