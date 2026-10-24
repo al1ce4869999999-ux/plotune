@@ -343,6 +343,11 @@ function score(plan){
  const r2Sections=plan.musicTensionR2===true&&plan.tensionPlan?.schema==='plotune.tension-plan'&&Array.isArray(plan.tensionPlan.sections)?plan.tensionPlan.sections:null;
  const r2TargetAt=b=>r2Sections?.length?r2Sections[Math.min(r2Sections.length-1,Math.floor(b*r2Sections.length/bars))]?.target:null;
  const r2PhraseDiagnostics=[];
+ const r3PhraseDiagnostics=[];
+ const r3TargetAt=b=>{
+  const item=Array.isArray(plan.expectancyTargets)?plan.expectancyTargets[Math.min(b,plan.expectancyTargets.length-1)]:plan.expectancyTarget;
+  return typeof item==='number'?{targetBits:item}:item&&typeof item==='object'?item:null;
+ };
  // M2 opt-in: emotional candidate selection, preserving legacy output when disabled.
  if(plan.musicDevelopment===true && root.PlotuneM2Phrase && sharedPhrases){
   const stages={opening:{tension:.18,energy:.25,tenderness:.65},development:{tension:.55,energy:.65,tenderness:.35},climax:{tension:.93,energy:.95,tenderness:.08},resolution:{tension:.08,energy:.22,tenderness:.9}};
@@ -350,8 +355,10 @@ function score(plan){
    const selected=root.PlotuneM2Phrase.selectPhrase(sharedPhrases[b],
     {...stages[arcAt(b).stage],...(plan.phraseEmotion||{})},
     {seed:(seed^Math.imul(b+1,2654435761))>>>0,candidates:8,
-     ...(r2TargetAt(b)&&root.PlotuneTensionR2b?{tensionTarget:r2TargetAt(b),tensionSelection:plan.musicTensionR2Selection===true}:{})});
+     ...(r2TargetAt(b)&&root.PlotuneTensionR2b?{tensionTarget:r2TargetAt(b),tensionSelection:plan.musicTensionR2Selection===true}:{}),
+     ...(plan.musicExpectancyR3===true&&r3TargetAt(b)&&root.PlotuneExpectancyR3b?{expectancyTarget:r3TargetAt(b),expectancySelection:plan.musicExpectancyR3Selection===true,expectancyScoreBudget:plan.expectancyScoreBudget??.25}:{})});
    if(selected.tensionDiagnostics)r2PhraseDiagnostics.push({bar:b,candidateIndex:selected.candidateIndex,assessments:selected.tensionDiagnostics,tensionSelected:selected.tensionSelected||false});
+   if(selected.expectancyDiagnostics)r3PhraseDiagnostics.push({bar:b,candidateIndex:selected.candidateIndex,reason:selected.expectancyReason,selected:selected.expectancySelected,model:selected.expectancyModel,assessments:selected.expectancyDiagnostics});
    sharedPhrases[b]=selected.events;
   }
  }
@@ -935,6 +942,17 @@ function score(plan){
    harmony:m3JointPlan?m3JointPlan.decisions.map(d=>({bar:d.bar,chord:d.chord,assessments:d.tensionDiagnostics||[],tensionSelected:d.tensionSelected||false})):[],
    realized:root.PlotuneTensionR2b.realized(notes,r2Sections,duration)
   };
+ }
+ if(plan.musicExpectancyR3===true&&root.PlotuneExpectancyR3){
+  try{
+   const lead=notes.filter(n=>n.voice==='lead').sort((a,b)=>a.t-b.t);
+   const observed=root.PlotuneExpectancyR3.evaluate(lead,{},{
+    corpus:[lead],metadata:{source:'current rendered melody only',style:'generated',training:'in-memory-current-score'}});
+   details.expectancyR3={version:'r3b.1',mode:plan.musicExpectancyR3Selection===true?'selection-enabled':'diagnostic-only',
+    phrase:r3PhraseDiagnostics,realized:observed};
+  }catch(error){
+   details.expectancyR3={version:'r3b.1',mode:'fallback',reason:String(error?.message||error),phrase:r3PhraseDiagnostics};
+  }
  }
  return {notes,drums,rests,harmony,theme:motif,details,genre:'game',
   duration,bpm,sampleRate:SR};
