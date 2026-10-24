@@ -64,5 +64,22 @@ function plan(phrases,options={}){
  }
  return {chords,phrases:events,decisions};
 }
-root.PlotuneM3Harmony={plan,phraseFit,voiceLeading};
+// Explicit, deterministic reharmonization candidates for the same unmodified motif.
+function reinterpret(motif,options={}){
+ if(!Array.isArray(motif)||!motif.length)throw new TypeError('motif events required');
+ const schemes=[
+  {name:'home',progression:[0,4,0],borrowed:false},
+  {name:'relative',progression:[5,3,0],borrowed:false},
+  {name:'borrowed-minor',progression:[0,3,0],borrowed:true}
+ ];
+ return schemes.map(scheme=>{
+  const fit=scheme.progression.map(chord=>phraseFit(motif,chord,options.tension??.4));
+  return {name:scheme.name,motif:motif.map(e=>({...e})),
+   chords:[...scheme.progression],borrowed:scheme.borrowed,
+   score:fit.reduce((a,b)=>a+b,0)/fit.length,
+   decisions:fit.map((value,i)=>({index:i,chord:scheme.progression[i],fit:value,
+    reason:i===2?'return to tonic':scheme.borrowed?'modal borrowing candidate':'alternative harmonic context'}))};
+ });
+}
+root.PlotuneM3Harmony={plan,phraseFit,voiceLeading,reinterpret};
 })(window);
