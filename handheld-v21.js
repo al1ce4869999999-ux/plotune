@@ -983,7 +983,7 @@ function score(plan){
  if(plan.musicTransitionOptimizationR8===true){
   try{
    if(!root.PlotuneTransitionR8?.optimize)throw new Error('R8 optimizer unavailable');
-   const result=root.PlotuneTransitionR8.optimize({notes,duration,bpm,wholeTrackArc});
+   const result=root.PlotuneTransitionR8.optimize({notes,duration,bpm,wholeTrackArc,transitionPlans:plan.transitionPlans});
    if(result.trace.status==='selected')notes.splice(0,notes.length,...result.notes);
    details.transitionOptimizationR8=result.trace;
   }catch(error){details.transitionOptimizationR8={version:'r8.0',status:'fallback',reason:String(error?.message||error)};}
