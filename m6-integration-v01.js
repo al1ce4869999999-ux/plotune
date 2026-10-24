@@ -24,8 +24,10 @@ function apply(original,{seed=1,quality=root.PlotuneM6Quality}={}){
    // Only allow changed counter pitches that remain chord tones; lead repetition repair
    // is diagnostics-only until a motif-safe pitch validator is available.
    if(issue.metric!=='voiceCollision') {accepted=false;reason='lead motif identity is not proven safe';}
+   if(!Array.isArray(candidate.notes)||candidate.notes.length!==notes.length){accepted=false;reason='candidate note count changed';}
    for(const i of changes){
     const before=notes[i],after=candidate.notes[i];
+    if(before.t<issue.bar*meter||before.t>=(issue.bar+1)*meter){accepted=false;reason='candidate modified another bar';break;}
     const chordPitches=notes.filter(n=>n.voice==='chords'&&n.t<=before.t&&n.t+n.d>before.t).map(n=>pc(n.midi));
     if(before.voice!=='counter'||after.voice!=='counter'||after.t!==before.t||
        after.d!==before.d||after.volume!==before.volume||
