@@ -34,6 +34,11 @@ jobs:
           node --check handheld-v18.js
           node --check handheld-v19.js
           node --check handheld-v20.js
+          node --check m-contract-v01.js
+          node --check m-comparison-v01.js
+          node --check m1-motif-registry-v01.js
+          node --check m1-motif-transform-v01.js
+          node --check m1-section-history-v01.js
           node --check m2-emotion-phrase-v01.js
           node --check m3-harmony-melody-v01.js
           node --check m4-voice-dialogue-v01.js
@@ -74,6 +79,12 @@ jobs:
           node tests/emotion-first-composition.test.cjs || failed=1
           node tests/motif-planner-v01.test.cjs || failed=1
           node tests/motif-phrase-integration.test.cjs || failed=1
+          node tests/m0-contract.test.cjs || failed=1
+          node tests/m0-comparison.test.cjs || failed=1
+          node tests/m1-motif-registry.test.cjs || failed=1
+          node tests/m1-motif-transform.test.cjs || failed=1
+          node tests/m1-section-history.test.cjs || failed=1
+          node tests/m1-score-integration.test.cjs || failed=1
           node tests/m2-emotion-phrase.test.cjs || failed=1
           node tests/m3-harmony-melody.test.cjs || failed=1
           node tests/m4-voice-dialogue.test.cjs || failed=1
