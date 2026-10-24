@@ -24,8 +24,8 @@ assert.throws(()=>T.assess({tonal:.1},{tonal:2}),/invalid target/);
 
 const first=T.harmonyCandidate(src,0,null,{tonal:.5});
 assert.equal(first.components.tonal.status,'unknown','first chord has no predecessor');
-const held=T.harmonyCandidate(src,0,0,{tonal:.5});
-const moved=T.harmonyCandidate(src,3,0,{tonal:.5});
+const held=T.harmonyCandidate(src,0,0,{tonal:.2});
+const moved=T.harmonyCandidate(src,3,0,{tonal:.2});
 assert.equal(held.components.tonal.actual,0);
 assert.equal(moved.components.tonal.actual,1);
 assert.notEqual(held.components.tonal.distance,moved.components.tonal.distance,'different chords assessed differently');
