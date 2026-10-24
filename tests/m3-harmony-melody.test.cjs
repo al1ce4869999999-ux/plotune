@@ -6,6 +6,8 @@ for(const name of ['analyzer.js','resonare-v08.js','loop-arranger-v09.js','motif
 const A=context.window.PlotuneAnalysis,H=context.window.PlotuneHandheld,M=context.window.PlotuneM3Harmony;
 const sample=[{position:0,durationUnits:2,degree:1,rest:false},{position:4,durationUnits:2,degree:5,rest:false},{position:8,durationUnits:2,degree:4,rest:false},{position:12,durationUnits:2,degree:3,rest:false}];
 const source=Array.from({length:8},()=>sample.map(e=>({...e})));
+const tonicProbe=[{position:0,durationUnits:2,degree:0,rest:false}];
+assert(M.phraseFit(tonicProbe,0,.4)>M.phraseFit(tonicProbe,1,.4),'harmonic fit must depend on chord root');
 const saved=JSON.stringify(source);
 const plan=M.plan(source,{progression:[0,4,5,3],tension:.4});
 assert.equal(JSON.stringify(plan),JSON.stringify(M.plan(source,{progression:[0,4,5,3],tension:.4})),'deterministic');
