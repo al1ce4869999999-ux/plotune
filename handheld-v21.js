@@ -965,6 +965,10 @@ function score(plan){
    if(!root.PlotuneArrangementPerceptionR5?.evaluate)throw new Error('R5 evaluator unavailable');
    const assessment=root.PlotuneArrangementPerceptionR5.evaluate({notes,duration,bpm},{},{});
    details.arrangementPerceptionR5=assessment;
+   if(root.PlotuneResearchEvaluation?.record){
+    const r0=root.PlotuneResearchEvaluation.record(details,{status:assessment.status==='fallback'?'fallback':'ok',metrics:assessment.metrics,diagnostics:assessment.diagnostics},'R5 score-only diagnostics; no candidate selection');
+    details.researchEvaluations=r0.researchEvaluations;
+   }
   }catch(error){
    details.arrangementPerceptionR5={version:'r5.1',status:'fallback',kind:'symbolic-proxy',metrics:{},diagnostics:[{code:'R5_UNAVAILABLE',reason:String(error?.message||error)}]};
   }
