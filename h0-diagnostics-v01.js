@@ -11,7 +11,7 @@ function diagnose(cases,seed,{windowBars=2}={}){
  for(const condition of CONDITIONS){
   const score=cases[condition]?.score;
   if(!score||!Array.isArray(score.notes)){summary[condition]={status:'unconfirmed',reason:'SCORE_UNAVAILABLE'};continue;}
-  const meter=finite(score.meter)&&score.meter>0?score.meter:finite(score.duration)&&score.duration>0?score.duration/4:null;
+  const meter=finite(score.meter)&&score.meter>0?score.meter:finite(score.duration)&&score.duration>0&&Number.isInteger(score.details?.loopBars)&&score.details.loopBars>0?score.duration/score.details.loopBars:null;
   const notes=score.notes.filter(n=>n&&finite(n.t)&&finite(n.d)&&n.d>0&&finite(n.midi)).map(snapshot);
   const boundaries=new Set();
   for(const b of score.details?.transitions||[]){
@@ -31,12 +31,12 @@ function diagnose(cases,seed,{windowBars=2}={}){
      const leap=prev===null?null:n.midi-prev.midi;
      const repeated=prev!==null&&n.midi===prev.midi;
      const suspect=leap!==null&&Math.abs(leap)>=12?'LARGE_LEAP':repeated?'REPEATED_PITCH':'unconfirmed';
-     events.push({seed,condition,section,bar:meter===null?null:Math.floor(n.onset/meter),timestamp:n.onset,voice,sourceStage:'final-score',originalNote:null,transformedNote:n,activeChord:null,suspectedProblem:suspect,evidence:{boundary,intervalSemitones:leap,repeat:repeated},confidence:suspect==='unconfirmed'?'unconfirmed':'low'});
+     events.push({seed,condition,section,bar:meter===null?null:Math.floor(n.onset/meter),timestamp:n.onset,voice,sourceStage:'final-score',originalNote:null,transformedNote:n,activeChord:Array.isArray(score.harmony)?(score.harmony.filter(h=>finite(h?.t)&&h.t<=n.onset).at(-1)?.chord??null):null,suspectedProblem:suspect,evidence:{boundary,intervalSemitones:leap,repeat:repeated},confidence:suspect==='unconfirmed'?'unconfirmed':'low'});
      generated++;prev=n;
     }
    }
   }
-  summary[condition]={status:'observed',noteCount:notes.length,boundaryCount:boundaries.size,eventCount:generated,voices:[...noteByVoice.keys()].sort(),limitations:['STAGE_PROVENANCE_UNAVAILABLE','HARMONY_CONTEXT_NOT_LINKED']};
+  summary[condition]={status:'observed',noteCount:notes.length,boundaryCount:boundaries.size,eventCount:generated,voices:[...noteByVoice.keys()].sort(),limitations:['STAGE_PROVENANCE_UNAVAILABLE','CHORD_PITCH_CLASSES_UNAVAILABLE']};
  }
  return {schema:'plotune.h0.diagnostic',version:1,seed,conditions:CONDITIONS,summary,events};
 }
