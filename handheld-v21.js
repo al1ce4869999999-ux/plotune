@@ -970,6 +970,15 @@ function score(plan){
    details.arrangementOptimizationR6={version:'r6.0',status:'fallback',reason:String(error?.message||error)};
   }
  }
+ // R7 is diagnostic-only under the formal Phase 4 research plan; never mutates notes or generation RNG.
+ if(plan.musicTransitionEvaluationR7===true){
+  try{
+   if(!root.PlotuneTransitionR7?.evaluate)throw new Error('R7 evaluator unavailable');
+   details.transitionEvaluationR7=root.PlotuneTransitionR7.evaluate({notes,duration,bpm,wholeTrackArc});
+  }catch(error){
+   details.transitionEvaluationR7={version:'r7.0',status:'fallback',reason:String(error?.message||error)};
+  }
+ }
  // R5 is a post-composition, read-only diagnostic and does not touch audio synthesis.
  if(plan.musicArrangementPerceptionR5===true){
   try{
