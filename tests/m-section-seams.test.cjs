@@ -15,7 +15,7 @@ for(const transitions of [false,true]){
  const a=H.score(p),b=H.score(p);
  assert.equal(JSON.stringify(a.notes),JSON.stringify(b.notes),'deterministic M boundary repair');
  assert(a.notes.every(n=>n.d>0&&n.t>=0&&n.t+n.d<=a.duration+.001),'valid note timing');
- assert(a.details.mSeamBridges.every(x=>x.leap>=8),'bridges limited to big jumps');
+ assert.equal(a.details.mSeamBridges.length,0,'no speculative inserted seam notes');
  assert.equal(a.notes.filter(n=>n.transitionMarker==='m-seam-bridge').length,a.details.mSeamBridges.length);
 }
 console.log('PASS M section seam bridge regression');
