@@ -12,7 +12,7 @@ Load `motif-similarity-r1.js` then call `PlotuneMotifSimilarityEvaluator.compare
 - rhythm: normalized onset positions, invariant under uniform tempo scaling
 - anchor: explicit marked anchors or first/last sounded note; transposition invariant
 - range: pitch-span comparison
-- accent: recorded amplitudes only; null if no comparable accents
+- accent: recorded amplitudes only; omitted if no comparable accents
 - transport: normalized onset + relative pitch correspondence, invariant under uniform transposition and uniform tempo scaling
 - absolutePitch / absoluteOnset: sensitive to transposition / timing respectively
 - transposedPitch: pitch sequence after relative transposition
