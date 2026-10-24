@@ -58,9 +58,10 @@ function plan(phrases,options={}){
    const score=fit*1.5-motion*.19-repeat+home+cadencePrep;
    return {chord,events:adapted,score,fit,motion};
   }).sort((a,b)=>b.score-a.score||a.chord-b.chord);
+  const tensionDiagnostics=options.tensionTargets&&root.PlotuneTensionR2b?graded.map(c=>({chord:c.chord,assessment:root.PlotuneTensionR2b.phrase(c.events,options.tensionTargets[b]||{})})):null;
   const chosen=graded[0];
   chords.push(chosen.chord);events.push(chosen.events);
-  decisions.push({bar:b,chord:chosen.chord,score:chosen.score,fit:chosen.fit,previous});
+  decisions.push({bar:b,chord:chosen.chord,score:chosen.score,fit:chosen.fit,previous,...(tensionDiagnostics?{tensionDiagnostics}:{})});
  }
  return {chords,phrases:events,decisions};
 }
