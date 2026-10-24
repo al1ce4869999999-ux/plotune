@@ -11,7 +11,7 @@ assert(M.phraseFit(tonicProbe,0,.4)>M.phraseFit(tonicProbe,1,.4),'harmonic fit m
 const interpretations=M.reinterpret(sample,{tension:.4});
 assert.equal(interpretations.length,3);
 assert.equal(new Set(interpretations.map(x=>x.chords.join(','))).size,3);
-assert(interpretations.some(x=>x.borrowed));
+assert(interpretations.every(x=>x.borrowed===false),'no unsupported borrowed-chord claim');
 assert(interpretations.every(x=>JSON.stringify(x.motif)===JSON.stringify(sample)),'motif survives reinterpretation');
 assert(interpretations.every(x=>x.decisions.at(-1).reason==='return to tonic'));
 assert.equal(JSON.stringify(interpretations),JSON.stringify(M.reinterpret(sample,{tension:.4})));
