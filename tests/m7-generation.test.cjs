@@ -6,6 +6,7 @@ const m=sandbox.PlotuneM7Generation;
 assert.deepEqual(Array.from(m.IDS),['baseline','phase','m','phase-m']);
 assert.deepEqual(Array.from(m.IDS, id=>[m.condition(id).phase,m.condition(id).m]),[[false,false],[true,false],[false,true],[true,true]]);
 for(const id of m.IDS)assert.equal(m.condition(id).m6Repair,false);
+assert.deepEqual(Array.from(m.IDS,id=>m.condition(id).flags.musicMotifMemory),[false,false,true,true]);
 assert.equal(m.condition('phase').phaseScope,'form-motif-arrangement-transitions');
 assert.equal(m.condition('phase-m').phaseScope,'motif-development-only');
 assert.equal(m.condition('m').phaseScope,'off');
