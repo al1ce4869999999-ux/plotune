@@ -1,4 +1,4 @@
-name: R6 arrangement perception validation
+name: R6 arrangement optimization validation
 on:
   push:
     branches: [feature/r6-arrangement-optimization]
@@ -9,7 +9,7 @@ on:
       - 'tests/arrangement-optimization-r6.test.cjs'
       - '.github/workflows/r6-arrangement-optimization.yml'
 jobs:
-  r5:
+  r6:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,9 +18,11 @@ jobs:
           node-version: '22'
       - name: R6 syntax and integration
         run: |
+          node --check arrangement-perception-r5.js
           node --check arrangement-optimization-r6.js
           node --check handheld-v21.js
           node tests/arrangement-optimization-r6.test.cjs
+          node tests/arrangement-perception-r5.test.cjs
       - name: R0-R4 and M7 regressions
         run: |
           node tests/r4-m7-real-engine.test.cjs
