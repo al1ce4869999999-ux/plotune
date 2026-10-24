@@ -60,7 +60,11 @@ function generate(input,seed,dependencies,options={}){
  const plans=makePlans(req,dependencies);
  if(typeof dependencies.handheld.render!=='function')throw new TypeError('M7 renderer required');
  const tracks=plans.map(({conditionId,config,plan})=>{
-  const enabled=options.m6Repair===true&&config.m&&!!(dependencies.m6Integration||root.PlotuneM6Integration);
+  const requested=options.m6Repair===true&&config.m;
+  if(requested&&(!(dependencies.m6Integration||root.PlotuneM6Integration)||
+     !(dependencies.m6Quality||root.PlotuneM6Quality)||typeof dependencies.handheld.score!=='function'))
+   throw new TypeError('M6 repair dependencies missing');
+  const enabled=requested;
   const repair=enabled?(dependencies.m6Integration||root.PlotuneM6Integration).apply(dependencies.handheld.score(plan),{seed:req.seed,quality:dependencies.m6Quality||root.PlotuneM6Quality}):null;
   const track=repair?dependencies.handheld.render(plan,repair.score):dependencies.handheld.render(plan);
   if(!track||!track.samples||!track.score||!Number.isFinite(track.sampleRate))throw new TypeError('invalid M7 rendered track: '+conditionId);
