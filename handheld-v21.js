@@ -979,6 +979,15 @@ function score(plan){
    details.transitionEvaluationR7={version:'r7.0',status:'fallback',reason:String(error?.message||error)};
   }
  }
+ // R8 changes only safe local boundary durations; OFF preserves legacy notes and PCM.
+ if(plan.musicTransitionOptimizationR8===true){
+  try{
+   if(!root.PlotuneTransitionR8?.optimize)throw new Error('R8 optimizer unavailable');
+   const result=root.PlotuneTransitionR8.optimize({notes,duration,bpm,wholeTrackArc});
+   if(result.trace.status==='selected')notes.splice(0,notes.length,...result.notes);
+   details.transitionOptimizationR8=result.trace;
+  }catch(error){details.transitionOptimizationR8={version:'r8.0',status:'fallback',reason:String(error?.message||error)};}
+ }
  // R5 is a post-composition, read-only diagnostic and does not touch audio synthesis.
  if(plan.musicArrangementPerceptionR5===true){
   try{
