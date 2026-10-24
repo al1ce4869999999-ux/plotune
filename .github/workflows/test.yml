@@ -51,6 +51,7 @@ jobs:
           node --check research-evaluation-r0.js
           node --check motif-similarity-r1.js
           node --check tension-r2a.js
+          node --check tension-r2b.js
           node --check m7-generation-v01.js
           node --check m7-listening-v01.js
           node --check m7-evaluation-v01.js
@@ -92,6 +93,7 @@ jobs:
           node tests/motif-similarity-r1.test.cjs || failed=1
           node tests/r1-m7-diagnostic.test.cjs || failed=1
           node tests/tension-r2a.test.cjs || failed=1
+          node tests/tension-r2b.test.cjs || failed=1
           node tests/r2a-m7-diagnostic.test.cjs || failed=1
           node tests/emotion-isolated-ab.test.cjs || failed=1
           node tests/resonare.test.cjs || failed=1
