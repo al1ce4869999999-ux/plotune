@@ -74,5 +74,25 @@ function generate(input,seed,dependencies,options={}){
  });
  return {schemaVersion:'m7.1-v1',request:req,tracks};
 }
-root.PlotuneM7Generation={IDS,condition,request,makePlans,generate,dependenciesFromRoot};
+// Individual flag ablations are additional tracks, not substitutions for the fixed four.
+const ABLATIONS=Object.freeze({
+ m1:'motifDevelopment',m2:'musicDevelopment',m3:'musicHarmony',
+ m4:'musicVoices',m5:'musicPerformance'
+});
+function generateAblations(input,seed,dependencies){
+ dependencies=dependencies||dependenciesFromRoot();
+ const req=request(input,seed),plans=makePlans(req,dependencies);
+ const original=plans.find(p=>p.conditionId==='phase-m').plan;
+ const variants=[{id:'all-on',key:null},...Object.entries(ABLATIONS).map(([id,key])=>({id:id+'-off',key}))];
+ return {schemaVersion:'m7.ablation.v1',request:req,
+  tracks:variants.map(({id,key})=>{
+   const plan=clone(original);
+   if(key)plan[key]=false;
+   const track=dependencies.handheld.render(plan);
+   if(!track?.score||!track?.samples||track.samples.length!==Math.round(req.duration*track.sampleRate)||
+      !track.samples.every(Number.isFinite))throw new RangeError('invalid ablation track '+id);
+   return {ablationId:id,disabledFlag:key,track};
+  })};
+}
+root.PlotuneM7Generation={IDS,condition,request,makePlans,generate,generateAblations,ABLATIONS,dependenciesFromRoot};
 })(typeof window!=='undefined'?window:globalThis);
