@@ -14,4 +14,9 @@ assert.throws(()=>m.validate({tracks:[...tracks.slice(0,3),{conditionId:'phase-m
 const html=fs.readFileSync('index.html','utf8');
 for(const id of ['m7Make','m7Seed','m7Stop','m7Status',...m.IDS.map(x=>'m7Play-'+x)])assert(html.includes('id="'+id+'"'));
 assert(html.includes('m7-listening-v01.js'));
+const listeningSource=fs.readFileSync('m7-listening-v01.js','utf8');
+assert(listeningSource.includes("if(generating)return"),'duplicate requests blocked');
+assert(listeningSource.includes("finally{generating=false;make.disabled=false;}"),'generate button restored on error');
+assert(listeningSource.includes("result.request.duration"),'track duration shown');
+assert(listeningSource.includes("' · seed '+seed"),'shared seed shown');
 console.log('M7.2 listening contract passed');
