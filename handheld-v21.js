@@ -959,6 +959,16 @@ function score(plan){
    details.expectancyR3={version:'r3b.1',mode:'fallback',reason:String(error?.message||error),phrase:r3PhraseDiagnostics};
   }
  }
+ // R5 is a post-composition, read-only diagnostic and does not touch audio synthesis.
+ if(plan.musicArrangementPerceptionR5===true){
+  try{
+   if(!root.PlotuneArrangementPerceptionR5?.evaluate)throw new Error('R5 evaluator unavailable');
+   const assessment=root.PlotuneArrangementPerceptionR5.evaluate({notes,duration,bpm},{},{});
+   details.arrangementPerceptionR5=assessment;
+  }catch(error){
+   details.arrangementPerceptionR5={version:'r5.1',status:'fallback',kind:'symbolic-proxy',metrics:{},diagnostics:[{code:'R5_UNAVAILABLE',reason:String(error?.message||error)}]};
+  }
+ }
  return {notes,drums,rests,harmony,theme:motif,details,genre:'game',
   duration,bpm,sampleRate:SR};
 }
