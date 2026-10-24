@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const html=fs.readFileSync('index.html','utf8');
+const sources=['m-contract-v01.js','m-comparison-v01.js','m1-motif-registry-v01.js','m1-motif-transform-v01.js','m1-section-history-v01.js','m7-generation-v01.js','m7-aggregate-v01.js'];
+const positions=sources.map(src=>html.indexOf('src="'+src));
+assert(positions.every(p=>p>=0),'required scripts referenced');
+assert(positions.every((p,i)=>!i||p>positions[i-1]),'dependency order preserved');
+const box={};box.window=box;box.globalThis=box;
+for(const src of sources)vm.runInNewContext(fs.readFileSync(src,'utf8'),box,{filename:src});
+assert.equal(typeof box.PlotuneM7Generation.generateAblations,'function');
+assert.equal(typeof box.PlotuneM7Aggregate.aggregate,'function');
+assert.equal(typeof box.PlotuneMotifRegistry.register,'function');
+console.log('PASS M7 browser contract and script wiring');
