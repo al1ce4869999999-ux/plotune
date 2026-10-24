@@ -1,12 +1,12 @@
 /* M7.1: four-condition generation contract. No playback/UI changes. */
 (function(root){'use strict';
 const IDS=Object.freeze(['baseline','phase','m','phase-m']);
-const FLAG_KEYS=Object.freeze(['motifDevelopment','musicDevelopment','musicHarmony','musicVoices','musicPerformance','musicTransitions','musicTonalJourney']);
+const FLAG_KEYS=Object.freeze(['motifDevelopment','musicDevelopment','musicHarmony','musicVoices','musicPerformance','musicTransitions','musicTonalJourney','phaseSongForm','phaseArrangement']);
 function condition(id){
  if(!IDS.includes(id))throw new RangeError('unknown M7 condition: '+id);
  const phase=id==='phase'||id==='phase-m',m=id==='m'||id==='phase-m';
- return Object.freeze({id,phase,m,phaseScope:phase?'motif-development-and-section-transitions':'off',m6Repair:false,flags:Object.freeze({
-  motifDevelopment:phase,musicTransitions:phase,musicTonalJourney:m,musicDevelopment:m,musicHarmony:m,musicVoices:m,musicPerformance:m
+ return Object.freeze({id,phase,m,phaseScope:phase?'form-motif-arrangement-transitions':'off',m6Repair:false,flags:Object.freeze({
+  phaseSongForm:phase,phaseArrangement:phase,motifDevelopment:phase,musicTransitions:phase,musicTonalJourney:m,musicDevelopment:m,musicHarmony:m,musicVoices:m,musicPerformance:m
  })});
 }
 function request(input,seed){
