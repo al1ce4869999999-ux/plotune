@@ -22,4 +22,18 @@ assert.equal(pcmOn.length,pcmOff.length);
 let difference=0;for(let i=0;i<pcmOn.length;i+=211)difference+=Math.abs(pcmOn[i]-pcmOff[i]);
 assert(difference>0,'R2 explicit dynamics produces PCM difference');
 assert.throws(()=>ctx.window.PlotuneM5Performance.express({notes:[],duration:2,meter:1,tensionDynamics:[1.4]}),/invalid tensionDynamics/);
+
+const inverted=T.plan({emotionPlan:{sections:[{name:'one'},{name:'two'}]}},{dynamic:[1,0]});
+const opposite=H.score({...opts,musicTensionR2:true,tensionPlan:inverted});
+const melodyIdentity=score=>JSON.stringify(score.notes.map(({volume,...rest})=>rest));
+assert.equal(melodyIdentity(on),melodyIdentity(opposite),'same emotion, alternative tension has same musical events');
+assert.equal(JSON.stringify(on.harmony),JSON.stringify(opposite.harmony),'same emotion, alternative tension leaves harmony unchanged');
+assert.notEqual(JSON.stringify(on.notes),JSON.stringify(opposite.notes),'same emotion, alternative tension changes volume trajectory');
+const one=H.render({...opts,musicTensionR2:true,tensionPlan:inverted}).samples;
+let oppositePCM=0;for(let i=0;i<one.length;i+=211)oppositePCM+=Math.abs(one[i]-pcmOn[i]);
+assert(oppositePCM>0,'same emotional trajectory and inverted tension target yield different PCM');
+const noDynamic=T.plan({emotionPlan:{sections:[{name:'one'},{name:'two'}]}},{tonal:[0,1]});
+const tonalOnly=H.score({...opts,musicTensionR2:true,tensionPlan:noDynamic});
+assert.equal(JSON.stringify(tonalOnly.notes),JSON.stringify(off.notes),'unknown dynamic target must not affect audio');
+assert.equal(tonalOnly.details.tensionR2.mode,'shadow-only');
 console.log('PASS R2b M5 dynamic target: ON/OFF score and PCM difference, no candidate selection, deterministic');
