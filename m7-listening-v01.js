@@ -29,6 +29,7 @@ function attach(doc,api,AudioContextClass){
  let context=null,source=null,transport=null,result=null,buffers=new Map(),epoch=0,generating=false;
  let active='baseline',pausedAt=0,playing=false,frame=null;
  const report=s=>{if(message)message.textContent=s;};
+ const trackTitle=byId('m7TrackTitle'),trackVariant=byId('m7TrackVariant');
  const duration=()=>{const t=result?.tracks?.[0]?.track;return t?.sampleRate>0?t.samples.length/t.sampleRate:0;};
  const clampTime=t=>Math.max(0,Math.min(duration(),Number(t)||0));
  function position(){
@@ -37,6 +38,8 @@ function attach(doc,api,AudioContextClass){
  }
  function draw(){
   const d=duration(),t=position();
+  if(trackTitle)trackTitle.textContent=result?.request?.title|| (result?'無題の曲':'まだ生成されていません');
+  if(trackVariant)trackVariant.textContent=LABELS[active];
   if(seek){seek.max=String(d);seek.value=String(t);seek.disabled=!result;}
   if(clock)clock.textContent=Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0')+' / '+Math.floor(d/60)+':'+String(Math.floor(d%60)).padStart(2,'0');
   if(pauseButton){pauseButton.disabled=!result;pauseButton.textContent=playing?'⏸ 一時停止':'▶ 再生';}
