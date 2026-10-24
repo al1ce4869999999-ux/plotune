@@ -969,7 +969,7 @@ function score(plan){
   duration,bpm,sampleRate:SR};
  if(plan.musicTonalJourney===true){
   if(!root.PlotuneM3TonalJourney?.apply)throw new TypeError('M3 tonal journey module missing');
-  return root.PlotuneM3TonalJourney.apply(result);
+  return root.PlotuneM3TonalJourney.apply(result,{tonic,mode:game.mode});
  }
  return result;
 }
