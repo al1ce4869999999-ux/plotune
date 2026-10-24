@@ -7,7 +7,7 @@
 function createRunner(engine,auditor,evaluator){
  if(!engine||typeof engine.score!=='function'||!auditor||!evaluator)
   throw new TypeError('Engine, Phase 5 audit and Phase 6 evaluator required');
- function generate(input,seed,{pcm=false}={}){
+ function generate(input,seed,{pcm=false,h0=false}={}){
   if(!Number.isInteger(seed)||seed<0)throw new TypeError('seed must be a nonnegative integer');
   const base={...input,seed};
   const flags={
@@ -27,7 +27,10 @@ function createRunner(engine,auditor,evaluator){
    }
   }
   const report=evaluator.compare(cases,seed,{audit:auditor.auditHandheld});
-  return {cases,report};
+  if(!h0)return {cases,report};
+  const diagnostics=typeof require==='function'?require('./h0-diagnostics-v01.js'):root.PlotuneH0Diagnostics;
+  if(!diagnostics||typeof diagnostics.diagnose!=='function')throw new TypeError('H0 diagnostics unavailable');
+  return {cases,report,h0:diagnostics.diagnose(cases,seed)};
  }
  function proposeCadenceRepair(entry,revision){
   if(!entry||!entry.score||!revision||typeof revision.reviseSection!=='function')
