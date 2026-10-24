@@ -27,6 +27,33 @@ function assess({notes,meter,duration}={}){
   if(seen.has(k)&&n.voice==='counter'){metrics.voiceCollision++;issues.push({bar:Math.floor(n.t/meter),metric:'voiceCollision',reason:'duplicate counter pitch and onset',scope:'counter'});}
   seen.add(k);
  }
+ // Descriptive musical diagnostics: these are not automatic repair permissions.
+ const pc=v=>((v%12)+12)%12;
+ const barPhrases=Array.from({length:bars},(_,b)=>lead.filter(n=>n.t>=b*meter&&n.t<(b+1)*meter));
+ const contour=phrase=>phrase.slice(1).map((n,i)=>Math.sign(n.midi-phrase[i].midi));
+ const theme=contour(barPhrases[0]||[]),similarities=[];
+ for(const phrase of barPhrases.slice(1)){
+  const other=contour(phrase),length=Math.max(theme.length,other.length);
+  if(length>=2)similarities.push(theme.reduce((a,d,i)=>a+(i<other.length&&d===other[i]?1:0),0)/length);
+ }
+ metrics.motifContourSimilarity=similarities.length?
+  Math.round(1000*similarities.reduce((a,b)=>a+b,0)/similarities.length)/1000:null;
+ metrics.harmonicNonChordStrongBeats=0;
+ let observedHarmonicNotes=0;
+ const chords=notes.filter(n=>n.voice==='chords'&&Number.isFinite(n.t)&&Number.isFinite(n.d)&&Number.isInteger(n.midi));
+ for(const n of lead){
+  const available=chords.filter(c=>c.t<=n.t+.0001&&c.t+c.d>n.t+.0001);
+  if(!available.length)continue;
+  observedHarmonicNotes++;
+  const barPhase=((n.t%meter)+meter)%meter;
+  if((barPhase<.08||Math.abs(barPhase-meter/2)<.08)&&!available.some(c=>pc(c.midi)===pc(n.midi)))
+   metrics.harmonicNonChordStrongBeats++;
+ }
+ metrics.harmonicSamples=observedHarmonicNotes;
+ metrics.leadCounterUnisons=notes.filter(n=>n.voice==='counter'&&lead.some(l=>
+  Math.abs(l.t-n.t)<.001&&l.midi===n.midi)).length;
+ const lastChord=last?chords.filter(c=>c.t<=last.t+.0001&&c.t+c.d>last.t+.0001):[];
+ metrics.finalNoteChordTone=lastChord.length?lastChord.some(c=>pc(c.midi)===pc(last.midi)):null;
  return {metrics,issues};
 }
 function repair({notes,meter,duration,issue,seed=1}={}){
