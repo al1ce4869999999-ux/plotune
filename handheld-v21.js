@@ -959,6 +959,17 @@ function score(plan){
    details.expectancyR3={version:'r3b.1',mode:'fallback',reason:String(error?.message||error),phrase:r3PhraseDiagnostics};
   }
  }
+ // R6 is opt-in; candidate evaluator uses a separate deterministic path and never consumes generation RNG.
+ if(plan.musicArrangementOptimizationR6===true){
+  try{
+   if(!root.PlotuneArrangementOptimizationR6?.optimize)throw new Error('R6 optimizer unavailable');
+   const selected=root.PlotuneArrangementOptimizationR6.optimize({notes,duration,bpm,wholeTrackArc,timbres:{lead:palette?.lead??game.lead,counter:palette?.secondary??null,chords:palette?.chords??null,arp:palette?.arp??null,bass:palette?.bass??game.bass,pad:palette?.pad??null,sparkle:palette?.sparkle??null}});
+   if(selected.status==='selected')notes.splice(0,notes.length,...selected.notes);
+   details.arrangementOptimizationR6=selected.trace;
+  }catch(error){
+   details.arrangementOptimizationR6={version:'r6.0',status:'fallback',reason:String(error?.message||error)};
+  }
+ }
  // R5 is a post-composition, read-only diagnostic and does not touch audio synthesis.
  if(plan.musicArrangementPerceptionR5===true){
   try{
