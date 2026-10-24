@@ -1,0 +1,27 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const math=Object.create(Math);math.random=()=>{throw Error('R4a cannot consume RNG');};
+const ctx={window:{},Math:math};
+for(const file of ['motif-similarity-r1.js','identity-novelty-r4.js'])vm.runInNewContext(fs.readFileSync(file,'utf8'),ctx,{filename:file});
+const E=ctx.window.PlotuneIdentityNoveltyR4;
+const a=[2,4,5,2].map((degree,i)=>({degree,position:i,durationUnits:1,accent:.5}));
+const before=JSON.stringify(a);
+const identical=E.assess(a,a,{role:'statement',motifId:'theme-a'});
+assert.equal(identical.identity,1);assert.equal(identical.novelty,0);
+const transposed=E.assess(a,a.map(n=>({...n,degree:n.degree+5})));
+assert.equal(transposed.identity,1);assert(transposed.novelty>0);
+const rhythm=E.assess(a,a.map((n,i)=>({...n,position:[0,1,3,5][i]})));
+assert(rhythm.identity<1&&rhythm.novelty>0);
+const pitch=E.assess(a,a.map((n,i)=>({...n,degree:n.degree+(i===2?2:0)})));
+assert(pitch.novelty>0);
+const inverted=E.assess(a,a.map(n=>({...n,degree:4-(n.degree-4)})));
+assert(inverted.identity<1&&inverted.operations.inversion);
+const fragment=E.assess(a,a.slice(0,2));
+assert(fragment.operations.fragmentation&&fragment.novelty>0);
+const other=E.assess(a,[11,0,10,1].map((degree,i)=>({degree,position:i,durationUnits:1})));
+assert(other.identity<identical.identity);
+for(const role of Object.keys(E.ROLES)){const result=E.assess(a,a,{role});assert.equal(result.role,role);assert.equal(result.motifId,null);}
+assert.notEqual(JSON.stringify(E.ROLES.statement),JSON.stringify(E.ROLES.contrast));
+assert.equal(JSON.stringify(E.assess(a,a)),JSON.stringify(E.assess(a,a)));
+assert.equal(JSON.stringify(a),before);
+assert.equal(transposed.r1.version,'r1.0');
+console.log('PASS R4a standalone identity/novelty, role bands, R1 trace, no RNG, deterministic immutable');
