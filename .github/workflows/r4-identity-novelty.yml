@@ -1,0 +1,36 @@
+name: R4 motif identity and novelty validation
+on:
+  pull_request:
+    paths:
+      - 'identity-novelty-r4.js'
+      - 'identity-novelty-r4b.js'
+      - 'motif-similarity-r1.js'
+      - 'm2-emotion-phrase-v01.js'
+      - 'handheld-v21.js'
+      - 'index.html'
+      - 'tests/identity-novelty-r4a.test.cjs'
+      - 'tests/identity-novelty-r4b.test.cjs'
+      - '.github/workflows/r4-identity-novelty.yml'
+jobs:
+  identity-novelty:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and R4 selection
+        run: |
+          node --check identity-novelty-r4.js
+          node --check identity-novelty-r4b.js
+          node --check handheld-v21.js
+          node --check m2-emotion-phrase-v01.js
+          node tests/identity-novelty-r4a.test.cjs
+          node tests/identity-novelty-r4b.test.cjs
+      - name: Affected R0-R3 and M7 regressions
+        run: |
+          node tests/motif-similarity-r1.test.cjs
+          node tests/m2-emotion-phrase.test.cjs
+          node tests/expectancy-r3b.test.cjs
+          node tests/r3-m7-real-engine.test.cjs
+          node tests/r0-m7-integration.test.cjs
