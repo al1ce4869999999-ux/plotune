@@ -932,7 +932,8 @@ function score(plan){
   details.tensionR2={version:'r2b.shadow.1',mode:performance?.details?.tensionDynamicsApplied?'dynamics-applied':'shadow-only',sections:r2Sections.length,
    dynamicsApplied:performance?.details?.tensionDynamicsApplied||0,
    phrase:r2PhraseDiagnostics,
-   harmony:m3JointPlan?m3JointPlan.decisions.map(d=>({bar:d.bar,chord:d.chord,assessments:d.tensionDiagnostics||[]})):[]
+   harmony:m3JointPlan?m3JointPlan.decisions.map(d=>({bar:d.bar,chord:d.chord,assessments:d.tensionDiagnostics||[]})):[],
+   realized:root.PlotuneTensionR2b.realized(notes,r2Sections,duration)
   };
  }
  return {notes,drums,rests,harmony,theme:motif,details,genre:'game',
