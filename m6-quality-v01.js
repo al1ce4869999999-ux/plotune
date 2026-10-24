@@ -46,7 +46,16 @@ function repair({notes,meter,duration,issue,seed=1}={}){
   for(const n of output){
    if(n.t<start||n.t>=end||n.voice!=='counter')continue;
    const k=key(n);
-   if(seen.has(k)&&n.midi<83){n.midi++;changed++;}
+   if(seen.has(k)){
+    // Re-voice an exact duplicate only onto an already sounding chord tone.
+    // Otherwise leave it for manual review; an arbitrary semitone change is unsafe.
+    const tones=output.filter(c=>c.voice==='chords'&&c.t<=n.t&&c.t+c.d>n.t)
+      .map(c=>c.midi).filter(v=>Number.isInteger(v));
+    const options=[...new Set(tones.flatMap(v=>[-12,0,12].map(o=>v+o)))]
+      .filter(v=>v>=48&&v<=84&&v!==n.midi&&!seen.has(Math.round(n.t*1000)+':counter:'+v))
+      .sort((a,b)=>Math.abs(a-n.midi)-Math.abs(b-n.midi)||a-b);
+    if(options.length){n.midi=options[0];changed++;}
+   }
    seen.add(key(n));
   }
  }
