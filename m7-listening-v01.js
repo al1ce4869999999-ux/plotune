@@ -33,7 +33,7 @@ function attach(doc,api,AudioContextClass){
  const clampTime=t=>Math.max(0,Math.min(duration(),Number(t)||0));
  function position(){
   if(!transport||!context)return pausedAt;
-  return clampTime(transport.offset+Math.max(0,context.currentTime-transport.started));
+  const t=transport.offset+Math.max(0,context.currentTime-transport.started);return repeat?.checked&&duration()>0?t%duration():clampTime(t);
  }
  function draw(){
   const d=duration(),t=position();
@@ -82,7 +82,7 @@ function attach(doc,api,AudioContextClass){
  }
  function pause(){if(!playing)return;const at=position();halt();pausedAt=at;draw();report('一時停止');}
  function stop(){halt(true);report('停止しました');}
- function choose(id){if(!result)return;const at=sync?.checked?position():0;if(playing)play(id,at);else{halt();active=id;pausedAt=clampTime(at);draw();}}
+ function choose(id){if(!result)return;const at=sync?.checked?position():0;play(id,at);}
  function seekTo(t){if(!result)return;const wasPlaying=playing,id=active;halt();pausedAt=clampTime(t);draw();if(wasPlaying)play(id,pausedAt);}
  // History stores only composition inputs, never raw PCM, to conserve iPhone storage.
  const historyKey='plotune.m7.history.v1';
