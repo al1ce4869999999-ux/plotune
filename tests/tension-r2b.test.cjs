@@ -29,7 +29,7 @@ const moved=T.harmonyCandidate(src,3,0,{tonal:.2});
 assert.equal(held.components.tonal.actual,0);
 assert.equal(moved.components.tonal.actual,1);
 assert.notEqual(held.components.tonal.distance,moved.components.tonal.distance,'different chords assessed differently');
-const contextual=M3.plan([src,src],{tension:.4,tensionTargets:[{}, {tonal:.5}]});
+const contextual=M3.plan([src,src,src],{tension:.4,tensionTargets:[{}, {tonal:.5}, {}]});
 const graded=contextual.decisions[1].tensionDiagnostics;
 assert(new Set(graded.map(x=>x.assessment.components.tonal.actual)).size>1,'M3 evaluates distinct root movement for distinct chord candidates');
 assert.throws(()=>T.harmonyCandidate(src,7,0,{}),/invalid candidate chord/);
