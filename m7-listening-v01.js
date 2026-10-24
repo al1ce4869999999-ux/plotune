@@ -25,7 +25,7 @@ function attach(doc,api,AudioContextClass){
  if(!make||!panel)return null;
  const buttons=IDS.map(id=>doc.getElementById('m7Play-'+id));
  const message=doc.getElementById('m7Status'),stopButton=doc.getElementById('m7Stop');
- let context=null,source=null,transport=null,result=null,buffers=new Map(),epoch=0;
+ let context=null,source=null,transport=null,result=null,buffers=new Map(),epoch=0,generating=false;
  const report=(s)=>{message.textContent=s;};
  function position(){if(!transport||!context)return 0;const d=transport.duration;return (transport.offset+Math.max(0,context.currentTime-transport.started))%d;}
  function stop(){epoch++;if(source){try{source.onended=null;source.stop();source.disconnect();}catch{}source=null;}transport=null;}
@@ -45,6 +45,8 @@ function attach(doc,api,AudioContextClass){
   }catch(e){stop();report('再生エラー: '+e.message);}
  }
  function create(){
+  if(generating)return;
+  generating=true;make.disabled=true;report('4条件を生成中…');
   stop();result=null;buffers.clear();buttons.forEach(b=>b.disabled=true);stopButton.disabled=true;
   const input=Object.fromEntries(['title','character','world','scene','style','gameStyle','duration'].map(k=>[k,doc.getElementById(k)?.value]));
   const seed=Number(doc.getElementById('m7Seed').value);
@@ -53,8 +55,9 @@ function attach(doc,api,AudioContextClass){
    buttons.forEach(b=>b.disabled=false);stopButton.disabled=false;
    if(root.PlotuneM7Evaluation?.controller)root.PlotuneM7Evaluation.controller.begin(result);
    if(root.PlotuneM7Diagnostics?.controller)root.PlotuneM7Diagnostics.controller.show(result);
-   report('4曲生成完了 · 同じ位置で切り替え可能 · 音量を静的補正');
+   report('4曲生成完了 · seed '+seed+' · '+result.request.duration+'秒 · 同じ位置で切り替え可能 · 音量を静的補正');
   }catch(e){report('4条件生成エラー: '+e.message);}
+  finally{generating=false;make.disabled=false;}
  }
  make.addEventListener('click',create);
  buttons.forEach((b,i)=>b.addEventListener('click',()=>play(IDS[i])));
