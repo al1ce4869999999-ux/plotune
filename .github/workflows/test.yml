@@ -85,6 +85,7 @@ jobs:
           node tests/phase3-expressive-ab.test.cjs || failed=1
           node tests/m6-quality.test.cjs || failed=1
           node tests/m6-integration.test.cjs || failed=1
+          node tests/m7-m6-integration.test.cjs || failed=1
           node tests/m7-generation.test.cjs || failed=1
           node tests/m7-listening.test.cjs || failed=1
           node tests/m7-evaluation.test.cjs || failed=1
