@@ -52,6 +52,8 @@ function evaluate(score,plan={},context={}){
   return {unit,start:round(start),end:round(end),section,metrics,features,evidence,unavailable:[...(foreground.length?[]:['FOREGROUND_ABSENT']), 'SPECTRAL_MASKING_NOT_MEASURED','TIMBRE_FUSION_NOT_MEASURED']};
  };
  for(let b=0;b<bars;b++){const start=b*meter,end=Math.min(duration,(b+1)*meter);windows.push(sample(start,end,'bar',arc[Math.min(3,Math.floor((b+.5)/bars*4))]));}
+ const phraseWindows=[];
+ for(let b=0;b<bars;b+=4)phraseWindows.push(sample(b*meter,Math.min(duration,(b+4)*meter),'phrase',arc[Math.min(3,Math.floor((b+.5)/bars*4))]));
  const sectionWindows=arc.map((section,i)=>sample(duration*i/4,duration*(i+1)/4,'section',section));
  const whole=sample(0,duration,'song','whole');
  const distance=(a,b)=>{const s=new Set(a.features.voices),t=new Set(b.features.voices);return round(new Set([...s,...t]).size? [...new Set([...s,...t])].filter(v=>s.has(v)!==t.has(v)).length/new Set([...s,...t]).size:0);};
@@ -59,7 +61,7 @@ function evaluate(score,plan={},context={}){
  for(let i=1;i<sectionWindows.length;i++)sectionWindows[i].metrics.instrumentChangeDistance=distance(sectionWindows[i-1],sectionWindows[i]);
  whole.metrics.instrumentChangeDistance=round(sectionWindows.slice(1).reduce((a,w)=>a+w.metrics.instrumentChangeDistance,0)/3);
  const entrances=windows.map((w,i)=>({bar:i+1,entered:i?[...w.features.voices].filter(v=>!windows[i-1].features.voices.includes(v)):w.features.voices,exited:i?windows[i-1].features.voices.filter(v=>!w.features.voices.includes(v)):[],foreground:w.features.foregroundVoices}));
- return {version:VERSION,status:invalid.length?'partial':'ok',kind:'symbolic-proxy',metrics:whole.metrics,windows,sections:sectionWindows,whole,entrances,diagnostics:invalid.map(index=>({code:'INVALID_NOTE',index})),limits:['Foreground clarity and blend fit are symbolic proxies, not listening judgments','No spectral masking or acoustic timbre similarity inferred'],featureFlag:'musicArrangementPerceptionR5'};
+ return {version:VERSION,status:invalid.length?'partial':'ok',kind:'symbolic-proxy',metrics:whole.metrics,windows,phrases:phraseWindows,sections:sectionWindows,events:valid.map(n=>({index:n.index,voice:n.voice,role:n.role,start:round(n.t),end:round(n.t+n.d),midi:n.midi,volume:n.volume})),whole,entrances,diagnostics:invalid.map(index=>({code:'INVALID_NOTE',index})),limits:['Foreground clarity and blend fit are symbolic proxies, not listening judgments','No spectral masking or acoustic timbre similarity inferred'],featureFlag:'musicArrangementPerceptionR5'};
 }
 root.PlotuneArrangementPerceptionR5={VERSION,evaluate};
 })(typeof window!=='undefined'?window:globalThis);
