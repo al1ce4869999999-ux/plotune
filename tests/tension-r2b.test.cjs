@@ -1,0 +1,60 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const ctx={window:{},Math:Object.assign(Object.create(Math),{random(){throw Error('R2b RNG used')}})};
+for(const file of ['tension-r2a.js','tension-r2b.js','m2-emotion-phrase-v01.js','m3-harmony-melody-v01.js'])vm.runInNewContext(fs.readFileSync(file,'utf8'),ctx,{filename:file});
+const T=ctx.window.PlotuneTensionR2b,M2=ctx.window.PlotuneM2Phrase,M3=ctx.window.PlotuneM3Harmony;
+const src=[0,2,4,6].map((degree,i)=>({position:i*4,durationUnits:2,degree,rest:false}));
+const snapshot=JSON.stringify(src),emotion={tension:.4,energy:.6};
+const before=M2.selectPhrase(src,emotion,{seed:91,candidates:7});
+const after=M2.selectPhrase(src,emotion,{seed:91,candidates:7,tensionTarget:{tonal:.8,rhythmic:.2,density:.5}});
+assert.equal(JSON.stringify(after.events),JSON.stringify(before.events));
+assert.equal(after.candidateIndex,before.candidateIndex);
+assert.equal(JSON.stringify(after.candidateScores),JSON.stringify(before.candidateScores));
+assert.equal(after.tensionDiagnostics.length,7);
+assert(after.tensionDiagnostics.every(d=>d.assessment.mode==='shadow-only'));
+assert.equal(before.tensionDiagnostics,undefined);
+const base=M3.plan([src,src],{tension:.4});
+const shadow=M3.plan([src,src],{tension:.4,tensionTargets:[{tonal:.8},{rhythmic:.5}]});
+assert.equal(JSON.stringify(shadow.chords),JSON.stringify(base.chords));
+assert.equal(JSON.stringify(shadow.phrases),JSON.stringify(base.phrases));
+assert(shadow.decisions.every((d,i)=>d.tensionDiagnostics.length===(i===1?1:7)));
+assert.equal(JSON.stringify(src),snapshot);
+assert.equal(T.assess({tonal:.2},{tonal:.9}).components.tonal.distance,.7);
+assert.equal(T.assess({},{}).distance,null);
+assert.throws(()=>T.assess({tonal:.1},{tonal:2}),/invalid target/);
+
+const first=T.harmonyCandidate(src,0,null,{tonal:.5});
+assert.equal(first.components.tonal.status,'unknown','first chord has no predecessor');
+const held=T.harmonyCandidate(src,0,0,{tonal:.2});
+const moved=T.harmonyCandidate(src,3,0,{tonal:.2});
+assert.equal(held.components.tonal.actual,0);
+assert.equal(moved.components.tonal.actual,1);
+assert.notEqual(held.components.tonal.distance,moved.components.tonal.distance,'different chords assessed differently');
+const contextual=M3.plan([src,src,src],{tension:.4,tensionTargets:[{}, {tonal:.5}, {}]});
+const graded=contextual.decisions[1].tensionDiagnostics;
+assert(new Set(graded.map(x=>x.assessment.components.tonal.actual)).size>1,'M3 evaluates distinct root movement for distinct chord candidates');
+assert.throws(()=>T.harmonyCandidate(src,7,0,{}),/invalid candidate chord/);
+
+const m2Selected=M2.selectPhrase(src,emotion,{seed:91,candidates:7,tensionTarget:{tonal:1,rhythmic:0},tensionSelection:true,tensionScoreBudget:2});
+assert.equal(m2Selected.tensionSelected, m2Selected.candidateIndex!==before.candidateIndex);
+assert.equal(JSON.stringify(m2Selected.events),JSON.stringify(M2.selectPhrase(src,emotion,{seed:91,candidates:7,tensionTarget:{tonal:1,rhythmic:0},tensionSelection:true,tensionScoreBudget:2}).events));
+assert(m2Selected.score>=before.score-2,'M2 legacy quality band');
+const m3Selected=M3.plan([src,src,src],{tension:.4,tensionTargets:[{tonal:1},{tonal:0},{tonal:1}],tensionSelection:true,tensionScoreBudget:2});
+const m3Off=M3.plan([src,src,src],{tension:.4});
+assert.equal(m3Selected.chords.at(-1),0,'R2 preserves final cadence');
+assert(m3Selected.decisions.every(d=>Number.isFinite(d.score)),'M3 candidate scores remain finite');
+assert.equal(JSON.stringify(m3Selected.chords),JSON.stringify(M3.plan([src,src,src],{tension:.4,tensionTargets:[{tonal:1},{tonal:0},{tonal:1}],tensionSelection:true,tensionScoreBudget:2}).chords),'M3 stable seedless selection');
+assert.throws(()=>M2.selectPhrase(src,emotion,{tensionTarget:{tonal:.2},tensionSelection:true,tensionScoreBudget:-1}),/invalid tensionScoreBudget/);
+
+let m2Difference=false;
+for(let seed=1;seed<=30&&!m2Difference;seed++){
+ const off=M2.selectPhrase(src,emotion,{seed,candidates:12});
+ for(const tonal of [0,1]){
+  const on=M2.selectPhrase(src,emotion,{seed,candidates:12,tensionTarget:{tonal},tensionSelection:true,tensionScoreBudget:2});
+  if(on.candidateIndex!==off.candidateIndex){m2Difference=true;break;}
+ }
+}
+assert(m2Difference,'M2 selection must actually respond to an explicit tension target');
+const m3Down=M3.plan([src,src,src,src],{tension:.4,tensionTargets:[{}, {tonal:0}, {tonal:0}, {}],tensionSelection:true,tensionScoreBudget:2});
+const m3Up=M3.plan([src,src,src,src],{tension:.4,tensionTargets:[{}, {tonal:1}, {tonal:1}, {}],tensionSelection:true,tensionScoreBudget:2});
+assert.notEqual(JSON.stringify(m3Down.chords),JSON.stringify(m3Up.chords),'M3 different tonal goals must yield different chord progressions with sufficient budget');
+console.log('PASS R2b M2/M3 shadow assessments do not change selection, score, chords, notes, input or RNG');

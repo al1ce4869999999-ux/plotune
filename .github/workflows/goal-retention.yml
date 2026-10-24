@@ -29,9 +29,9 @@ jobs:
               const match = re.exec(body);
               if (!match) { missing.push(head+' (見出しなし)'); continue; }
               const start=match.index+match[0].length;
-              const tail=body.slice(start).split(/^##\\s+/m)[0]
-                .replace(/<!--[\\s\\S]*?-->/g,'').trim();
-              if (!tail || /^[-*]\\s*\\[ \\]\\s*/.test(tail) && !tail.replace(/[-*\\[\\]\\s]/g,'')) {
+              const tail=body.slice(start).split(/^##\s+/m)[0]
+                .replace(/<!--[\s\S]*?-->/g,'').trim();
+              if (!tail || /^[-*]\s*\[ \]\s*/.test(tail) && !tail.replace(/[-*\[\]\s]/g,'')) {
                 missing.push(head+' (内容なし)');
               }
             }
