@@ -45,7 +45,19 @@ function selectPhrase(source,emotion={},options={}){
  const choices=Array.from({length:count},(_,i)=>{const events=candidate(source,emotion,seed,i);return {events,score:evaluate(events,emotion),index:i}});
  const tensionDiagnostics=options.tensionTarget&&root.PlotuneTensionR2b?choices.map(c=>({index:c.index,assessment:root.PlotuneTensionR2b.phrase(c.events,options.tensionTarget)})):null;
  choices.sort((a,b)=>b.score-a.score||a.index-b.index);
- return {events:choices[0].events,score:choices[0].score,candidateIndex:choices[0].index,candidateScores:choices.map(c=>({index:c.index,score:c.score})),...(tensionDiagnostics?{tensionDiagnostics}: {})};
+ // R2 tension constraint applies only inside a bounded legacy-quality band.
+ // R4's identity/novelty selector remains independent.
+ let chosen=choices[0],tensionSelected=false;
+ if(options.tensionSelection===true&&tensionDiagnostics){
+  const budget=options.tensionScoreBudget??.25;
+  if(!Number.isFinite(budget)||budget<0||budget>2)throw new RangeError('invalid tensionScoreBudget');
+  const candidates=choices.filter(c=>c.score>=choices[0].score-budget);
+  const measured=candidates.map(c=>({candidate:c,assessment:tensionDiagnostics.find(d=>d.index===c.index)?.assessment}))
+   .filter(x=>x.assessment?.measuredCount>0&&Number.isFinite(x.assessment.distance));
+  measured.sort((a,b)=>a.assessment.distance-b.assessment.distance||b.candidate.score-a.candidate.score||a.candidate.index-b.candidate.index);
+  if(measured.length){chosen=measured[0].candidate;tensionSelected=chosen.index!==choices[0].index;}
+ }
+ return {events:chosen.events,score:chosen.score,candidateIndex:chosen.index,candidateScores:choices.map(c=>({index:c.index,score:c.score})),...(tensionDiagnostics?{tensionDiagnostics}: {}),...(options.tensionSelection===true?{tensionSelected}: {})};
 }
 root.PlotuneM2Phrase={profile,evaluate,selectPhrase};
 })(window);
