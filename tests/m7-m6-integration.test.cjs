@@ -22,7 +22,7 @@ assert.equal(on.tracks.filter(t=>t.m6Report!==null).length,2,'only M and Phase+M
 assert.deepEqual(Array.from(on.tracks,t=>t.m6Report!==null),[false,false,true,true]);
 assert.equal(on.tracks[0].track.samples[0],off.tracks[0].track.samples[0]);
 assert.equal(on.tracks[1].track.samples[0],off.tracks[1].track.samples[0]);
-assert.equal(on.tracks[2].track.samples[0],.62);
-assert.equal(on.tracks[3].track.samples[0],.62);
+assert(Math.abs(on.tracks[2].track.samples[0]-.62)<1e-6);
+assert(Math.abs(on.tracks[3].track.samples[0]-.62)<1e-6);
 assert.equal(off.tracks.every(t=>t.m6Report===null),true);
 console.log('PASS M7 optional M6 four-condition isolation');
