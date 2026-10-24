@@ -55,7 +55,13 @@ function optimize(input){
   const assessment=kind==='original'?original:evaluate(result,duration,bpm,wholeTrackArc,timbres);
   const m=assessment.metrics||{},base=original.metrics||{};
   const valid=assessment.status!=='fallback'&&Object.values(result).every(n=>Number.isFinite(n.t)&&Number.isFinite(n.volume)&&Number.isFinite(n.midi)&&n.t>=0&&n.t+n.d<=duration+1e-6);
-  const targets=sections.map(s=>({section:s.name,goal:s.goal}));
+  const targets=sections.map((s,i)=>{
+   const observed=assessment.sections?.[i]?.metrics||m;
+   const reference=original.sections?.[i]?.metrics||base;
+   const densityScale=s.goal.densityTarget==='sparse'?.8:s.goal.densityTarget==='dense'?1.2:1;
+   const desiredDensity=(reference.noteDensity||0)*densityScale;
+   return {section:s.name,goal:s.goal,observed:{foregroundClarity:observed.foregroundClarity,blendFit:observed.blendFit,noteDensity:observed.noteDensity,registerOverlap:observed.registerOverlap,instrumentChangeDistance:observed.instrumentChangeDistance},cost:Math.abs((observed.blendFit||0)-s.goal.blendTarget)+Math.abs((observed.noteDensity||0)-desiredDensity)/Math.max(1,reference.noteDensity||0)+(s.goal.registerTarget==='separated'?(observed.registerOverlap||0):0)+(s.goal.continuityTarget==='smooth'?(observed.instrumentChangeDistance||0):0),source:'R5 section proxy'};
+  });
   const conflictImprovement=(base.roleConflict||0)-(m.roleConflict||0);
   const clarityImprovement=(m.foregroundClarity||0)-(base.foregroundClarity||0);
   const densityDelta=Math.abs((m.noteDensity||0)-(base.noteDensity||0));
@@ -63,7 +69,8 @@ function optimize(input){
   const intentionalContrast=sections.some(s=>s.goal.continuityTarget==='contrast');
   const reasons={conflictImprovement,clarityImprovement,densityDelta,continuity,intentionalContrast,editCount:edits};
   const passes=valid&&(kind==='original'||(edits>0&&conflictImprovement>=-.015&&clarityImprovement>=-.015&&densityDelta<.2));
-  const cost=(1-clamp(m.foregroundClarity||0,0,1))*2+(m.roleConflict||0)*2+(m.registerOverlap||0)*.35+(intentionalContrast?continuity*.05:continuity*.3)+(kind==='original'?.07:0);
+  const targetCost=targets.reduce((sum,t)=>sum+t.cost,0)/Math.max(1,targets.length);
+  const cost=(1-clamp(m.foregroundClarity||0,0,1))*2+(m.roleConflict||0)*2+(m.registerOverlap||0)*.35+targetCost*.2+(intentionalContrast?continuity*.05:continuity*.3)+(kind==='original'?.07:0);
   return {kind,notes:result,metrics:m,reasons,targets,passes,cost:Math.round(cost*1e6)/1e6,edits};
  });
  const eligible=candidates.filter(c=>c.passes).sort((a,b)=>a.cost-b.cost||kinds.indexOf(a.kind)-kinds.indexOf(b.kind));
