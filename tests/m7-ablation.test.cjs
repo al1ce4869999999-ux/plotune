@@ -10,7 +10,7 @@ const deps={analyze:()=>({}),plan:()=>({}),resonare:()=>({}),structure:()=>({}),
 const first=M.generateAblations(input,42,deps),second=M.generateAblations(input,42,deps);
 assert.equal(first.tracks.length,6);
 assert.equal(JSON.stringify(first.tracks.map(x=>x.ablationId)),JSON.stringify(['all-on','m1-off','m2-off','m3-off','m4-off','m5-off']));
-assert.equal(JSON.stringify(first.tracks.map(x=>x.disabledFlag)),JSON.stringify([null,'motifDevelopment','musicDevelopment','musicHarmony','musicVoices','musicPerformance']));
+assert.equal(JSON.stringify(first.tracks.map(x=>x.disabledFlag)),JSON.stringify([null,'musicMotifMemory','musicDevelopment','musicHarmony','musicVoices','musicPerformance']));
 assert.equal(JSON.stringify(rendered.slice(0,6)),JSON.stringify(rendered.slice(6)),'determinism');
 const base=JSON.parse(rendered[0]);
 for(let i=1;i<6;i++){
