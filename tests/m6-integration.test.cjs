@@ -30,4 +30,9 @@ const anotherBar={duration:8,bpm:60,notes:[note(0,64,'chords'),note(0,60,'counte
 const rejected=M.apply(anotherBar,{quality:invalid});
 assert.equal(rejected.report.accepted,0,'another bar must never change');
 assert.equal(JSON.stringify(rejected.score.notes),JSON.stringify(anotherBar.notes));
+const malformed={assess:()=>({issues:[{bar:0,metric:'voiceCollision'}],metrics:{}}),
+ repair:()=>({accepted:true,notes:null,reason:'invalid candidate'})};
+const malformedResult=M.apply(s,{quality:malformed});
+assert.equal(malformedResult.report.accepted,0,'malformed repair must be rejected');
+assert.equal(JSON.stringify(malformedResult.score.notes),JSON.stringify(s.notes));
 console.log('PASS M6 conservative score integration');
