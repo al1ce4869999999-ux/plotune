@@ -12,14 +12,22 @@ Source of truth: `docs/M_IMPLEMENTATION_PLAN.md` on `docs/parallel-phase-m-roadm
 - `PlotuneM7Generation.generateAblations()`: an all-on control and M1–M5 one-at-a-time OFF recordings, independent of the four conditions.
 - `PlotuneM7Aggregate.aggregate()`: multiple paired subjective/objective trials; missing scores excluded and conflicts reported only as descriptive observations.
 
+## Technical integration update (2026-10-24)
+- M1's real score generation now registers opening motif, records four section transformations and materializes a reprise in the final quarter when `musicMotifMemory` is ON. `motifDevelopment` is separately controlled by Phase, and M1 ablation disables only the M-specific register/return stage.
+- M3 candidate harmony fit now depends on chord root. `PlotuneM3TonalJourney` applies an opt-in temporary +2 semitone tonicization to pitched voices, returns to home key, and can borrow iv's lowered third in a major-key subdominant bar when the prerequisite harmony exists. Provenance is on the score.
+- M6's conservative counter-revoicing is limited to sounding chord tones of a different pitch class. Diagnostics include motif contour, harmonic alignment, lead-counter unisons, and last-note chord tone. These are descriptive safeguards, not proof of musical merit.
+- Phase condition now enables four distinct structural switches: `phaseSongForm`, `motifDevelopment`, `phaseArrangement`, `musicTransitions`. M toggles `musicMotifMemory`, `musicDevelopment`, `musicHarmony`, `musicTonalJourney`, `musicVoices`, and `musicPerformance`. Four conditions remain orthogonal; the full original Phase infrastructure may differ from these isolated handheld implementations.
+- Multi-song paired listening/diagnostic storage plus JSON aggregate export have been added to the browser.
+- Regression suites include score-level Phase sections, M1 reprise provenance, M3 tonicization/borrowing and M6 live local repair, plus 15/30/60-second four-way PCM and ablations.
+
 ## CI and validation rules
-A previous engineering HEAD `04a87bce` passed 9/9 GitHub CI workflows; latest branch must be separately checked. Imported files and added tests are not certified merely because older SHAs were green. Neither Safari hands-on, Preview, subjective listening nor music-quality improvement has been verified. All code is **未実行** locally. M7 aggregate is an API, not an interactive browser workflow. Never label a generated metric as aesthetic quality.
+A previous engineering HEAD `04a87bce` passed 9/9 GitHub CI workflows; latest branch must be separately checked. Imported files and added tests are not certified merely because older SHAs were green. Neither Safari hands-on, Preview, subjective listening nor music-quality improvement has been verified. All code is **未実行** locally. M7 aggregate also has a browser save/export control, but authentic human ratings still need to be collected. Never label a generated metric as aesthetic quality.
 
 ## Explicit acceptance gaps
-1. The original plan's full Phase 1–4 architecture is **not** the same as M7's `motifDevelopment` Phase flag. Four-way UI labels therefore need qualification or full integration before claiming complete Phase-vs-M comparisons.
-2. M1 legacy registry/history modules are imported, not yet proven as a complete cross-module rendering pipeline or recognizable thematic return.
-3. M3 reharmonization/borrowed-harmony/modulation functionality and M6 harmonic/motif multi-axis evaluation are not fully met; see `docs/M0-M7-FORMAL-ACCEPTANCE-AUDIT.md`.
-4. The formal M7 acceptance requires multi-song listener records; aggregation code without collected human judgments cannot establish improvement. User has postponed listening until full M-series technical completion.
+1. Phase 1–4 are now independently gated in the handheld score, but a full comparison against every historical Phase-branch implementation has not been certified.
+2. M1 is connected to score generation and has deterministic theme return and trace tests. Perceptual recognizability remains a human listening question.
+3. M3 implements explicit harmonic reinterpretation, temporary tonicization/return, and guarded chromatic subdominant borrowing; M6 multi-axis description and bounded local revoicing are implemented. Broader harmonic grammar and subjective improvement remain open research/acceptance gates.
+4. The formal M7 acceptance requires real multi-song listener records; neither aggregation code nor CI establishes improvement. User has postponed listening until full M-series technical completion.
 5. Verify latest HEAD CI 9/9 and real Safari playback separately, only with user approval for a permitted deployment.
 
 ## Next implementer order
