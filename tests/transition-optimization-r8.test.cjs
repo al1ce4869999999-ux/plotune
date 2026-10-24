@@ -13,6 +13,26 @@ assert.equal(a.trace.strategies[0].changed,0);
 assert.equal(a.trace.strategies[1].strategy,'CADENCE_BREATH');
 assert.equal(a.notes[1].d,notes[1].d);assert.ok(a.notes[3].d<notes[3].d);
 assert.equal(JSON.stringify(input),snapshot);assert.equal(JSON.stringify(a),JSON.stringify(b));
+
+const strategyCases={
+ COMMON_TONE:[{t:2.75,d:.2,midi:60,voice:'bass'},{t:3,d:.2,midi:62,voice:'bass'}],
+ MOTIF_PREVIEW:[{t:2.75,d:.2,midi:72,voice:'counter'},{t:3,d:.2,midi:74,voice:'lead'}],
+ RHYTHMIC_BRIDGE:[{t:2.82,d:.16,midi:70,voice:'arp'},{t:3,d:.2,midi:74,voice:'lead'}],
+ BASS_LEAD:[{t:2.75,d:.2,midi:60,voice:'bass'},{t:3,d:.2,midi:65,voice:'bass'}],
+ TEXTURE_DOVETAIL:[{t:2.75,d:.15,midi:67,voice:'pad'},{t:3,d:.2,midi:74,voice:'lead'}],
+ CADENCE_BREATH:[{t:2.8,d:.18,midi:60,voice:'bass'},{t:3,d:.2,midi:74,voice:'lead'}],
+ SUSPENSION:[{t:2.8,d:.2,midi:67,voice:'chords'},{t:3,d:.2,midi:74,voice:'lead'}]
+};
+assert.deepEqual(Array.from(R.STRATEGIES).sort(),Object.keys(strategyCases).concat('HARD_CUT').sort());
+for(const [strategy,events] of Object.entries(strategyCases)){
+ const synthetic={notes:events,duration:4,bpm:240,wholeTrackArc:arc,transitionPlans:[{time:3,strategy}]};
+ const before=JSON.stringify(synthetic),r=R.optimize(synthetic);
+ assert.equal(r.trace.strategies[0].strategy,'HARD_CUT',strategy+' keeps earlier hard cut');
+ assert.equal(r.trace.strategies[1].strategy,strategy,strategy+' candidate is selectable');
+ assert.equal(r.trace.changedNotes,1,strategy+' exactly one local edit');
+ assert.equal(JSON.stringify(synthetic),before,strategy+' pure input');
+ assert.notEqual(JSON.stringify(r.notes),JSON.stringify(events),strategy+' real note edit');
+}
 const hash=x=>({notes:crypto.createHash('sha256').update(JSON.stringify(x.score.notes)).digest('hex'),pcm:crypto.createHash('sha256').update(Buffer.from(x.samples.buffer,x.samples.byteOffset,x.samples.byteLength)).digest('hex')});
 const request={scene:'森を歩く旅人',character:'旅人',world:'森',style:'handheld',gameStyle:'journey'};
 let selected=0;
@@ -24,7 +44,7 @@ for(const duration of [15,30,60]){
   const on=H.render({...plan,musicTransitionOptimizationR8:true});
   const repeat=H.render({...plan,musicTransitionOptimizationR8:true});
   assert.deepEqual(hash(on),hash(repeat),'determinism '+conditionId+' '+duration);
-  assert.equal(on.score.details.transitionOptimizationR8.version,'r8.0');
+  assert.equal(on.score.details.transitionOptimizationR8.version,'r8.1');
   assert.deepEqual(hash(off),hash(H.render({...plan})),'OFF preservation '+conditionId+' '+duration);
   if(on.score.details.transitionOptimizationR8.status==='selected'){
    selected++;assert.notDeepEqual(hash(on).notes,hash(off).notes,'real notes '+conditionId+' '+duration);
