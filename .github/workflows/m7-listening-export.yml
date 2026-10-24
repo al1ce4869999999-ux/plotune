@@ -1,0 +1,28 @@
+name: M7 listening WAV export
+on:
+  push:
+    branches: [feature/m7-1-four-condition-generation]
+    paths:
+      - 'scripts/export-m7-listening.cjs'
+      - 'm7-generation-v01.js'
+      - 'handheld-v21.js'
+      - '.github/workflows/m7-listening-export.yml'
+  workflow_dispatch:
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Render 4 condition WAVs
+        run: node scripts/export-m7-listening.cjs
+      - name: Verify WAV files and expected duration
+        run: |
+          node -e "const fs=require('fs');for(const id of ['baseline','phase','m','phase-m']){const b=fs.readFileSync('m7-listening-wavs/'+id+'.wav');if(b.toString('ascii',0,4)!=='RIFF'||b.toString('ascii',8,12)!=='WAVE')throw Error(id+' header');const bytes=b.readUInt32LE(40),hz=b.readUInt32LE(24);if(bytes!==hz*30*2)throw Error(id+' duration');console.log('PASS',id,hz,'Hz',bytes,'bytes')}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plotune-m7-listening-four-wavs
+          path: m7-listening-wavs/
+          retention-days: 14
