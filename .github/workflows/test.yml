@@ -64,6 +64,7 @@ jobs:
           node --check m7-evaluation-v01.js
           node --check m7-diagnostics-v01.js
           node --check m7-aggregate-v01.js
+          node --check m7-worker-v01.js
           node --check m7-trial-ui-v01.js
           node --check app-v13.js
           node --check app.js
