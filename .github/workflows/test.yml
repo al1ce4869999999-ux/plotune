@@ -1,4 +1,7 @@
 name: Plotune engine tests
+concurrency:
+  group: plotune-engine-${{ github.ref }}
+  cancel-in-progress: true
 on:
   push:
     branches: [main, feature/m7-1-four-condition-generation]
