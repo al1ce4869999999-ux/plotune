@@ -71,7 +71,7 @@ function optimize(input){
   if(cadence){
    const end=cadence.n.t+cadence.n.d;
    const trim=Math.min(beat/6,cadence.n.d*.20);
-   if(end>t-beat&&end<=t+beat&&cadence.n.d-trim>=.035)
+   if(end>t-beat&&end<=t+2*beat&&cadence.n.d-trim>=.035)
     add('CADENCE_BREATH',cadence,{d:round(cadence.n.d-trim)},'local release before smooth section',.25);
   }
   // SUSPENSION: hold an existing support note into the following beat where no same voice enters.
