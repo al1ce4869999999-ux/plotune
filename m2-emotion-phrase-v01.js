@@ -43,8 +43,9 @@ function selectPhrase(source,emotion={},options={}){
  if(!source.every(e=>Number.isFinite(e.position)&&Number.isFinite(e.durationUnits)&&Number.isInteger(e.degree)&&e.degree>=0&&e.degree<=8&&e.durationUnits>0&&e.position>=0&&e.position+e.durationUnits<=16.001))throw new RangeError('invalid phrase events');
  const seed=options.seed??1,count=clamp(Math.floor(options.candidates??6),1,32);
  const choices=Array.from({length:count},(_,i)=>{const events=candidate(source,emotion,seed,i);return {events,score:evaluate(events,emotion),index:i}});
+ const tensionDiagnostics=options.tensionTarget&&root.PlotuneTensionR2b?choices.map(c=>({index:c.index,assessment:root.PlotuneTensionR2b.phrase(c.events,options.tensionTarget)})):null;
  choices.sort((a,b)=>b.score-a.score||a.index-b.index);
- return {events:choices[0].events,score:choices[0].score,candidateIndex:choices[0].index,candidateScores:choices.map(c=>({index:c.index,score:c.score}))};
+ return {events:choices[0].events,score:choices[0].score,candidateIndex:choices[0].index,candidateScores:choices.map(c=>({index:c.index,score:c.score})),...(tensionDiagnostics?{tensionDiagnostics}: {})};
 }
 root.PlotuneM2Phrase={profile,evaluate,selectPhrase};
 })(window);
