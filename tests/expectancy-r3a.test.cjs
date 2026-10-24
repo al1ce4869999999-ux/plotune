@@ -21,5 +21,7 @@ const pitch=phrase.map(x=>({...x}));pitch[2].degree=6;
 assert.notEqual(R.evaluate(pitch,{}, {model}).trace[2].axes.interval.symbol,a.trace[2].axes.interval.symbol);
 const boundary=phrase.map(x=>({...x}));boundary[2].phraseStart=true;
 assert.equal(R.evaluate(boundary,{}, {model}).trace[2].axes.joint.order,0);
+assert.equal(R.evaluate(boundary,{}, {model}).trace[2].axes.interval.symbol,'initial','phrase boundary resets interval context');
+assert.equal(R.eventsOf([{midi:60,d:.5}])[0].rhythm,'note:0.5','rendered note duration used');
 const uniform=R.evaluate(phrase);assert.equal(uniform.model.metadata.training,'untrained-uniform');
 console.log('PASS R3a deterministic scoring, normalized distributions, finite unknowns, no RNG/mutation, rhythmic and melodic separation');
