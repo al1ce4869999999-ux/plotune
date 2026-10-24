@@ -1,0 +1,35 @@
+name: R8 transition optimization validation
+on:
+  push:
+    branches: [feature/r8-transition-optimization]
+  pull_request:
+    paths:
+      - 'transition-optimization-r8.js'
+      - 'handheld-v21.js'
+      - 'index.html'
+      - 'tests/transition-optimization-r8.test.cjs'
+      - '.github/workflows/r8-transition-optimization.yml'
+jobs:
+  r8:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: R8 syntax and real generation
+        run: |
+          node --check transition-optimization-r8.js
+          node --check handheld-v21.js
+          node tests/transition-optimization-r8.test.cjs
+      - name: R0-R7 impacted regressions
+        run: |
+          node tests/transition-evaluation-r7.test.cjs
+          node tests/arrangement-optimization-r6.test.cjs
+          node tests/arrangement-perception-r5.test.cjs
+          node tests/r4-m7-real-engine.test.cjs
+          node tests/r3-m7-real-engine.test.cjs
+          node tests/r0-m7-integration.test.cjs
+          node tests/motif-similarity-r1.test.cjs
+          node tests/m2-emotion-phrase.test.cjs
+          node tests/preflight-contracts.test.cjs
