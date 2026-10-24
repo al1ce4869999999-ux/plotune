@@ -965,8 +965,13 @@ function score(plan){
   breaks:0,shiftedChords:transform?bars:0,cueHits:transform?1:0,
   harmonyChanges:harmony.length,rests,events:[],harmonies:harmony
  };
- return {notes,drums,rests,harmony,theme:motif,details,genre:'game',
+ const result={notes,drums,rests,harmony,theme:motif,details,genre:'game',
   duration,bpm,sampleRate:SR};
+ if(plan.musicTonalJourney===true){
+  if(!root.PlotuneM3TonalJourney?.apply)throw new TypeError('M3 tonal journey module missing');
+  return root.PlotuneM3TonalJourney.apply(result);
+ }
+ return result;
 }
 function render(plan,scoreOverride){
  const s=scoreOverride||score(plan),N=Math.round(s.duration*SR),out=new Float32Array(N);
