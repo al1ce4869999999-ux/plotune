@@ -74,6 +74,23 @@ function generate(input,seed,dependencies,options={}){
  });
  return {schemaVersion:'m7.1-v1',request:req,tracks};
 }
+// UI-safe incremental rendering. Yield between conditions so Safari can paint progress.
+async function generateProgressively(input,seed,onTrack,dependencies){
+ dependencies=dependencies||dependenciesFromRoot();
+ const req=request(input,seed),plans=makePlans(req,dependencies),tracks=[];
+ for(const {conditionId,config,plan} of plans){
+  // A browser task boundary lets status and controls paint before the next render.
+  await new Promise(resolve=>setTimeout(resolve,0));
+  const track=dependencies.handheld.render(plan);
+  if(!track?.samples||!track?.score||!Number.isFinite(track.sampleRate)||
+   track.samples.length!==Math.round(req.duration*track.sampleRate)||
+   !track.samples.every(Number.isFinite))throw new RangeError('invalid M7 track '+conditionId);
+  const item={conditionId,config,request:req,track,m6Report:null};
+  tracks.push(item);
+  if(onTrack)onTrack(item,tracks.length);
+ }
+ return {schemaVersion:'m7.1-v1',request:req,tracks};
+}
 // Individual flag ablations are additional tracks, not substitutions for the fixed four.
 const ABLATIONS=Object.freeze({
  m1:'musicMotifMemory',m2:'musicDevelopment',m3:'musicHarmony',
@@ -94,5 +111,5 @@ function generateAblations(input,seed,dependencies){
    return {ablationId:id,disabledFlag:key,track};
   })};
 }
-root.PlotuneM7Generation={IDS,condition,request,makePlans,generate,generateAblations,ABLATIONS,dependenciesFromRoot};
+root.PlotuneM7Generation={IDS,condition,request,makePlans,generate,generateProgressively,generateAblations,ABLATIONS,dependenciesFromRoot};
 })(typeof window!=='undefined'?window:globalThis);
