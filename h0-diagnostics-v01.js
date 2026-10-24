@@ -18,6 +18,7 @@ function diagnose(cases,seed,{windowBars=2}={}){
    const t=finite(b?.boundary)?b.boundary:finite(b?.t)?b.t:null;
    if(t!==null)boundaries.add(t);
   }
+  if(finite(score.duration)&&score.duration>0){for(let k=1;k<4;k++)boundaries.add(score.duration*k/4);}
   const noteByVoice=new Map();
   for(const n of notes){if(!noteByVoice.has(n.voice))noteByVoice.set(n.voice,[]);noteByVoice.get(n.voice).push(n);}
   for(const list of noteByVoice.values())list.sort((a,b)=>a.onset-b.onset||a.midi-b.midi);
@@ -78,7 +79,27 @@ function compareStages(stages,seed,condition='M'){
  return {schema:'plotune.h0.stage-diff',version:1,seed,condition,events,
   limitations:['INDEX_MATCHING_NOT_NOTE_IDENTITY','NO_CAUSAL_ATTRIBUTION']};
 }
-const api={CONDITIONS,diagnose,ablate,compareStages};
+function comparePhrases(phraseTrace,seed,condition='M'){
+ if(!Number.isInteger(seed)||seed<0)throw new TypeError('invalid seed');
+ const events=[];
+ if(!phraseTrace||typeof phraseTrace!=='object')return {schema:'plotune.h0.phrase-diff',version:1,seed,condition,events};
+ for(const [beforeKey,afterKey,stage] of [['beforeM2','afterM2','M2'],['afterM2','afterM3','M3']]){
+  const before=phraseTrace[beforeKey],after=phraseTrace[afterKey];
+  if(!Array.isArray(before)||!Array.isArray(after))continue;
+  for(let bar=0;bar<Math.max(before.length,after.length);bar++){
+   const a=before[bar]||[],b=after[bar]||[];
+   for(let index=0;index<Math.max(a.length,b.length);index++){
+    if(JSON.stringify(a[index]??null)===JSON.stringify(b[index]??null))continue;
+    events.push({seed,condition,section:null,bar,timestamp:null,voice:'lead',sourceStage:stage,
+     originalNote:a[index]??null,transformedNote:b[index]??null,activeChord:null,
+     suspectedProblem:'unconfirmed',evidence:{eventIndex:index,representation:'phrase-event-not-midi'},confidence:'unconfirmed'});
+   }
+  }
+ }
+ return {schema:'plotune.h0.phrase-diff',version:1,seed,condition,events,
+  limitations:['PHRASE_EVENTS_NOT_RENDERED_NOTES','INDEX_MATCHING_NOT_NOTE_IDENTITY']};
+}
+const api={CONDITIONS,diagnose,ablate,compareStages,comparePhrases};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.PlotuneH0Diagnostics=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
