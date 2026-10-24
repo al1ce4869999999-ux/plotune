@@ -49,6 +49,7 @@ jobs:
           node --check band-piano-v15.js
           node --check comparison-v13.js
           node --check research-evaluation-r0.js
+          node --check motif-similarity-r1.js
           node --check m7-generation-v01.js
           node --check m7-listening-v01.js
           node --check m7-evaluation-v01.js
@@ -87,6 +88,8 @@ jobs:
           node tests/m7-real-engine.test.cjs || failed=1
           node tests/research-evaluation-r0.test.cjs || failed=1
           node tests/r0-m7-integration.test.cjs || failed=1
+          node tests/motif-similarity-r1.test.cjs || failed=1
+          node tests/r1-m7-diagnostic.test.cjs || failed=1
           node tests/emotion-isolated-ab.test.cjs || failed=1
           node tests/resonare.test.cjs || failed=1
           node tests/structural.test.cjs || failed=1
