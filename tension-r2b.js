@@ -1,0 +1,84 @@
+/* R2b shadow assessment: score existing M2/M3 candidate options without selecting or altering them. */
+(function(root){'use strict';
+const COMPONENTS=['tonal','expectancy','rhythmic','density','timbral','dynamic'];
+const finite=n=>typeof n==='number'&&Number.isFinite(n);
+const clamp=n=>Math.max(0,Math.min(1,n));
+const round=n=>Math.round(n*1e6)/1e6;
+function assess(metrics,target){
+ if(!metrics||typeof metrics!=='object'||!target||typeof target!=='object')throw new TypeError('metrics and target required');
+ let weighted=0,count=0;
+ const components={};
+ for(const key of COMPONENTS){
+  const actual=metrics[key],desired=target[key];
+  if(desired!==null&&desired!==undefined&&(!finite(desired)||desired<0||desired>1))throw new RangeError('invalid target '+key);
+  if(actual!==undefined&&actual!==null&&(!finite(actual)||actual<0||actual>1))throw new RangeError('invalid measurement '+key);
+  if(finite(desired)&&finite(actual)){
+   const distance=round(Math.abs(desired-actual));
+   components[key]={status:'measured',actual,desired,distance};weighted+=distance;count++;
+  }else components[key]={status:'unknown',actual:finite(actual)?actual:null,desired:finite(desired)?desired:null};
+ }
+ return {version:'r2b.shadow.1',mode:'shadow-only',distance:count?round(weighted/count):null,measuredCount:count,components,
+  diagnostics:[{code:'NO_SELECTION',message:'Shadow candidate assessment only; R4 owns candidate selection'},
+   {code:'UNCALIBRATED',message:'R2a symbolic proxies have not been perceptually calibrated'}]};
+}
+function fromPhrase(events){
+ if(!Array.isArray(events))throw new TypeError('phrase events required');
+ let t=0;
+ const notes=events.map(e=>{if(!e||!finite(e.position)||!finite(e.durationUnits)||!finite(e.degree))throw new RangeError('invalid phrase event');
+ return {t:e.position,d:e.durationUnits,midi:e.degree,rest:!!e.rest};});
+ if(!root.PlotuneTensionR2a)throw new Error('R2a evaluator missing');
+ return root.PlotuneTensionR2a.evaluate({notes}).metrics;
+}
+function fromHarmony(phrases){
+ if(!Array.isArray(phrases))throw new TypeError('phrases required');
+ const notes=[];
+ for(let b=0;b<phrases.length;b++){
+  if(!Array.isArray(phrases[b]))throw new TypeError('phrase bar required');
+  for(const e of phrases[b]){if(!e||!finite(e.position)||!finite(e.durationUnits)||!finite(e.degree))throw new RangeError('invalid harmony event');
+   notes.push({t:b*16+e.position,d:e.durationUnits,midi:e.degree,rest:!!e.rest});}
+ }
+ if(!root.PlotuneTensionR2a)throw new Error('R2a evaluator missing');
+ return root.PlotuneTensionR2a.evaluate({notes}).metrics;
+}
+function phrase(events,target){return assess(fromPhrase(events),target);}
+function harmony(phrases,target){return assess(fromHarmony(phrases),target);}
+function harmonyCandidate(events,chord,previous,target){
+ if(!Number.isInteger(chord)||chord<0||chord>6)throw new RangeError('invalid candidate chord');
+ if(previous!=null&&(!Number.isInteger(previous)||previous<0||previous>6))throw new RangeError('invalid previous chord');
+ const metrics=fromPhrase(events);
+ // Diatonic root movement is a chord-context proxy, not harmonic dissonance.
+ // Missing previous chord => unknown tonal score, not a fabricated baseline.
+ if(previous==null)delete metrics.tonal;
+ else {
+  const steps=Math.abs(chord-previous);
+  metrics.tonal=round(Math.min(steps,7-steps)/3);
+ }
+ const result=assess(metrics,target);
+ result.diagnostics.push({code:'HARMONIC_MOTION_PROXY',message:'Tonal dimension measures diatonic root movement from previous chord, not perceptual dissonance'});
+ return result;
+}
+
+
+// Evaluate actual post-expression score section by section. This does not alter generation.
+function realized(notes,sections,duration){
+ if(!Array.isArray(notes)||!Array.isArray(sections)||!sections.length||!finite(duration)||duration<=0)throw new TypeError('invalid realized input');
+ if(!root.PlotuneTensionR2a)throw new Error('R2a evaluator missing');
+ return sections.map((section,i)=>{
+  const start=duration*i/sections.length,end=duration*(i+1)/sections.length;
+  const slice=notes.filter(n=>n&&finite(n.t)&&n.t>=start&&n.t<end&&n.voice!=='drums').map(n=>({
+   t:n.t-start,d:n.d,midi:n.midi,velocity:n.volume,
+   instrument:n.timbre||n.voice,rest:false
+  }));
+  try{
+   const measured=root.PlotuneTensionR2a.evaluate({notes:slice});
+   const assessment=assess(measured.metrics,section?.target||{});
+   return {index:i,name:section?.name??String(i),start:round(start),end:round(end),notes:slice.length,
+    assessment,diagnostics:measured.diagnostics};
+  }catch(error){
+   return {index:i,name:section?.name??String(i),start:round(start),end:round(end),notes:slice.length,
+    assessment:null,diagnostics:[{code:'EVALUATOR_FALLBACK',message:String(error?.message||error)}]};
+  }
+ });
+}
+root.PlotuneTensionR2b={VERSION:'r2b.shadow.1',assess,phrase,harmony,harmonyCandidate,realized};
+})(typeof window!=='undefined'?window:globalThis);
