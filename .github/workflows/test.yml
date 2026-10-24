@@ -101,6 +101,7 @@ jobs:
           node tests/r2-m7-real-engine.test.cjs || failed=1
           node tests/r2a-m7-diagnostic.test.cjs || failed=1
           node tests/expectancy-r3a.test.cjs || failed=1
+          node tests/r3a-m7-diagnostic.test.cjs || failed=1
           node tests/emotion-isolated-ab.test.cjs || failed=1
           node tests/resonare.test.cjs || failed=1
           node tests/structural.test.cjs || failed=1
