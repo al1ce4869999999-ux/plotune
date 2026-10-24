@@ -1,4 +1,7 @@
 name: M7 focused regression
+concurrency:
+  group: plotune-m7-focused-${{ github.ref }}
+  cancel-in-progress: true
 on:
   push:
     branches: [feature/m7-1-four-condition-generation]
