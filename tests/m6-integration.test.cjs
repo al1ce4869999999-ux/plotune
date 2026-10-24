@@ -3,7 +3,7 @@ const context={window:{}};for(const f of ['m6-quality-v01.js','m6-integration-v0
  vm.runInNewContext(fs.readFileSync(f,'utf8'),context,{filename:f});
 const M=context.window.PlotuneM6Integration;
 const note=(t,midi,voice)=>({t,d:.5,midi,voice,volume:.2});
-const score={duration:8,bpm:120,notes:[
+const score={duration:8,bpm:60,notes:[
  ...[0,1,2,3].map(i=>note(i,60+i,'lead')),
  ...[4,5,6,7].map(i=>note(i,60+i-4,'lead')),
  note(4,64,'chords'),note(4,64,'counter'),note(4,64,'counter')
