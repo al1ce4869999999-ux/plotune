@@ -60,8 +60,12 @@ function selectPhrase(source,emotion={},options={}){
  const expectancyDecision=options.expectancyTarget&&root.PlotuneExpectancyR3b?
   root.PlotuneExpectancyR3b.choose(choices,chosen,source,options):null;
  if(options.expectancySelection===true&&expectancyDecision)chosen=expectancyDecision.chosen;
+ const r4Decision=options.identityNoveltyR4===true&&root.PlotuneIdentityNoveltyR4b?
+  root.PlotuneIdentityNoveltyR4b.choose(choices,chosen,source,options):null;
+ if(options.identityNoveltyR4Selection===true&&r4Decision)chosen=r4Decision.chosen;
  return {events:chosen.events,score:chosen.score,candidateIndex:chosen.index,candidateScores:choices.map(c=>({index:c.index,score:c.score})),
   ...(tensionDiagnostics?{tensionDiagnostics}: {}),...(options.tensionSelection===true?{tensionSelected}: {}),
+  ...(r4Decision?{identityNoveltyR4Diagnostics:r4Decision.diagnostics,identityNoveltyR4Reason:r4Decision.reason,identityNoveltyR4Trace:r4Decision.trace??null,identityNoveltyR4Selected:options.identityNoveltyR4Selection===true&&r4Decision.selected}:{}),
   ...(expectancyDecision?{expectancyDiagnostics:expectancyDecision.diagnostics,
    expectancyReason:expectancyDecision.reason,expectancySelected:options.expectancySelection===true&&expectancyDecision.selected,
    expectancyModel:expectancyDecision.model||null}:{})};
