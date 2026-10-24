@@ -21,4 +21,15 @@ assert.equal(JSON.stringify(src),snapshot);
 assert.equal(T.assess({tonal:.2},{tonal:.9}).components.tonal.distance,.7);
 assert.equal(T.assess({},{}).distance,null);
 assert.throws(()=>T.assess({tonal:.1},{tonal:2}),/invalid target/);
+
+const first=T.harmonyCandidate(src,0,null,{tonal:.5});
+assert.equal(first.components.tonal.status,'unknown','first chord has no predecessor');
+const held=T.harmonyCandidate(src,0,0,{tonal:.5});
+const moved=T.harmonyCandidate(src,3,0,{tonal:.5});
+assert.equal(held.components.tonal.actual,0);
+assert.equal(moved.components.tonal.actual,1);
+assert.notEqual(held.components.tonal.distance,moved.components.tonal.distance,'different chords assessed differently');
+const graded=shadow.decisions[1].tensionDiagnostics;
+assert(new Set(graded.map(x=>x.assessment.components.tonal.actual)).size>1 || shadow.decisions[1].tensionDiagnostics[0].assessment.components.tonal.status==='measured');
+assert.throws(()=>T.harmonyCandidate(src,7,0,{}),/invalid candidate chord/);
 console.log('PASS R2b M2/M3 shadow assessments do not change selection, score, chords, notes, input or RNG');
