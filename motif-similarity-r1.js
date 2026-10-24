@@ -56,7 +56,7 @@ function compare(a,b,options){
  const transport=n?mean(x.slice(0,n).map((e,i)=>clamp(1-(Math.abs((e.t-x[0].t)/sx-(y[i].t-y[0].t)/sy)+Math.abs((e.p-x[0].p)-(y[i].p-y[0].p))/cfg.intervalScale)/2)))*coverage:0;
  const restPattern=(A.all.length||B.all.length)?mean(Array.from({length:Math.min(A.all.length,B.all.length)},(_,i)=>exact(A.all[i].rest,B.all[i].rest)))*Math.min(A.all.length,B.all.length)/Math.max(A.all.length,B.all.length):0;
  const metrics={coverage,contour,interval,rhythm,anchor,range,accent,transport,absolutePitch,transposedPitch,absoluteOnset,restPattern};
- for(const k of Object.keys(metrics))if(metrics[k]!==null)metrics[k]=round(clamp(metrics[k]));
+ for(const k of Object.keys(metrics)){if(metrics[k]===null)delete metrics[k];else metrics[k]=round(clamp(metrics[k]));}
  const diagnostics=[
   {code:'ALIGNMENT',message:'First sounded note order; unmatched fragments reduce coverage',matched:n,left:x.length,right:y.length},
   {code:'INVARIANCE',message:'contour/interval/anchor/range/transposedPitch invariant to common transposition; rhythm/transport invariant to uniform tempo scaling; absolutePitch/absoluteOnset retain absolute reference'},
