@@ -91,6 +91,31 @@ async function generateProgressively(input,seed,onTrack,dependencies){
  }
  return {schemaVersion:'m7.1-v1',request:req,tracks};
 }
+// Safari: offload four expensive renders so the player never freezes the UI.
+// On unsupported/blocked Workers use the incremental same-thread fallback.
+function generateForListening(input,seed,onTrack){
+ if(typeof root.Worker!=='function')return generateProgressively(input,seed,onTrack);
+ return new Promise((resolve,reject)=>{
+  const req=request(input,seed),tracks=[];let worker,settled=false;
+  const finish=(error)=>{
+   if(settled)return;settled=true;if(worker)worker.terminate();
+   if(error)reject(error);
+   else resolve({schemaVersion:'m7.1-v1',request:req,tracks});
+  };
+  try{worker=new root.Worker('m7-worker-v01.js?v=20261025-worker');}
+  catch{return generateProgressively(input,seed,onTrack).then(resolve,reject);}
+  worker.onerror=()=>{worker.terminate();generateProgressively(input,seed,onTrack).then(resolve,reject);};
+  worker.onmessage=e=>{
+   const data=e.data||{};
+   if(data.type==='ready')worker.postMessage({type:'generate',input,seed});
+   else if(data.type==='track'){
+    tracks.push(data.item);
+    if(onTrack)onTrack(data.item,tracks.length);
+   }else if(data.type==='complete')finish();
+   else if(data.type==='error')finish(new Error(data.message||'作曲ワーカーのエラー'));
+  };
+ });
+}
 // Individual flag ablations are additional tracks, not substitutions for the fixed four.
 const ABLATIONS=Object.freeze({
  m1:'musicMotifMemory',m2:'musicDevelopment',m3:'musicHarmony',
@@ -111,5 +136,5 @@ function generateAblations(input,seed,dependencies){
    return {ablationId:id,disabledFlag:key,track};
   })};
 }
-root.PlotuneM7Generation={IDS,condition,request,makePlans,generate,generateProgressively,generateAblations,ABLATIONS,dependenciesFromRoot};
+root.PlotuneM7Generation={IDS,condition,request,makePlans,generate,generateProgressively,generateForListening,generateAblations,ABLATIONS,dependenciesFromRoot};
 })(typeof window!=='undefined'?window:globalThis);
