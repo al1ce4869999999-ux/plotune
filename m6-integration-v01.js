@@ -15,6 +15,9 @@ function apply(original,{seed=1,quality=root.PlotuneM6Quality}={}){
   const candidate=quality.repair({notes,meter,duration,issue,seed});
   let accepted=candidate.accepted;
   let reason=candidate.reason;
+  if(accepted&&(!Array.isArray(candidate.notes)||candidate.notes.length!==notes.length)){
+   accepted=false;reason='candidate note count changed';
+  }
   if(accepted){
    const changes=[];
    for(let i=0;i<notes.length;i++){
@@ -24,7 +27,6 @@ function apply(original,{seed=1,quality=root.PlotuneM6Quality}={}){
    // Only allow changed counter pitches that remain chord tones; lead repetition repair
    // is diagnostics-only until a motif-safe pitch validator is available.
    if(issue.metric!=='voiceCollision') {accepted=false;reason='lead motif identity is not proven safe';}
-   if(!Array.isArray(candidate.notes)||candidate.notes.length!==notes.length){accepted=false;reason='candidate note count changed';}
    if(accepted&&changes.some(i=>notes[i].t<issue.bar*meter||notes[i].t>=(issue.bar+1)*meter)){
     accepted=false;reason='candidate modified another bar';
    }
