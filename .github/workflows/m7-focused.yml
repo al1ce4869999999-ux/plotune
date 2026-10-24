@@ -32,6 +32,8 @@ jobs:
           node tests/m1-section-history.test.cjs
           node tests/m1-score-integration.test.cjs
           node tests/m3-harmony-melody.test.cjs
+          node tests/m6-quality.test.cjs
+          node tests/m6-integration.test.cjs
           node tests/m7-ablation.test.cjs
           node tests/m7-aggregate.test.cjs
           node tests/m7-browser-wiring.test.cjs
