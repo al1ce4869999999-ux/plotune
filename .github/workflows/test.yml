@@ -95,6 +95,7 @@ jobs:
           node tests/tension-r2a.test.cjs || failed=1
           node tests/tension-r2b.test.cjs || failed=1
           node tests/r2b-score-integration.test.cjs || failed=1
+          node tests/r2b-dynamics-pcm.test.cjs || failed=1
           node tests/r2a-m7-diagnostic.test.cjs || failed=1
           node tests/emotion-isolated-ab.test.cjs || failed=1
           node tests/resonare.test.cjs || failed=1
