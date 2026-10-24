@@ -59,9 +59,18 @@ function plan(phrases,options={}){
    return {chord,events:adapted,score,fit,motion};
   }).sort((a,b)=>b.score-a.score||a.chord-b.chord);
   const tensionDiagnostics=options.tensionTargets&&root.PlotuneTensionR2b?graded.map(c=>({chord:c.chord,assessment:root.PlotuneTensionR2b.harmonyCandidate(c.events,c.chord,previous,options.tensionTargets[b]||{})})):null;
-  const chosen=graded[0];
+  let chosen=graded[0],tensionSelected=false;
+  if(options.tensionSelection===true&&tensionDiagnostics){
+   const budget=options.tensionScoreBudget??.25;
+   if(!Number.isFinite(budget)||budget<0||budget>2)throw new RangeError('invalid tensionScoreBudget');
+   const eligible=graded.filter(c=>c.score>=graded[0].score-budget);
+   const measured=eligible.map(c=>({candidate:c,assessment:tensionDiagnostics.find(d=>d.chord===c.chord)?.assessment}))
+    .filter(x=>x.assessment?.measuredCount>0&&Number.isFinite(x.assessment.distance));
+   measured.sort((a,b)=>a.assessment.distance-b.assessment.distance||b.candidate.score-a.candidate.score||a.candidate.chord-b.candidate.chord);
+   if(measured.length){chosen=measured[0].candidate;tensionSelected=chosen.chord!==graded[0].chord;}
+  }
   chords.push(chosen.chord);events.push(chosen.events);
-  decisions.push({bar:b,chord:chosen.chord,score:chosen.score,fit:chosen.fit,previous,...(tensionDiagnostics?{tensionDiagnostics}:{})});
+  decisions.push({bar:b,chord:chosen.chord,score:chosen.score,fit:chosen.fit,previous,...(tensionDiagnostics?{tensionDiagnostics}:{}),...(options.tensionSelection===true?{tensionSelected}:{})});
  }
  return {chords,phrases:events,decisions};
 }
