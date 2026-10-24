@@ -54,17 +54,19 @@ function makePlans(req,dependencies){
   return {conditionId:id,config,plan:{...clone(base),...flags,m6Repair:false,seed:req.seed,characterSeed:req.seed,duration:req.duration}};
  });
 }
-function generate(input,seed,dependencies){
+function generate(input,seed,dependencies,options={}){
  dependencies=dependencies||dependenciesFromRoot();
  const req=request(input,seed);
  const plans=makePlans(req,dependencies);
  if(typeof dependencies.handheld.render!=='function')throw new TypeError('M7 renderer required');
  const tracks=plans.map(({conditionId,config,plan})=>{
-  const track=dependencies.handheld.render(plan);
+  const enabled=options.m6Repair===true&&config.m&&!!(dependencies.m6Integration||root.PlotuneM6Integration);
+  const repair=enabled?(dependencies.m6Integration||root.PlotuneM6Integration).apply(dependencies.handheld.score(plan),{seed:req.seed,quality:dependencies.m6Quality||root.PlotuneM6Quality}):null;
+  const track=repair?dependencies.handheld.render(plan,repair.score):dependencies.handheld.render(plan);
   if(!track||!track.samples||!track.score||!Number.isFinite(track.sampleRate))throw new TypeError('invalid M7 rendered track: '+conditionId);
   if(track.samples.length!==Math.round(req.duration*track.sampleRate))throw new RangeError('M7 duration mismatch: '+conditionId);
   if(!track.samples.length||!track.samples.every(Number.isFinite))throw new RangeError('invalid M7 samples: '+conditionId);
-  return {conditionId,config,request:req,track};
+  return {conditionId,config,request:req,track,m6Report:repair?.report||null};
  });
  return {schemaVersion:'m7.1-v1',request:req,tracks};
 }
