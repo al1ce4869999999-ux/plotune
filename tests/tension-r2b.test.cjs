@@ -44,4 +44,17 @@ assert.equal(m3Selected.chords.at(-1),0,'R2 preserves final cadence');
 assert(m3Selected.decisions.every(d=>Number.isFinite(d.score)),'M3 candidate scores remain finite');
 assert.equal(JSON.stringify(m3Selected.chords),JSON.stringify(M3.plan([src,src,src],{tension:.4,tensionTargets:[{tonal:1},{tonal:0},{tonal:1}],tensionSelection:true,tensionScoreBudget:2}).chords),'M3 stable seedless selection');
 assert.throws(()=>M2.selectPhrase(src,emotion,{tensionTarget:{tonal:.2},tensionSelection:true,tensionScoreBudget:-1}),/invalid tensionScoreBudget/);
+
+let m2Difference=false;
+for(let seed=1;seed<=30&&!m2Difference;seed++){
+ const off=M2.selectPhrase(src,emotion,{seed,candidates:12});
+ for(const tonal of [0,1]){
+  const on=M2.selectPhrase(src,emotion,{seed,candidates:12,tensionTarget:{tonal},tensionSelection:true,tensionScoreBudget:2});
+  if(on.candidateIndex!==off.candidateIndex){m2Difference=true;break;}
+ }
+}
+assert(m2Difference,'M2 selection must actually respond to an explicit tension target');
+const m3Down=M3.plan([src,src,src,src],{tension:.4,tensionTargets:[{}, {tonal:0}, {tonal:0}, {}],tensionSelection:true,tensionScoreBudget:2});
+const m3Up=M3.plan([src,src,src,src],{tension:.4,tensionTargets:[{}, {tonal:1}, {tonal:1}, {}],tensionSelection:true,tensionScoreBudget:2});
+assert.notEqual(JSON.stringify(m3Down.chords),JSON.stringify(m3Up.chords),'M3 different tonal goals must yield different chord progressions with sufficient budget');
 console.log('PASS R2b M2/M3 shadow assessments do not change selection, score, chords, notes, input or RNG');
