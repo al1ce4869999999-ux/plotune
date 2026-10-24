@@ -11,6 +11,7 @@ function aggregate(trials){
      record.seed!==diagnostics.seed||!IDS.every(id=>record.ratings?.[id]&&diagnostics.metrics?.[id]))
    throw new TypeError('matched listening and objective records required');
   const trialId=String(t.trialId??record.seed);
+  if(!trialId.trim())throw new RangeError('trial identifier required');
   if(seen.has(trialId))throw new RangeError('duplicate trial identifier');
   seen.add(trialId);
   rows.push({trialId,seed:record.seed,ratings:record.ratings,metrics:diagnostics.metrics});
@@ -24,7 +25,7 @@ function aggregate(trials){
  for(const row of rows)for(const id of IDS.filter(x=>x!=='baseline')){
   const a=row.ratings.baseline.preference,b=row.ratings[id].preference;
   const x=row.metrics.baseline.noteCount,y=row.metrics[id].noteCount;
-  if(Number.isInteger(a)&&Number.isInteger(b)&&Number.isFinite(x)&&Number.isFinite(y)){
+  if(Number.isInteger(a)&&a>=1&&a<=5&&Number.isInteger(b)&&b>=1&&b<=5&&Number.isFinite(x)&&Number.isFinite(y)){
    const preference=Math.sign(b-a),count=Math.sign(y-x);
    if(preference&&count&&preference!==count)
     disagreements.push({trialId:row.trialId,conditionId:id,preferenceDelta:b-a,noteCountDelta:y-x,
