@@ -30,6 +30,14 @@ assert.equal(accepted.report.accepted,1,'allowed counter chord-tone correction')
 assert.equal(accepted.score.notes[1].midi,64);
 assert.equal(s.notes[1].midi,60);
 assert.equal(JSON.stringify(accepted.score.notes[0]),JSON.stringify(s.notes[0]),'outside-target unchanged');
+const collateral={
+ assess:({notes})=>({issues:notes[1].midi===60?[{bar:0,metric:'voiceCollision'}]:[],
+  metrics:{leadCounterUnisons:notes[1].midi===64?1:0}}),
+ repair:fake.repair
+};
+const guarded=M.apply(s,{quality:collateral});
+assert.equal(guarded.report.accepted,0,'counter repair that creates lead/counter conflict is refused');
+assert.match(guarded.report.attempts[0].reason,/worsens leadCounterUnisons/);
 const invalid={assess:()=>({issues:[{bar:0,metric:'voiceCollision'}],metrics:{}}),
  repair:({notes})=>({accepted:true,notes:notes.map((n,i)=>i===2?{...n,midi:64}:n),reason:'claimed improvement'})};
 const anotherBar={duration:8,bpm:60,notes:[note(0,64,'chords'),note(0,60,'counter'),note(4,60,'counter')]};
