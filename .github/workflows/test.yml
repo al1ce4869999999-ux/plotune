@@ -53,6 +53,7 @@ jobs:
           node --check tension-r2a.js
           node --check tension-r2b.js
           node --check expectancy-r3.js
+          node --check expectancy-r3b.js
           node --check m7-generation-v01.js
           node --check m7-listening-v01.js
           node --check m7-evaluation-v01.js
@@ -102,6 +103,8 @@ jobs:
           node tests/r2a-m7-diagnostic.test.cjs || failed=1
           node tests/expectancy-r3a.test.cjs || failed=1
           node tests/r3a-m7-diagnostic.test.cjs || failed=1
+          node tests/expectancy-r3b.test.cjs || failed=1
+          node tests/r3-m7-real-engine.test.cjs || failed=1
           node tests/emotion-isolated-ab.test.cjs || failed=1
           node tests/resonare.test.cjs || failed=1
           node tests/structural.test.cjs || failed=1
