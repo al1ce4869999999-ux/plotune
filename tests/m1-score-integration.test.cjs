@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const root=path.resolve(__dirname,'..'),ctx={window:{},Blob,console};
-for(const name of ['analyzer.js','resonare-v08.js','loop-arranger-v09.js','melodic-grammar-v01.js','m1-motif-registry-v01.js','m1-motif-transform-v01.js','m2-emotion-phrase-v01.js','handheld-v21.js'])
+for(const name of ['analyzer.js','resonare-v08.js','loop-arranger-v09.js','melodic-grammar-v01.js','m1-motif-registry-v01.js','m1-motif-transform-v01.js','m2-emotion-phrase-v01.js','motif-planner-v01.js','handheld-v21.js'])
  vm.runInNewContext(fs.readFileSync(path.join(root,name),'utf8'),ctx,{filename:name});
 const a=ctx.window.PlotuneAnalysis,h=ctx.window.PlotuneHandheld;
 const input={title:'theme',character:'curious',world:'forest',scene:'道を歩いて、星を見つけた。',style:'handheld',duration:30};
@@ -9,7 +9,7 @@ const legacy=h.prepare(p,'journey',null,false,input.scene);
 const off=h.score(legacy);
 const explicitOff=h.score({...legacy,musicDevelopment:false});
 assert.equal(JSON.stringify(off.notes),JSON.stringify(explicitOff.notes),'M OFF score unchanged');
-const on=h.score({...legacy,musicDevelopment:true});
+const on=h.score({...legacy,motifDevelopment:true});
 const onAgain=h.score({...legacy,musicDevelopment:true});
 assert.equal(JSON.stringify(on.notes),JSON.stringify(onAgain.notes),'M ON deterministic');
 const lead=s=>s.notes.filter(n=>n.role==='lead'||n.voice==='lead').map(n=>[n.t,n.midi,n.d]);
