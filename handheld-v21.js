@@ -921,7 +921,29 @@ function score(plan){
   for(const key of Object.keys(voices))
    if(key!=='drums')voices[key]=notes.filter(n=>n.voice===key).length;
  }
+ // Phase 4: opt-in phrase-boundary breath and arrival anticipation.
+ const transitions=[];
+ if(plan.musicTransitions===true){
+  for(let i=1;i<4;i++){
+   const boundary=i*duration/4;
+   const previous=notes.filter(n=>n.voice==='lead'&&n.t<boundary&&n.t>=boundary-step*8).sort((a,b)=>b.t-a.t)[0];
+   const next=notes.filter(n=>n.voice==='lead'&&n.t>=boundary&&n.t<boundary+step*8).sort((a,b)=>a.t-b.t)[0];
+   if(!previous||!next)continue;
+   const breathStart=Math.max(0,boundary-step*.65);
+   let shortened=0;
+   for(const n of notes)if((n.voice==='lead'||n.voice==='counter')&&n.t<boundary&&n.t+n.d>breathStart){
+    n.d=Math.max(.04,breathStart-n.t);shortened++;
+   }
+   const t=Math.max(0,boundary-step*.55);
+   notes.push({t,d:Math.min(step*.4,duration-t),midi:clamp(next.midi-24,30,65),
+     voice:'bass',role:'bass',timbre:'synthpad',volume:.065,transitionMarker:'anticipation'});
+   transitions.push({boundary,anticipation:t,breathStart,shortened});
+  }
+  notes.sort((a,b)=>a.t-b.t);
+  for(const key of Object.keys(voices))if(key!=='drums')voices[key]=notes.filter(n=>n.voice===key).length;
+ }
  const details={
+  transitions,
   performance:performance?performance.details:null,
   voiceDialogue:voiceDialogue?{responseCount:voiceDialogue.responseCount,
    replies:voiceDialogue.responses.map(x=>({bar:x.bar,stage:x.stage,mode:x.mode,from:x.from,until:x.until})),
