@@ -16,6 +16,12 @@ assert(r.report.attempts.some(x=>x.metric==='repetition'&&!x.accepted),'motif gu
 assert(r.report.attempts.some(x=>x.metric==='voiceCollision'&&!x.accepted),'non-chord candidate blocked');
 assert.equal(JSON.stringify(r.score.notes),JSON.stringify(score.notes));
 assert.equal(JSON.stringify(M.apply(score,{seed:1})),JSON.stringify(r),'deterministic');
+const chordChoice={duration:4,bpm:60,notes:[note(0,64,'chords'),note(0,67,'chords'),note(0,64,'counter'),note(0,64,'counter')]};
+const realChoice=M.apply(chordChoice,{seed:11});
+assert.equal(realChoice.report.accepted,1,'available chord tone permits bounded real repair');
+assert.equal(realChoice.score.notes[3].midi,67);
+assert.equal(realChoice.report.final.metrics.voiceCollision,0);
+assert.equal(JSON.stringify(chordChoice.notes[3]),JSON.stringify(note(0,64,'counter')),'source untouched');
 const fake={assess:({notes})=>({issues:notes[1].midi===60?[{bar:0,metric:'voiceCollision'}]:[],metrics:{}}),
  repair:({notes})=>({accepted:true,notes:notes.map((n,i)=>i===1?{...n,midi:64}:{...n}),reason:'local metric improved'})};
 const s={duration:4,bpm:60,notes:[note(0,64,'chords'),note(0,60,'counter')]};
