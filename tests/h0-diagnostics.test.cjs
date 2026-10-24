@@ -28,6 +28,13 @@ for(const condition of evaluation.CONDITIONS){
 assert.deepEqual(on.report,off.report,'four-condition evaluation unchanged');
 assert.deepEqual(on.h0,runner.generate(input,42,{h0:true}).h0,'fixed seed deterministic');
 assert.deepEqual(on.h0.conditions,evaluation.CONDITIONS);
+const ab=runner.generate(input,42,{h0Ablations:true});
+assert.deepEqual(Object.keys(ab.h0Ablations.variants),['M2','M3','M4','M5']);
+assert.equal(ab.h0Ablations.variants.M2.disabledFlag,'musicDevelopment');
+assert.equal(ab.h0Ablations.variants.M2.unchanged,false);
+assert.equal(ab.h0Ablations.variants.M3.unchanged,true);
+assert.deepEqual(ab.h0Ablations,runner.generate(input,42,{h0Ablations:true}).h0Ablations);
+assert.deepEqual(ab.cases,off.cases);
 assert(on.h0.events.some(e=>e.suspectedProblem==='LARGE_LEAP'));
 assert(on.h0.events.every(e=>e.confidence==='low'||e.confidence==='unconfirmed'));
 const before=JSON.stringify(on.cases);
