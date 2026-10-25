@@ -53,8 +53,12 @@ function express({notes,duration,meter,seed=1,wholeTrackArc=[],leadTone='bright'
     else if(longTone){n.d=Math.max(.06,n.d*.99);}
     // Grace-note ornament only where spacing and register allow it.
     const next=group[i+1],room=next?next.t-(n.t+n.d):Infinity;
-    const canGrace=stage!=='opening'&&i>0&&n.d>.22&&
-      room>.025&&Math.abs(n.midi-group[i-1].midi)<=7&&rand()<.17;
+    // Cadence is planned by M3. An independent semitone grace note at the
+    // closing arrival, including the last note of a voice, overrides that plan.
+    const cadenceWindow=n.t>=duration-Math.min(2.5,Math.max(.5,meter*.75));
+    const canGrace=stage!=='opening'&&stage!=='resolution'&&!cadenceWindow&&
+      i>0&&i<group.length-1&&n.d>.22&&room>.025&&
+      Math.abs(n.midi-group[i-1].midi)<=7&&rand()<.17;
     if(canGrace&&n.midi>=49&&n.midi<=82){
       const pitch=n.midi+(rand()<.5?-1:1);
       const grace=.065;
