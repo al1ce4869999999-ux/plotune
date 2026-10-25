@@ -18,13 +18,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: R8 syntax and real generation
+      - name: R8 real-score strategy coverage audit
         run: |
           node --check transition-optimization-r8.js
+          node tests/r8-real-strategy-audit.test.cjs
+      - name: R8 syntax and real generation
+        run: |
           node --check handheld-v21.js
           node tests/transition-optimization-r8.test.cjs
-      - name: R8 real-score strategy coverage audit
-        run: node tests/r8-real-strategy-audit.test.cjs
       - name: R0-R7 impacted regressions
         run: |
           node tests/transition-evaluation-r7.test.cjs
