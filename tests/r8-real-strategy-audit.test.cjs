@@ -51,4 +51,5 @@ for(const {conditionId,plan} of plans){
  assert.equal(JSON.stringify(s.notes),baseline,'R8 audit must not mutate original score');
 }
 assert.ok(boundaries>0&&hardCuts>0&&actualEdits>0,'real-score transition edits');
+assert.deepEqual(Object.entries(coverage).filter(([,count])=>count===0).map(([name])=>name),[], 'every transition strategy must be feasible and actually selected in real M7 notes');
 console.log('R8 REAL_ENGINE_STRATEGY_COVERAGE '+JSON.stringify({coverage,opportunities,actualEdits,boundaries,hardCuts}));
