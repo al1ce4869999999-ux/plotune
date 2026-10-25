@@ -14,6 +14,8 @@ assert(M.phraseFit(tonic,0,.4)>M.phraseFit(tonic,1,.4),
 // including the second-pass pad/counter/sparkle orchestration.
 const engine=fs.readFileSync(path.join(__dirname,'../handheld-v21.js'),'utf8');
 assert.match(engine,/const start=bar\*meter,degree=m3JointPlan\?m3JointPlan\.chords\[bar\]:chordSteps\[bar%4\],unit=meter\/16/);
+assert.match(engine,/m3JointPlan\?meter:meter\*1\.67/,'M3 pads may not bleed into following chord');
+assert.match(engine,/m3JointPlan\?scale:MAJOR/,'M3 backing must use the active mode');
 const saved=JSON.stringify(source);
 const plan=M.plan(source,{progression:[0,4,5,3],tension:.4});
 assert.equal(JSON.stringify(plan),JSON.stringify(M.plan(source,{progression:[0,4,5,3],tension:.4})),'deterministic');
