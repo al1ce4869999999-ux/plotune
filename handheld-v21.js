@@ -649,25 +649,25 @@ function score(plan){
         const n=phrase[j%phrase.length],t=start+(generated?generated.position:n.p)*unit;
         if(t>=duration||generated?.rest)continue;
         const pitch=(generated?generated.degree:degreeFor(j,bar))+shift;
-        notes.push({t,d:Math.min(duration-t,(generated?generated.durationUnits:n.d)*unit),midi:clamp(midi(upper,MAJOR,pitch),60,86),
+        notes.push({t,d:Math.min(duration-t,(generated?generated.durationUnits:n.d)*unit),midi:clamp(midi(upper,m3JointPlan?scale:MAJOR,pitch),60,86),
           voice:'lead',role:'lead',timbre:expressive[0],volume:type==='reserved'?.052:.070});
       }
       // Companion phrases and accompaniment must reflect the same grammar.
       const reply=start+(type==='playful'?7.7:type==='reserved'?12.2:9.7)*unit;
       if(reply<duration)notes.push({t:reply,d:Math.min(duration-reply,(type==='reserved'?3:1.2)*unit),
-        midi:midi(upper,MAJOR,degreeFor(type==='playful'?5:2,bar)),voice:'counter',role:'counter',
+        midi:midi(upper,m3JointPlan?scale:MAJOR,degreeFor(type==='playful'?5:2,bar)),voice:'counter',role:'counter',
         timbre:expressive[1],volume:.016});
       const chordPositions=type==='playful'?[0,7,12]:type==='reserved'?[0]:[0,8];
       for(const p of chordPositions){
         for(const interval of [0,2,4]){
           const t=start+p*unit;
           if(t<duration)notes.push({t,d:Math.min(duration-t,(type==='reserved'?14:3.3)*unit),
-            midi:midi(tonic,MAJOR,degree+interval),voice:'chords',role:'chords',
+            midi:midi(tonic,m3JointPlan?scale:MAJOR,degree+interval),voice:'chords',role:'chords',
             timbre:'softpiano',volume:type==='playful'?.012:.009});
         }
       }
       if(start<duration)notes.push({t:start,d:Math.min(duration-start,(type==='reserved'?12:4)*unit),
-        midi:midi(tonic-12,MAJOR,degree),voice:'bass',role:'bass',timbre:'kalimba',volume:.011});
+        midi:midi(tonic-12,m3JointPlan?scale:MAJOR,degree),voice:'bass',role:'bass',timbre:'kalimba',volume:.011});
     }
     // Sparse orchestral colours, independent of the lead melody.
     // The number of layers is bounded to preserve the gentle sadness preset.
@@ -690,8 +690,8 @@ function score(plan){
       if(bar%2===0){
         for(const offset of [0,4]){
           const t=start;
-          if(t<duration)notes.push({t,d:Math.min(duration-t,meter*1.67),
-            midi:midi(tonic-12,MAJOR,degree+offset),voice:'pad',role:'pad',
+          if(t<duration)notes.push({t,d:Math.min(duration-t,m3JointPlan?meter:meter*1.67),
+            midi:midi(tonic-12,m3JointPlan?scale:MAJOR,degree+offset),voice:'pad',role:'pad',
             timbre:mystic?'synthpad':'strings',volume:.009});
         }
       }
@@ -699,14 +699,14 @@ function score(plan){
       if(bar%2===1){
         const t=start+(type==='playful'?10:11)*unit;
         if(t<duration)notes.push({t,d:Math.min(duration-t,2.8*unit),
-          midi:midi(tonic+12,MAJOR,degree+2),voice:'counter',role:'counter',
+          midi:midi(tonic+12,m3JointPlan?scale:MAJOR,degree+2),voice:'counter',role:'counter',
           timbre:indoors?'celesta':'musicbox',volume:.018});
       }
       // Very light sparkling pickup only where the phrasing has room.
       if((bar%4===1||bar%4===3)){
         const t=start+14*unit;
         if(t<duration)notes.push({t,d:Math.min(duration-t,1.6*unit),
-          midi:midi(tonic+24,MAJOR,degree+4),voice:'sparkle',role:'sparkle',
+          midi:midi(tonic+24,m3JointPlan?scale:MAJOR,degree+4),voice:'sparkle',role:'sparkle',
           timbre:mystic?'celesta':'kalimba',volume:.009});
       }
     }
