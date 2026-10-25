@@ -897,6 +897,17 @@ function score(plan){
   notes.sort((a,b)=>a.t-b.t||a.midi-b.midi);
   voices.lead=m3Lead.length;
  }
+ // M3 chordal parts cannot bleed into a different planned harmony.
+ if(m3JointPlan){
+  for(const n of notes){
+   if(!['bass','chords','pad'].includes(n.voice))continue;
+   const bar=Math.min(bars-1,Math.max(0,Math.floor(n.t/meter)));
+   const boundary=(bar+1)*meter;
+   if(bar<bars-1&&m3JointPlan.chords[bar]!==m3JointPlan.chords[bar+1]&&n.t+n.d>boundary){
+    n.d=Math.max(.04,boundary-n.t);
+   }
+  }
+ }
  // M4 opt-in: rebuild counterpoint after the instrument-specific renderers.
  // This affects the notes heard by the synthesizer, not just an abstract plan.
  const voiceDialogue=plan.musicVoices===true&&root.PlotuneM4Voices?
