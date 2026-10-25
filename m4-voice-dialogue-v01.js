@@ -23,6 +23,8 @@ function arrange({notes,harmony=[],duration,meter,step,seed=1,wholeTrackArc=[],t
  // Do not insert a fixed reply every bar.
  for(let b=1;b<bars-1;b++){
   const stage=wholeTrackArc[b]?.stage||'development';
+  // Preserve the final composed cadence: developmental imitation cannot replace it.
+  if(stage==='resolution'||b>=Math.floor(bars*.75))continue;
   const likelihood={opening:0,development:.55,climax:.8,resolution:.36}[stage]??.45;
   const choice=random();
   const onsetUnit=9+Math.floor(random()*4);
