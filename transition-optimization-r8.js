@@ -50,9 +50,9 @@ function optimize(input){
    if(move&&Math.abs(move)<=3)add('MOTIF_PREVIEW',counter,{midi:counter.n.midi+move},'counter voice anticipates melodic pitch class',.58+Math.abs(move)*.05);
   }
   // RHYTHMIC_BRIDGE: shift an existing accompaniment onset toward the next subdivision.
-  const arp=last(['arp','sparkle']);
+  const arp=last(['arp','sparkle','counter','bass']);
   if(arp){const target=t-beat/2,delta=target-arp.n.t;
-   if(Math.abs(delta)>.005&&Math.abs(delta)<=beat/3)
+   if(Math.abs(delta)>.005&&Math.abs(delta)<=beat)
     add('RHYTHMIC_BRIDGE',arp,{t:round(target),d:round(Math.min(arp.n.d,Math.max(.04,t-target-beat/16)))},'existing onset bridges pulse',.43);
   }
   // BASS_LEAD: the bass approaches the following bass pitch with a small diatonic-sized step.
@@ -61,7 +61,7 @@ function optimize(input){
    if(move)add('BASS_LEAD',oldBass,{midi:oldBass.n.midi+move},'bass approaches next section',.45+Math.abs(move)*.04);
   }
   // TEXTURE_DOVETAIL: extend a pad into the next section only when the voice has room.
-  const pad=last(['pad']),padNext=first(['pad']);
+  const pad=last(['pad','chords','counter']),padNext=pad?first([pad.n.voice]):null;
   if(pad&&!padNext&&pad.n.t+pad.n.d<t+beat/4){
    const end=Math.min(duration,t+beat/4),d=round(end-pad.n.t);
    if(d>pad.n.d&&d-pad.n.d<=beat)add('TEXTURE_DOVETAIL',pad,{d},'support texture handed across boundary',.52);
@@ -75,8 +75,8 @@ function optimize(input){
     add('CADENCE_BREATH',cadence,{d:round(cadence.n.d-trim)},'local release before smooth section',.25);
   }
   // SUSPENSION: hold an existing support note into the following beat where no same voice enters.
-  const holding=last(['pad','chords']);
-  if(holding&&holding.n.t+holding.n.d>=t-beat/4&&holding.n.t+holding.n.d<=t){
+  const holding=last(['pad','chords','bass']);
+  if(holding&&holding.n.t+holding.n.d>=t-beat&&holding.n.t+holding.n.d<=t){
    const d=round(t+beat/6-holding.n.t);
    if(d>holding.n.d&&d-holding.n.d<=beat/2)add('SUSPENSION',holding,{d},'support voice sustains across section entry',.59);
   }
