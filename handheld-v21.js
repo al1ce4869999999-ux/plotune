@@ -471,7 +471,10 @@ function score(plan){
   // Soft pickup to the next loop avoids terminal success cadence.
   if(isLast)add(barAt+14*step,step*1.7,midi(tonic+12,scale,next),'counter',.034);
  }
- // Re-orchestrate all layers for melancholy and dread. Pop/arpeggio
+ // Snapshot jointly planned M3 melody before timbre/mood renderers. The
+  // plan, not a fixed preset pattern, determines pitch and cadence when M3 is on.
+  const harmonyPlannedLead=m3JointPlan?notes.filter(n=>n.voice==='lead').map(n=>({...n})):null;
+  // Re-orchestrate all layers for melancholy and dread. Pop/arpeggio
  // rhythms are deliberately removed; sustained melody and silence matter.
  const emotional=MOODS[plan.gameStyle];
  if(emotional){
@@ -542,7 +545,7 @@ function score(plan){
      isFlute||isSynth?hero:phrase;
    const cadence=isFlute||isSynth?[0,4,5,3]:[5,3,1,4];
    for(let b=0;b<bars;b++){
-     const start=b*meter,degree=prog[b%prog.length];
+     const start=b*meter,degree=m3JointPlan?m3JointPlan.chords[b]:prog[b%prog.length];
      const basis=midi(tonic+12,scale,degree);
      const sadMode=['sadness','lonely','farewell','rain'].includes(plan.gameStyle);
      const heroicMode=['retry','victory','battle','journey'].includes(plan.gameStyle);
@@ -657,7 +660,7 @@ function score(plan){
     const generatedPhrases=dynamicGrammar&&root.PlotuneMelodicGrammar?.composePhrase?Array.from({length:bars},(_,b)=>root.PlotuneMelodicGrammar.composePhrase(dynamicGrammar,b,{density:type==='reserved'?.38:type==='playful'?.85:.62})):null;
     const chordSteps=type==='playful'?[0,4,3,0]:type==='reserved'?[0,5,3,0]:[0,3,4,0];
     for(let bar=0;bar<bars;bar++){
-      const start=bar*meter,variation=bar%4,degree=chordSteps[variation];
+      const start=bar*meter,variation=bar%4,degree=m3JointPlan?m3JointPlan.chords[bar]:chordSteps[variation];
       const phrase=phrases[type],unit=meter/16;
       for(let j=0;j<(generatedPhrases?.[bar]?.length||phrase.length);j++){
         const generated=generatedPhrases?.[bar]?.[j];
@@ -904,7 +907,16 @@ function score(plan){
      }else if(n.voice==='chords'||n.voice==='pad') n.volume*=Math.sqrt(cues.dynamicsFactor);
    }
  }
- // M4 opt-in: rebuild counterpoint after the instrument-specific renderers.
+ // A timbre-specific arranger must not overwrite M3's resolved melody.
+  // Keep its chosen timbre but preserve M3 pitch, rhythm and final cadence.
+  if(harmonyPlannedLead?.length){
+   const tone=notes.find(n=>n.voice==='lead')?.timbre||palette?.family||null;
+   for(let i=notes.length-1;i>=0;i--)if(notes[i].voice==='lead')notes.splice(i,1);
+   notes.push(...harmonyPlannedLead.map(n=>({...n,...(tone?{timbre:tone}:{})})));
+   notes.sort((a,b)=>a.t-b.t||a.midi-b.midi);
+   voices.lead=notes.filter(n=>n.voice==='lead').length;
+  }
+  // M4 opt-in: rebuild counterpoint after the instrument-specific renderers.
  // This affects the notes heard by the synthesizer, not just an abstract plan.
  const voiceDialogue=plan.musicVoices===true&&root.PlotuneM4Voices?
    root.PlotuneM4Voices.arrange({notes,harmony,duration,meter,step,seed,wholeTrackArc,tonic,scale,
