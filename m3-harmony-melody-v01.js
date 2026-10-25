@@ -9,7 +9,7 @@ function phraseFit(events,chord,tension){
  for(const e of events){
   if(e.rest)continue;
   const strong=e.position%4<.6?2.5:e.position%2<.5?1.5:1;
-  const closest=Math.min(...triad.map(d=>distance(e.degree+chord,chord+d)));
+  const closest=Math.min(...triad.map(d=>distance(e.degree,chord+d)));
   const passing=closest===1&&strong<2;
   sum+=strong*(closest===0?1.2:passing?.2:-.9*closest)*(1-.3*tension);
   weight+=strong;
@@ -27,8 +27,8 @@ function refine(events,chord,tension,close){
   if(e.rest)return out;
   // Strong beats are guided to harmony; weak beats retain passing motion.
   const accented=e.position%4<.6;
-  if(accented&&tension<.78&&distance(e.degree,0)>0){
-   const choices=triad.map(x=>x+7*Math.floor(e.degree/7)).flatMap(x=>[x-7,x,x+7]).filter(x=>x>=0&&x<=8);
+  if(accented&&tension<.78&&Math.min(...triad.map(d=>distance(e.degree,chord+d)))>0){
+   const choices=triad.map(x=>x+chord+7*Math.floor(e.degree/7)).flatMap(x=>[x-7,x,x+7]).filter(x=>x>=0&&x<=8);
    if(choices.length)out.degree=choices.reduce((a,b)=>Math.abs(b-e.degree)<Math.abs(a-e.degree)?b:a);
   }
   if(close&&i===events.length-1&&!out.rest){out.degree=0;out.cadence=true;}
