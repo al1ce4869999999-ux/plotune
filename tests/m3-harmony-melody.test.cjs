@@ -39,5 +39,18 @@ for(const preset of ['journey','musicbox','forestflute']){
  assert.ok(on.notes.every(n=>n.t>=0&&n.d>0&&n.t+n.d<=on.duration+.001),'time bounds '+preset);
  assert.equal(JSON.stringify(H.score(prepared).notes),JSON.stringify(legacy.notes),'legacy score remains fixed '+preset);
 }
+// Integration contract: M3's absolute scale degrees must reach PCM score unchanged,
+// never transposed again by the selected chord or arc register.
+const renderer=fs.readFileSync(path.join(__dirname,'../handheld-v21.js'),'utf8');
+assert.match(renderer,/m3JointPlan\?event\.degree:event\.degree\+chord\+arcState\.register/,
+ 'M3 must use absolute tonic-relative degrees at rendering');
+const ending=H.score({...H.prepare(p,'journey',null,false,input.scene),
+ musicHarmony:true,musicDevelopment:true,motifDevelopment:true});
+const finalBar=ending.duration-ending.duration/ending.details.loopBars;
+const endingLeads=ending.notes.filter(n=>n.voice==='lead'&&n.t>=finalBar)
+ .sort((a,b)=>a.t-b.t);
+assert.ok(endingLeads.length>0,'M3 keeps a final melody');
+assert.equal(endingLeads.at(-1).midi%12,0,
+ 'last journey melody resolves to tonic pitch class rather than double-transposed chord');
 assert.match(fs.readFileSync(path.join(__dirname,'../index.html'),'utf8'),/m3-harmony-melody-v01\.js/);
 console.log('PASS M3 joint harmony melody: deterministic, cadence, instruments, legacy, bounds');
