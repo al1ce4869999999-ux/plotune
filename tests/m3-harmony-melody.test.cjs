@@ -32,6 +32,13 @@ for(const preset of ['journey','musicbox','forestflute']){
  const legacy=H.score(prepared);
  const on=H.score({...prepared,musicHarmony:true,musicDevelopment:true,motifDevelopment:true});
  const again=H.score({...prepared,musicHarmony:true,musicDevelopment:true,motifDevelopment:true});
+ const meter=on.duration/on.details.loopBars;
+ for(const note of on.notes.filter(n=>['bass','pad','chords'].includes(n.voice))){
+  const bar=Math.min(on.harmony.length-1,Math.floor((note.t+1e-8)/meter));
+  if(bar<on.harmony.length-1&&on.harmony[bar].chord!==on.harmony[bar+1].chord)
+   assert.ok(note.t+note.d<=(bar+1)*meter+1e-6,
+    'M3 accompaniment must not bleed across chord change '+preset);
+ }
  assert.equal(JSON.stringify(on.harmony),JSON.stringify(again.harmony),'seed stable harmony '+preset);
  assert.equal(JSON.stringify(on.notes),JSON.stringify(again.notes),'seed stable notes '+preset);
  assert.notEqual(JSON.stringify(on.harmony),JSON.stringify(legacy.harmony),'harmonic path changes '+preset);
