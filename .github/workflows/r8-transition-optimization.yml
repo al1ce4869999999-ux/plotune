@@ -8,6 +8,7 @@ on:
       - 'handheld-v21.js'
       - 'index.html'
       - 'tests/transition-optimization-r8.test.cjs'
+      - 'tests/r8-real-strategy-audit.test.cjs'
       - '.github/workflows/r8-transition-optimization.yml'
 jobs:
   r8:
@@ -22,6 +23,8 @@ jobs:
           node --check transition-optimization-r8.js
           node --check handheld-v21.js
           node tests/transition-optimization-r8.test.cjs
+      - name: R8 real-score strategy coverage audit
+        run: node tests/r8-real-strategy-audit.test.cjs
       - name: R0-R7 impacted regressions
         run: |
           node tests/transition-evaluation-r7.test.cjs
