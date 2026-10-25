@@ -18,6 +18,18 @@ assert.equal(JSON.stringify(notes),before,'pure original unchanged');
 assert.ok(a.details.dynamics>0&&a.details.rubato>0&&a.details.breaths>0,'expression applied');
 assert.ok(a.notes.every(n=>n.t>=0&&n.d>=.04&&n.t+n.d<=16+.001),'time valid');
 assert.throws(()=>M.express({notes:[],duration:0,meter:1}),/valid timing/);
+// Regression: independent ornaments must not appear in the planned resolution,
+// irrespective of seed, and must not decorate the final voice note.
+const resolving=Array.from({length:14},(_,i)=>({
+ t:i+.15,d:.42,midi:69+i%3,volume:.15,voice:'lead',timbre:'flute'
+}));
+for(let seed=1;seed<=32;seed++){
+ const end=M.express({notes:resolving,duration:15,meter:3,seed,
+  wholeTrackArc:Array.from({length:5},(_,i)=>({stage:i===4?'resolution':'development'}))});
+ assert.equal(end.notes.filter(n=>n.ornament&&n.t>=12).length,0,'resolution grace seed '+seed);
+ assert.equal(end.notes.filter(n=>n.ornament&&n.t>=12.5).length,0,'closing grace seed '+seed);
+ assert.ok(!end.notes.some(n=>n.ornament&&Math.abs(n.t-13.075)<.001),'final lead ornament seed '+seed);
+}
 const input={title:'M5',character:'静かな旅人',world:'森',scene:'森の道を歩く',style:'handheld',duration:30};
 const plan=A.plan(input,A.analyze(input));
 for(const style of ['journey','forestflute','musicbox']){
