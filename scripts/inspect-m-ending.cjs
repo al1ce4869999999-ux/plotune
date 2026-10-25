@@ -8,12 +8,15 @@ const context={window:{},Blob,console};
 for(const name of [
  'analyzer.js','resonare-v08.js','loop-arranger-v09.js',
  'motif-planner-v01.js','melodic-grammar-v01.js',
- 'm2-emotion-phrase-v01.js','m3-harmony-melody-v01.js','handheld-v21.js'
+ 'm2-emotion-phrase-v01.js','m3-harmony-melody-v01.js',
+ 'm4-voice-dialogue-v01.js','m5-performance-v01.js','handheld-v21.js'
 ]){
  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'..',name),'utf8'),context,{filename:name});
 }
 const A=context.window.PlotuneAnalysis;
 const H=context.window.PlotuneHandheld;
+if(!context.window.PlotuneM4Voices?.arrange||!context.window.PlotuneM5Performance?.express)
+ throw new Error('M4/M5 modules missing: diagnostic ablations would be invalid');
 const input={title:'harmonic movement',character:'小さな旅人',world:'森',
  scene:'森を進み、最後に帰る',style:'handheld',duration:30};
 const plan=A.plan(input,A.analyze(input));
@@ -32,6 +35,8 @@ for(const preset of ['journey','musicbox','forestflute']){
   console.log(JSON.stringify({
    preset,variant:variant.name,duration:score.duration,
    tailWindow:[start,score.duration],
+   m4Responses:score.details.voiceDialogue?.responseCount??0,
+   m5Ornaments:score.details.performance?.ornaments??0,
    lastLead:lastLead?{t:lastLead.t,d:lastLead.d,midi:lastLead.midi}:null,
    tail:tail.map(n=>({
     t:+n.t.toFixed(4),d:+n.d.toFixed(4),
