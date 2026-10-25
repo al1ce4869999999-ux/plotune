@@ -6,9 +6,13 @@ on:
       - 'tests/emotional-arc-v20.test.cjs'
       - 'index.html'
       - '.github/workflows/emotional-arc-smoke.yml'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   score:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

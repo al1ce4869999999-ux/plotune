@@ -8,9 +8,13 @@ on:
       - 'tests/band-piano-v13.test.cjs'
       - 'tests/ui-v13.test.cjs'
       - '.github/workflows/piano-smoke.yml'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   piano:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

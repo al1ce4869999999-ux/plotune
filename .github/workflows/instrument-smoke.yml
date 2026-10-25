@@ -6,9 +6,13 @@ on:
       - 'tests/instrument-auto-v18.test.cjs'
       - 'index.html'
       - '.github/workflows/instrument-smoke.yml'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   score:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
