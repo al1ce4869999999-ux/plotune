@@ -24,6 +24,14 @@ assert.equal(JSON.stringify(original),snapshot,'pure: original notes untouched')
 assert.ok(result.responseCount>=2,'phrase replies are actually created');
 assert.ok(result.responses.every(r=>r.stage!=='opening'&&r.bar>0&&r.bar<bars-1),'dramatic arc and boundaries');
 assert.ok(result.responses.some((r,i)=>i&&r.bar-result.responses[i-1].bar>=2),'nonconstant entrances');
+assert.ok(result.responses.every(r=>r.bar<Math.floor(bars*.75)&&r.stage!=='resolution'),
+ 'no developmental answer may replace the composed resolution');
+const endingLead=lead.filter(n=>n.t>=bars*16*.75);
+for(const originalNote of endingLead){
+ const kept=result.notes.find(n=>n.voice==='lead'&&n.t===originalNote.t&&n.midi===originalNote.midi);
+ assert.ok(kept,'final melody preserved at '+originalNote.t);
+}
+
 assert.equal(result.notes.filter(n=>n.voice==='counter').length,result.responses.reduce((s,r)=>s+r.notes.length,0),'fixed legacy counter replaced');
 for(const reply of result.responses){
  assert.ok(reply.source.length>=2,'motif inherited from audible melody');
