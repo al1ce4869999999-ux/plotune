@@ -75,10 +75,15 @@ function optimize(input){
     add('CADENCE_BREATH',cadence,{d:round(cadence.n.d-trim)},'local release before smooth section',.25);
   }
   // SUSPENSION: hold an existing support note into the following beat where no same voice enters.
-  const holding=last(['pad','chords','bass']);
-  if(holding&&holding.n.t+holding.n.d>=t-beat&&holding.n.t+holding.n.d<=t){
-   const d=round(t+beat/6-holding.n.t);
-   if(d>holding.n.d&&d-holding.n.d<=beat/2)add('SUSPENSION',holding,{d},'support voice sustains across section entry',.59);
+  // Try all eligible support voices: the latest note is often blocked by a
+  // following onset while another voice can safely sustain through the boundary.
+  for(const holding of left.filter(x=>['pad','chords','bass','counter'].includes(x.n.voice))){
+   const end=holding.n.t+holding.n.d;
+   if(end<t-beat/2||end>t+beat/3)continue;
+   const target=Math.max(end+beat/8,t+beat/6);
+   const d=round(target-holding.n.t);
+   if(d>holding.n.d&&d-holding.n.d<=beat/2)
+    add('SUSPENSION',holding,{d},'support voice sustains across section entry',.59);
   }
   const preferred=STRATEGIES.includes(plan.strategy)?plan.strategy:null;
   const scored=candidates.map(c=>({...c,score:c.penalty+
