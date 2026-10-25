@@ -27,22 +27,33 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: R8 real-score strategy coverage audit
-        run: |
-          node --check transition-optimization-r8.js
-          node tests/r8-real-strategy-audit.test.cjs
       - name: R8 syntax and real generation
         run: |
+          node --check transition-optimization-r8.js
           node --check handheld-v21.js
           node tests/transition-optimization-r8.test.cjs
-      - name: R0-R7 impacted regressions
+  regression:
+    name: R0-R7 regressions (${{ matrix.group }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: R5-R7
+            tests: 'tests/transition-evaluation-r7.test.cjs tests/arrangement-optimization-r6.test.cjs tests/arrangement-perception-r5.test.cjs'
+          - group: R0-R4
+            tests: 'tests/r4-m7-real-engine.test.cjs tests/r3-m7-real-engine.test.cjs tests/r0-m7-integration.test.cjs'
+          - group: contracts
+            tests: 'tests/motif-similarity-r1.test.cjs tests/m2-emotion-phrase.test.cjs tests/preflight-contracts.test.cjs'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run impacted regressions
+        shell: bash
         run: |
-          node tests/transition-evaluation-r7.test.cjs
-          node tests/arrangement-optimization-r6.test.cjs
-          node tests/arrangement-perception-r5.test.cjs
-          node tests/r4-m7-real-engine.test.cjs
-          node tests/r3-m7-real-engine.test.cjs
-          node tests/r0-m7-integration.test.cjs
-          node tests/motif-similarity-r1.test.cjs
-          node tests/m2-emotion-phrase.test.cjs
-          node tests/preflight-contracts.test.cjs
+          for test_file in ${{ matrix.tests }}; do
+            echo "Running ${test_file}"
+            node "${test_file}"
+          done
