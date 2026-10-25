@@ -10,6 +10,10 @@ const source=Array.from({length:8},()=>sample.map(e=>({...e})));
 const tonic=[{position:0,durationUnits:2,degree:0,rest:false}];
 assert(M.phraseFit(tonic,0,.4)>M.phraseFit(tonic,1,.4),
  'harmonic fitness must respond to the chord root');
+// Source-level guard: all sadness layers must use the M3 progression,
+// including the second-pass pad/counter/sparkle orchestration.
+const engine=fs.readFileSync(path.join(__dirname,'../handheld-v21.js'),'utf8');
+assert.match(engine,/const start=bar\*meter,degree=m3JointPlan\?m3JointPlan\.chords\[bar\]:chordSteps\[bar%4\],unit=meter\/16/);
 const saved=JSON.stringify(source);
 const plan=M.plan(source,{progression:[0,4,5,3],tension:.4});
 assert.equal(JSON.stringify(plan),JSON.stringify(M.plan(source,{progression:[0,4,5,3],tension:.4})),'deterministic');
