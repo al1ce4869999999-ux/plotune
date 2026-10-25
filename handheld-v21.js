@@ -685,7 +685,7 @@ function score(plan){
       }
     }
     for(let bar=0;bar<bars;bar++){
-      const start=bar*meter,degree=chordSteps[bar%4],unit=meter/16;
+      const start=bar*meter,degree=m3JointPlan?m3JointPlan.chords[bar]:chordSteps[bar%4],unit=meter/16;
       // Contrasting sustained background texture, below the melody.
       if(bar%2===0){
         for(const offset of [0,4]){
