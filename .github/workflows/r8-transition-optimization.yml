@@ -11,6 +11,15 @@ on:
       - 'tests/r8-real-strategy-audit.test.cjs'
       - '.github/workflows/r8-transition-optimization.yml'
 jobs:
+  real-strategy-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Audit real generated note strategy coverage
+        run: node tests/r8-real-strategy-audit.test.cjs
   r8:
     runs-on: ubuntu-latest
     steps:
