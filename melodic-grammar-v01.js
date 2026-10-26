@@ -143,9 +143,17 @@ function scoreMelody(events){
  const pitchRepetition=intervals.filter(d=>d===0).length/Math.max(1,intervals.length);
  const repeatedRuns=intervals.slice(2).filter((d,i)=>d===intervals[i]&&d===intervals[i+1]).length;
  const contourVariety=new Set(f.contour).size;
+ // Reward an audible question/answer cell, not just arbitrary pitch variation.
+ const firstSix=events.slice(0,6);
+ const echo=firstSix.length===6&&firstSix.filter(e=>!e.rest).length>=4?
+  [0,1,2].reduce((n,i)=>{
+   const a=firstSix[i],b=firstSix[i+3];
+   return n+(a.rest===b.rest?.55:0)+
+    (!a.rest&&!b.rest&&Math.abs(a.degree-b.degree)<=1?.35:0);
+  },0):0;
  // Listener A/B reported no preference or memorability gain from the old ranking.
  // Reward a recognisable rhythmic gesture and a small interval vocabulary, not raw busyness.
- return Math.min(rhythmVariety,4)*.8+Math.min(durationVariety,4)*.65+
+ return echo*.8+Math.min(rhythmVariety,4)*.8+Math.min(durationVariety,4)*.65+
   leapBalance*1.15+restBalance*.5+Math.min(f.turns,2)*.3+
   Math.min(contourVariety,3)*.25+
   (uniqueIntervals>=2&&uniqueIntervals<=4?1:0)-
