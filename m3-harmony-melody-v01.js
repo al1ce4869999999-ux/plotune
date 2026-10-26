@@ -47,7 +47,7 @@ function plan(phrases,options={}){
   const previous=b?chords[b-1]:null;
   const isCadence=b===phrases.length-1;
   const expected=mod(original[b%original.length]);
-  const candidates=isCadence?[0]:pool;
+  const candidates=pool;
   const graded=candidates.map(chord=>{
    const adapted=refine(phrases[b],chord,tension,isCadence);
    const fit=phraseFit(adapted,chord,tension);
@@ -55,8 +55,9 @@ function plan(phrases,options={}){
    // Prefer contextual progression rather than an identical chord every bar.
    const repeat=previous===chord&&b>0?.46:0;
    const home=chord===expected?.62:0;
+   const gentleHome=isCadence&&chord===0?.32:0;
    const cadencePrep=b===phrases.length-2&&(chord===4?.48:chord===3?.26:0);
-   const score=fit*1.5-motion*.19-repeat+home+cadencePrep;
+   const score=fit*1.5-motion*.19-repeat+home+cadencePrep+gentleHome;
    return {chord,events:adapted,score,fit,motion};
   }).sort((a,b)=>b.score-a.score||a.chord-b.chord);
   const tensionDiagnostics=options.tensionTargets&&root.PlotuneTensionR2b?graded.map(c=>({chord:c.chord,assessment:root.PlotuneTensionR2b.harmonyCandidate(c.events,c.chord,previous,options.tensionTargets[b]||{})})):null;
@@ -69,22 +70,6 @@ function plan(phrases,options={}){
     .filter(x=>x.assessment?.measuredCount>0&&Number.isFinite(x.assessment.distance));
    measured.sort((a,b)=>a.assessment.distance-b.assessment.distance||b.candidate.score-a.candidate.score||a.candidate.chord-b.candidate.chord);
    if(measured.length){chosen=measured[0].candidate;tensionSelected=chosen.chord!==graded[0].chord;}
-  }
-  // Favor preparation as part of harmonic selection; never replace the winning chord.
-  // The tonic is a final target, while the approach still follows melodic fit.
-  if(isCadence){
-   const notes=chosen.events.map(e=>({...e}));
-   const audible=notes.filter(e=>!e.rest).sort((a,b)=>a.position-b.position);
-   const arrivalCandidates=audible.filter(e=>e.position>=6&&e.position<=12);
-   const arrival=arrivalCandidates.length?arrivalCandidates.reduce((best,e)=>
-     Math.abs(e.position-9)<Math.abs(best.position-9)?e:best):audible.at(-1);
-   if(arrival){
-    // Reuse a real thematic onset instead of moving a late note into empty space.
-    for(const e of audible)if(e.position>arrival.position){e.rest=true;delete e.cadence;}
-    arrival.degree=0;arrival.cadence=true;
-    arrival.durationUnits=16-arrival.position;
-   }
-   chosen={...chosen,events:notes};
   }
     chords.push(chosen.chord);events.push(chosen.events);
   decisions.push({bar:b,chord:chosen.chord,score:chosen.score,fit:chosen.fit,previous,...(tensionDiagnostics?{tensionDiagnostics}:{}),...(options.tensionSelection===true?{tensionSelected}:{})});
