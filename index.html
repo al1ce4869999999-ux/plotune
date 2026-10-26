@@ -138,6 +138,16 @@ button.alt{background:#2b304b;border-color:#686784;color:#f5edff}
 .story-card #compare,.story-card #analyze,.story-card #save,.story-card #loadSaved{font-size:12px;line-height:1.4}
 .note,.loop-note,.compare-help{color:#c8c4dc}
 @media(max-width:410px){main{padding:10px 10px 42px}header{padding:21px 14px}.poppo-hero{gap:8px;grid-template-columns:minmax(0,1fr) 32%}.poppo-hero h1{font-size:clamp(26px,7.3vw,33px)}.poppo-hero .lead{font-size:12px}.poppo-hero .lead span{font-size:10px}.card{padding:16px}.story-card h2{font-size:19px}}
+
+/* Poppo illustration placement: keep all interactive button IDs unchanged */
+.poppo-hero-image{border:0;border-radius:0;box-shadow:none;aspect-ratio:auto;object-fit:contain;max-height:200px}
+.poppo-art{overflow:visible}
+.make-wrap{grid-column:1/-1;grid-row:1;display:flex;align-items:center;gap:8px;min-width:0}
+.story-card .make-wrap #make{grid-column:auto;grid-row:auto;flex:1;min-width:0}
+.poppo-star-image{width:78px;height:78px;object-fit:contain;flex:none;filter:drop-shadow(0 6px 15px #060a20aa);pointer-events:none}
+.poppo-art:after{content:'✦';position:absolute;left:0;top:4px;color:#f7e5b8;font-size:18px;text-shadow:0 0 10px #edcafa;pointer-events:none}
+.make-wrap:before{content:'✧';position:absolute;transform:translate(54px,-38px);color:#e8d5ff;font-size:16px;pointer-events:none}
+@media(max-width:410px){.poppo-star-image{width:60px;height:65px}.make-wrap{gap:5px}.story-card .make-wrap #make{font-size:16px;padding-inline:8px}}
 </style>
 <script defer src="analyzer.js"></script>
 <script defer src="resonare-v08.js"></script>
@@ -161,7 +171,7 @@ button.alt{background:#2b304b;border-color:#686784;color:#f5edff}
 <main>
 <header>
 <div class="poppo-hero"><div class="poppo-hero-copy"><span class="hero-overline">✦ STORY TO MUSIC</span><h1>DJぽっぽ <small>v2.4</small></h1>
-<p class="lead">ものがたりからBGMをつくるぽ！<span>キャラや場面を書くと、ぽっぽが曲にするぽ！</span></p></div><div class="poppo-art"><img class="poppo-hero-image" src="./poppo-mascot.svg" alt="羽飾りをつけたDJぽっぽ" width="160" height="120" loading="eager"><span class="poppo-music-note" aria-hidden="true">♫</span></div></div>
+<p class="lead">ものがたりからBGMをつくるぽ！<span>キャラや場面を書くと、ぽっぽが曲にするぽ！</span></p></div><div class="poppo-art"><img class="poppo-hero-image" src="./495B605E-D013-4AE7-A472-DFC26640DA6F.png" alt="羽飾りをつけたDJぽっぽ" width="160" height="120" loading="eager"><span class="poppo-music-note" aria-hidden="true">♫</span></div></div>
 </header>
 <section class="card story-card">
 <div class="story-intro"><span class="story-intro-icon" aria-hidden="true">♫</span><div><h2>ものがたりの設定</h2><p class="story-help">ぽっぽに、どんな曲をつくってほしいか教えてほしいぽ！</p></div></div>
@@ -219,7 +229,7 @@ button.alt{background:#2b304b;border-color:#686784;color:#f5edff}
 <div class="actions">
 <button id="compare" class="alt" type="button">⚖️ 2曲をつくりなおすぽ</button>
 <button id="analyze" class="alt" type="button">🔍 ものがたりを調べるぽ</button>
-<button id="make" type="button">♫ 曲をつくるぽ！</button>
+<div class="make-wrap"><img class="poppo-star-image" src="./D1CF0645-0B9B-4A5E-A769-4F5C1C421AA6.png" alt="星を抱えたDJぽっぽ" loading="lazy" width="92" height="92"><button id="make" type="button">♫ 曲をつくるぽ！</button></div>
 <button id="save" class="alt" type="button">設定を保存するぽ</button>
 <button id="loadSaved" class="alt" type="button">保存した設定を開くぽ</button>
 </div>
