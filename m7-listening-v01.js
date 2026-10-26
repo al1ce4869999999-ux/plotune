@@ -25,14 +25,17 @@ function attach(doc,api,AudioContextClass){
  if(!make||!panel)return null;
  const buttons=IDS.map(id=>doc.getElementById('m7Play-'+id));
  const message=doc.getElementById('m7Status'),stopButton=doc.getElementById('m7Stop');
+ const seek=doc.getElementById('m7Seek'),time=doc.getElementById('m7Time');
+ const clock=v=>Math.floor(v/60)+':'+String(Math.floor(v%60)).padStart(2,'0');
  let context=null,source=null,transport=null,result=null,buffers=new Map(),epoch=0;
  const report=(s)=>{message.textContent=s;};
  function position(){if(!transport||!context)return 0;const d=transport.duration;return (transport.offset+Math.max(0,context.currentTime-transport.started))%d;}
- function stop(){epoch++;if(source){try{source.onended=null;source.stop();source.disconnect();}catch{}source=null;}transport=null;}
+ function refresh(){const d=result?.tracks?.[0]?.track?.samples.length/result.tracks[0].track.sampleRate||0,p=position();if(seek&&!seek.matches(':active'))seek.value=String(p);if(time)time.textContent=clock(p)+' / '+clock(d);}
+ function stop(){epoch++;if(source){try{source.onended=null;source.stop();source.disconnect();}catch{}source=null;}transport=null;refresh();}
  async function play(id){
   if(!result)return;
   const item=result.tracks.find(x=>x.conditionId===id);if(!item)return;
-  const offset=transport?position():0;stop();const ticket=epoch;
+  const offset=transport?position():Number(seek?.value||0);stop();const ticket=epoch;
   try{
    if(!AudioContextClass)throw new Error('Web Audio unavailable');
    context=context||new AudioContextClass();await context.resume();if(ticket!==epoch)return;
@@ -40,24 +43,29 @@ function attach(doc,api,AudioContextClass){
    if(!buffer){const t=item.track;buffer=context.createBuffer(1,t.samples.length,t.sampleRate);buffer.copyToChannel(t.samples,0);buffers.set(id,buffer);}
    const node=context.createBufferSource(),gain=context.createGain();
    gain.gain.value=gainFor(item.track);node.buffer=buffer;node.loop=true;node.connect(gain);gain.connect(context.destination);
-   node.start(0,offset);source=node;transport={id,offset,started:context.currentTime,duration:buffer.duration};
+   node.start(0,Math.min(offset,Math.max(0,buffer.duration-.02)));source=node;transport={id,offset,started:context.currentTime,duration:buffer.duration};
+   node.loop=false;node.onended=()=>{if(source===node){source=null;transport=null;refresh();}};
+   refresh();
    report(LABELS[id]+' · '+offset.toFixed(1)+'秒から再生');
   }catch(e){stop();report('再生エラー: '+e.message);}
  }
  function create(){
-  stop();result=null;buffers.clear();buttons.forEach(b=>b.disabled=true);stopButton.disabled=true;
+  stop();result=null;buffers.clear();buttons.forEach(b=>b.disabled=true);stopButton.disabled=true;if(seek)seek.disabled=true;
   const input=Object.fromEntries(['title','character','world','scene','style','gameStyle','duration'].map(k=>[k,doc.getElementById(k)?.value]));
   const seed=Number(doc.getElementById('m7Seed').value);
   try{
    result=validate(api.generate(input,seed));
    buttons.forEach(b=>b.disabled=false);stopButton.disabled=false;
+   if(seek){seek.disabled=false;seek.max=String(result.tracks[0].track.samples.length/result.tracks[0].track.sampleRate);seek.value='0';}refresh();
    if(root.PlotuneM7Evaluation?.controller)root.PlotuneM7Evaluation.controller.begin(result);
    report('4曲生成完了 · 同じ位置で切り替え可能 · 音量を静的補正');
   }catch(e){report('4条件生成エラー: '+e.message);}
  }
  make.addEventListener('click',create);
  buttons.forEach((b,i)=>b.addEventListener('click',()=>play(IDS[i])));
- stopButton.addEventListener('click',()=>{stop();report('停止しました');});
+ stopButton.addEventListener('click',()=>{stop();if(seek)seek.value='0';refresh();report('停止しました');});
+ if(seek)seek.addEventListener('input',()=>{const id=transport?.id;const at=Number(seek.value);if(transport&&context){transport.offset=at;transport.started=context.currentTime;}refresh();if(id)play(id);});
+ const timer=typeof setInterval==='function'?setInterval(()=>{if(transport)refresh();},200):null;
  return {create,play,stop,get result(){return result;}};
 }
 root.PlotuneM7Listening={IDS,LABELS,gainFor,validate,attach};
