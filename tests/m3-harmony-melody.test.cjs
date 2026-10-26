@@ -31,4 +31,18 @@ for(const preset of ['journey','musicbox','forestflute']){
  assert.equal(JSON.stringify(H.score(prepared).notes),JSON.stringify(legacy.notes),'legacy score remains fixed '+preset);
 }
 assert.match(fs.readFileSync(path.join(__dirname,'../index.html'),'utf8'),/m3-harmony-melody-v01\.js/);
+// H2: melody preservation, deterministic choice, and non-chord diagnostics.
+const h2Source=[[{position:0,durationUnits:1,degree:0,rest:false},
+ {position:1,durationUnits:1,degree:1,rest:false},
+ {position:2,durationUnits:1,degree:2,rest:false},
+ {position:4,durationUnits:2,degree:6,rest:false}]];
+const h2Saved=JSON.stringify(h2Source);
+const h2=M.planH2(h2Source,{progression:[0]});
+assert.equal(JSON.stringify(h2Source),h2Saved,'H2 input unchanged');
+assert.equal(JSON.stringify(h2.phrases),h2Saved,'H2 preserves motif');
+assert.equal(JSON.stringify(h2),JSON.stringify(M.planH2(h2Source,{progression:[0]})),'H2 deterministic');
+assert.equal(M.h2Classify(h2Source[0].slice(0,3),0).notes[1].role,'passing');
+assert.equal(M.h2Classify([{position:0,durationUnits:2,degree:1,rest:false}],0).collisions,1);
+assert.equal(M.h2Classify([{position:0,durationUnits:2,degree:1,rest:false,intentionalDissonance:true}],0).collisions,0);
+assert.equal(M.h2Classify([{position:1,durationUnits:1,degree:1,rest:false}],0).notes[0].role,null);
 console.log('PASS M3 joint harmony melody: deterministic, cadence, instruments, legacy, bounds');
