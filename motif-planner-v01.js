@@ -16,19 +16,29 @@ function capture(events){
   intervals:anchors.map((n,i)=>i?n.degree-anchors[i-1].degree:0),
   anchors:[{position:anchors[0].position,degree:first},{position:anchors[anchors.length-1].position,degree:anchors[anchors.length-1].degree}]};
 }
-function transform(motif,kind){
+function signature(events){
+ const sounding=events.map((e,i)=>({...e,index:i})).filter(e=>!e.rest);
+ const rhythm=events.map(e=>[e.position,e.durationUnits,!!e.rest]);
+ const contour=sounding.slice(1).map((e,i)=>Math.sign(e.degree-sounding[i].degree));
+ const leaps=sounding.slice(1).map((e,i)=>({index:e.index,size:Math.abs(e.degree-sounding[i].degree)}));
+ const strongest=leaps.sort((a,b)=>b.size-a.size||a.index-b.index)[0];
+ const protectedIndices=[...new Set([sounding[0]?.index,strongest?.size>=3?strongest.index:null].filter(Number.isInteger))];
+ return {rhythm,contour,protectedIndices};
+}
+function transform(motif,kind,options={}){
  if(!motif||motif.version!==1||!Array.isArray(motif.events))throw new TypeError('invalid motif');
  if(!['statement','variation','contrast','return'].includes(kind))throw new RangeError('unknown transformation');
  const origin=motif.anchors[0].degree;
+ const protectedIndices=options.preserveSignature===true?new Set(signature(motif.events).protectedIndices):null;
  const events=motif.events.map((e,i)=>{
   let degree=e.degree,position=e.position,durationUnits=e.durationUnits,rest=e.rest;
   if(kind==='variation'){
-   if(!rest&&i%3===1)degree=Math.min(8,degree+1);
-   if(i%4===2)durationUnits=Math.min(durationUnits*1.25,16-position);
+   if(!rest&&i%3===1&&!protectedIndices?.has(i))degree=Math.min(8,degree+1);
+   if(i%4===2&&!protectedIndices?.has(i))durationUnits=Math.min(durationUnits*1.25,16-position);
   }
   if(kind==='contrast'){
-   if(!rest)degree=Math.max(0,Math.min(8,origin-(degree-origin)));
-   if(i%4===1)rest=true;
+   if(!rest&&!protectedIndices?.has(i))degree=Math.max(0,Math.min(8,origin-(degree-origin)));
+   if(i%4===1&&!protectedIndices?.has(i))rest=true;
   }
   if(kind==='return'&&i===motif.events.length-1){degree=origin;rest=false;}
   return {position:round(position),durationUnits:round(durationUnits),degree,rest};
@@ -36,5 +46,5 @@ function transform(motif,kind){
  if(!events.some(e=>!e.rest))events[0].rest=false;
  return {kind,events,sourceVersion:motif.version};
 }
-root.PlotuneMotifPlanner={capture,transform};
+root.PlotuneMotifPlanner={capture,transform,signature};
 })(typeof window!=='undefined'?window:globalThis);
