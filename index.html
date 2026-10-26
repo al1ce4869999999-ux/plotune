@@ -163,6 +163,10 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <button id="m7Play-phase-m" class="alt" disabled type="button">▶ Phase + M</button>
 </div>
 <div class="actions"><button id="m7Stop" class="alt" disabled type="button">■ 4条件再生を停止</button></div>
+<div id="m7Timeline" style="margin-top:14px;display:grid;gap:6px">
+<label for="m7Seek" style="margin:0">再生位置 <output id="m7Time" for="m7Seek">0:00 / 0:30</output></label>
+<input id="m7Seek" type="range" min="0" max="30" value="0" step="0.05" disabled aria-label="曲の再生位置" style="width:100%;accent-color:#b3a0ff;padding:8px 0;touch-action:pan-y">
+</div>
 <p id="m7Status" role="status" aria-live="polite" class="note">4曲を生成すると再生できます。</p>
 <p class="note">音量は曲ごとに一定ゲインで補正し、曲中の強弱は維持します。</p>
 </section>
