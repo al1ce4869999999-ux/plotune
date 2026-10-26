@@ -24,6 +24,14 @@ function setRating(record,id,key,value){
  record.ratings[id][key]=rating(value);return record;
 }
 function complete(record){return IDS.every(id=>CRITERIA.every(([key])=>record.ratings[id][key]!=null));}
+function compareRatings(record,left='baseline',right='phase-m'){
+ if(!IDS.includes(left)||!IDS.includes(right)||left===right)throw new RangeError('invalid comparison');
+ const dimensions=['liking','expectation','memorability','naturalness'];
+ return {left,right,axes:Object.fromEntries(dimensions.map(key=>{
+  const a=record.ratings?.[left]?.[key]??null,b=record.ratings?.[right]?.[key]??null;
+  return [key,{left:a,right:b,delta:a===null||b===null?null:b-a}];
+ })),objective:{left:record.objectiveDiagnostics?.[left]??null,right:record.objectiveDiagnostics?.[right]??null}};
+}
 function attach(doc,listening,storage){
  const panel=doc.getElementById('m7Evaluation'),body=doc.getElementById('m7RatingFields'),message=doc.getElementById('m7RatingStatus');
  if(!panel||!body)return null;
@@ -62,8 +70,8 @@ function attach(doc,listening,storage){
   setTimeout(()=>URL.revokeObjectURL(url),30000);
  }
  save.addEventListener('click',persist);download.addEventListener('click',exportJson);
- return {begin,persist,get record(){return record;}};
+ return {begin,persist,compare:(left,right)=>record?compareRatings(record,left,right):null,get record(){return record;}};
 }
-root.PlotuneM7Evaluation={IDS,CRITERIA,DIAGNOSTIC_KEYS,diagnosticsFor,rating,createRecord,setRating,complete,attach};
+root.PlotuneM7Evaluation={IDS,CRITERIA,DIAGNOSTIC_KEYS,diagnosticsFor,rating,createRecord,setRating,complete,compareRatings,attach};
 if(typeof document!=='undefined')root.PlotuneM7Evaluation.controller=attach(document,root.PlotuneM7Listening,root.localStorage);
 })(typeof window!=='undefined'?window:globalThis);
