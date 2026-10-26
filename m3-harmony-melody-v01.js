@@ -31,7 +31,12 @@ function refine(events,chord,tension,close){
    const choices=triad.map(x=>x+chord+7*Math.floor(e.degree/7)).flatMap(x=>[x-7,x,x+7]).filter(x=>x>=0&&x<=8);
    if(choices.length)out.degree=choices.reduce((a,b)=>Math.abs(b-e.degree)<Math.abs(a-e.degree)?b:a);
   }
-  if(close&&i===events.length-1&&!out.rest){out.degree=0;out.cadence=true;}
+  if(close&&!out.rest&&i===events.findLastIndex(x=>!x.rest)){
+   out.degree=0;out.cadence=true;
+   // Finish the existing phrase at its barline instead of adding a filler note.
+   if(out.position>=0&&out.position<16&&out.durationUnits>0)
+    out.durationUnits=Math.max(out.durationUnits,16-out.position);
+  }
   return out;
  });
 }
