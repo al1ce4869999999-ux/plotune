@@ -1081,6 +1081,16 @@ function render(plan){
  for(let i=0;i<N;i++)peak=Math.max(peak,Math.abs(out[i]));
  const gain=Math.min(2.4,.79/Math.max(peak,.11));
  for(let i=0;i<N;i++)out[i]=Math.tanh(out[i]*gain);
+ // M3 composition is a finite song: do not splice its ending into the opening.
+ // Shape the final release within the existing duration (no extra PCM or changed A/B timing).
+ if(plan.musicHarmony===true){
+  const tail=Math.min(N,Math.floor(SR*.42));
+  for(let i=0;i<tail;i++){
+   const x=(i+1)/tail;
+   out[N-tail+i]*=.5*(1+Math.cos(Math.PI*x));
+  }
+  return {samples:out,sampleRate:SR,score:s,details:s.details};
+ }
  // Lapped window at playback boundary; align final sample to exact loop start.
  const span=Math.min(1600,Math.floor(N/50));
  for(let i=0;i<span;i++){
