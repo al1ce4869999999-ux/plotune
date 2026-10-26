@@ -340,6 +340,19 @@ function score(plan){
      }:{
        density:clamp(pulseDensity*.68*arcAt(b).density,.25,.92),
        motif:motifPhrase,stage:arcAt(b).stage})):null;
+ // Protect the first audible note and the strongest melodic leap in M-enabled phrases.
+ const motifAnchors=events=>{
+  const sounding=events.map((e,i)=>({...e,index:i})).filter(e=>!e.rest);
+  if(!sounding.length)return [];
+  let strongest=sounding[0],largest=0;
+  for(let i=1;i<sounding.length;i++){
+   const leap=Math.abs(sounding[i].degree-sounding[i-1].degree);
+   if(leap>largest){largest=leap;strongest=sounding[i];}
+  }
+  return [...new Set([sounding[0].index,strongest.index])];
+ };
+ const m1Anchors=plan.musicDevelopment===true&&sharedPhrases?
+  sharedPhrases.map(motifAnchors):null;
  // R2 tension diagnostics use explicit per-section targets, never infer tension from emotion.
  const r2Sections=plan.musicTensionR2===true&&plan.tensionPlan?.schema==='plotune.tension-plan'&&Array.isArray(plan.tensionPlan.sections)?plan.tensionPlan.sections:null;
  const r2TargetAt=b=>r2Sections?.length?r2Sections[Math.min(r2Sections.length-1,Math.floor(b*r2Sections.length/bars))]?.target:null;
@@ -351,6 +364,7 @@ function score(plan){
    const selected=root.PlotuneM2Phrase.selectPhrase(sharedPhrases[b],
     {...stages[arcAt(b).stage],...(plan.phraseEmotion||{})},
     {seed:(seed^Math.imul(b+1,2654435761))>>>0,candidates:8,
+     ...(m1Anchors?{protectedIndices:m1Anchors[b]}:{}),
      ...(r2TargetAt(b)&&root.PlotuneTensionR2b?{tensionTarget:r2TargetAt(b),tensionSelection:plan.musicTensionR2Selection===true}:{})});
    if(selected.tensionDiagnostics)r2PhraseDiagnostics.push({bar:b,candidateIndex:selected.candidateIndex,assessments:selected.tensionDiagnostics,tensionSelected:selected.tensionSelected||false});
    sharedPhrases[b]=selected.events;
@@ -359,6 +373,7 @@ function score(plan){
  // M3 shared melody/harmony planning (opt-in).
  const m3JointPlan=plan.musicHarmony===true && sharedPhrases && root.PlotuneM3Harmony?
   root.PlotuneM3Harmony.plan(sharedPhrases,{progression:prog,tension:clamp(Number(plan.harmonicTension)||.45,0,1),
+   ...(m1Anchors?{protectedIndices:m1Anchors}:{}),
    ...(r2Sections&&root.PlotuneTensionR2b?{tensionTargets:Array.from({length:bars},(_,b)=>r2TargetAt(b)||{}),tensionSelection:plan.musicTensionR2Selection===true}:{})}):null;
  if(m3JointPlan)for(let b=0;b<bars;b++)sharedPhrases[b]=m3JointPlan.phrases[b];
  // Repeat 4-bar thematic material; vary density and fills but keep a looping identity.
