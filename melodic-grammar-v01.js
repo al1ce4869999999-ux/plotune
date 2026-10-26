@@ -59,6 +59,7 @@ function phrase(g,bar,count=8){
 // Shared phrase planner: rhythmic events occupy a whole bar, not fixed note slots.
 // Reuses the same character/world grammar for game, character, box and flute voices.
 function composePhrase(g,bar,options={}){
+ if(options.m1Selection)return selectMelody(g,bar,options).events;
  const r=rng((g.identity^Math.imul((bar%4)+1,0x9e3779b9)^Math.imul(Math.floor(bar/4)+1,0x85ebca6b))>>>0);
  const density=clamp(options.density??g.noteDensity,.22,.95);
  const slots=16,events=[];
@@ -111,5 +112,44 @@ function composePhrase(g,bar,options={}){
  if(events.length&&!events.some(n=>!n.rest))events[0].rest=false;
  return events;
 }
-root.PlotuneMelodicGrammar={grammar,phrase,composePhrase};
+
+// M1 opt-in candidate selection. Keep the legacy generator unchanged by default.
+// Scores are structural proxies, not a prediction of human memorability.
+function melodyFeatures(events){
+ const notes=events.filter(e=>!e.rest);
+ const steps=notes.slice(1).map((n,i)=>n.degree-notes[i].degree);
+ const signs=steps.map(n=>Math.sign(n));
+ const rhythm=events.map(e=>Math.round(e.position*2)/2);
+ const leaps=steps.filter(n=>Math.abs(n)>=3).length;
+ const turns=signs.slice(1).filter((n,i)=>n&&signs[i]&&n!==signs[i]).length;
+ const rests=events.filter(e=>e.rest).length;
+ const span=notes.length?Math.max(...notes.map(n=>n.degree))-Math.min(...notes.map(n=>n.degree)):0;
+ return {rhythm,contour:signs,leaps,turns,rests,span,audible:notes.length};
+}
+function scoreMelody(events){
+ const f=melodyFeatures(events);
+ if(f.audible<3)return -Infinity;
+ const durationsValid=events.every(e=>Number.isFinite(e.position)&&Number.isFinite(e.durationUnits)&&
+  e.position>=0&&e.durationUnits>0&&e.position+e.durationUnits<=16.001);
+ if(!durationsValid)return -Infinity;
+ const distinctRhythm=new Set(f.rhythm.slice(1).map((p,i)=>Math.round((p-f.rhythm[i])*2))).size;
+ const leapBalance=f.leaps===0?0:f.leaps<=2?1:.5;
+ const restBalance=f.rests<=2?1:.5;
+ const contourVariety=new Set(f.contour).size;
+ return distinctRhythm*.65+leapBalance*1.3+Math.min(f.turns,3)*.35+
+  restBalance*.6+Math.min(contourVariety,3)*.45-Math.max(0,f.span-7)*.4;
+}
+function selectMelody(g,bar,options={}){
+ const count=Math.max(1,Math.min(16,Math.trunc(Number(options.candidateCount)||6)));
+ const candidates=[];
+ for(let i=0;i<count;i++){
+  const candidateGrammar={...g,identity:(g.identity^Math.imul(i,0x9e3779b9))>>>0};
+  const events=composePhrase(candidateGrammar,bar,{...options,m1Selection:false});
+  candidates.push({index:i,events,score:scoreMelody(events),features:melodyFeatures(events)});
+ }
+ candidates.sort((a,b)=>b.score-a.score||a.index-b.index);
+ return {events:candidates[0].events,selectedIndex:candidates[0].index,candidates};
+}
+
+root.PlotuneMelodicGrammar={grammar,phrase,composePhrase,melodyFeatures,scoreMelody,selectMelody};
 })(window);
