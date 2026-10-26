@@ -53,6 +53,15 @@ assert.equal(stageDiff.events.length,2);
 assert.deepEqual(stageDiff,H0.compareStages(sourceStages,42));
 assert.equal(JSON.stringify(sourceStages),stageBefore);
 assert(stageDiff.events.every(e=>e.confidence==='unconfirmed'));
+// Reordering and insertion must not cascade into false edits.
+const reordered={preM4:[{t:0,d:.2,midi:60,voice:'lead'},{t:1,d:.2,midi:62,voice:'lead'}],postM4:[{t:1,d:.2,midi:62,voice:'lead'},{t:0,d:.2,midi:60,voice:'lead'}]};
+assert.equal(H0.compareStages(reordered,42).events.length,0);
+const inserted={...reordered,postM4:[{t:.5,d:.2,midi:61,voice:'lead'},...reordered.preM4]};
+const insertedDiff=H0.compareStages(inserted,42);
+assert.equal(insertedDiff.events.length,1);
+assert.equal(insertedDiff.events[0].evidence.comparison,'inserted-note');
+const removed={preM4:inserted.postM4,postM4:reordered.preM4};
+assert.equal(H0.compareStages(removed,42).events[0].evidence.comparison,'removed-note');
 const phraseTrace={beforeM2:[[{position:0,degree:0}]],afterM2:[[{position:0,degree:1}]],afterM3:[[{position:0,degree:2}]]};
 const phraseOriginal=JSON.stringify(phraseTrace);
 const phraseDiff=H0.comparePhrases(phraseTrace,42);
