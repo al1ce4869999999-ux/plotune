@@ -335,6 +335,7 @@ function score(plan){
    b===0?motifPhrase:root.PlotuneMelodicGrammar.composePhrase(sharedGrammar,b,
      motifIdentity?{
        motifIdentity,
+       preserveSignature:plan.musicDevelopment===true,
        motifTransform:arcAt(b).stage==='climax'?'contrast':
          arcAt(b).stage==='resolution'?'return':'variation'
      }:{
