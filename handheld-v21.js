@@ -933,6 +933,7 @@ function score(plan){
   musicPsychology:expression,researchApplied:cues?{...cues,appliedTo:['lead register','lead/counter articulation','note dynamics','synth brightness','reflection wetness'],tempoStatus:'not applied (preset BPM retained)',modeStatus:'not applied (style harmony retained)'}:null,structuredStory:plan.structure||null,
   genre:'game',gameStyle:plan.gameStyle||'journey',gameName:game.name,emotionMode:game.mode,groove:game.drums,shape,
   loopMode:true,loopBars:bars,bpm,theme:motif,parts:voices,wholeTrackArc,arrangementProfiles,motifDevelopment:sharedPhrases?'opening → variation → climax → reprise':null,
+  melodySelection:m1Selection?{selectedIndex:m1Selection.selectedIndex,scores:m1Selection.candidates.map(c=>c.score)}:null,
   emotionalProfile:emotional?.kind||null,
   emotionalArc:arcDynamics?{type:'grief',strength:arc.strength,stages:arcDynamics,gravity:'low-pedal-and-unresolved-cluster',reason:arc.reason}:null,
   storyInstrument:palette?{...palette}:null,
