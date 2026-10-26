@@ -1084,7 +1084,7 @@ function render(plan){
  // M3 composition is a finite song: do not splice its ending into the opening.
  // Shape the final release within the existing duration (no extra PCM or changed A/B timing).
  if(plan.musicHarmony===true){
-  const tail=Math.min(N,Math.floor(SR*.42));
+  const tail=Math.min(N,Math.floor(SR*Math.min(4,Math.max(2,s.duration*.11))));
   for(let i=0;i<tail;i++){
    const x=(i+1)/tail;
    out[N-tail+i]*=.5*(1+Math.cos(Math.PI*x));
