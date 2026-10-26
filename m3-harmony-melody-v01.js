@@ -68,27 +68,31 @@ function plan(phrases,options={}){
 // H2: evaluate sounding scale degrees without interpreting motif degree as chord-relative.
 function h2Classify(events,chord,options={}){
  const notes=events.map((e,i)=>{
-  if(e.rest)return {role:null,collision:false};
+  if(e.rest)return {role:null,collision:false,chordTone:false,intentional:false};
+  // H1 localScaleDegree is authoritative; legacy degree is a local-key degree,
+  // never a chord-relative offset. MIDI alone cannot infer a key degree.
   const degree=e.localScaleDegree??e.degree;
-  if(!Number.isFinite(degree))return {role:null,collision:false};
+  if(!Number.isInteger(degree))return {role:null,collision:false,chordTone:false,intentional:false};
   const chordTone=triad.some(d=>mod(degree)===mod(chord+d));
-  if(chordTone)return {role:null,collision:false};
+  if(chordTone)return {role:null,collision:false,chordTone:true,intentional:false};
   const prev=events.slice(0,i).reverse().find(n=>!n.rest);
   const next=events.slice(i+1).find(n=>!n.rest);
   const pd=prev?.localScaleDegree??prev?.degree;
   const nd=next?.localScaleDegree??next?.degree;
-  const stepIn=Number.isFinite(pd)&&Math.abs(degree-pd)===1;
-  const stepOut=Number.isFinite(nd)&&Math.abs(nd-degree)===1;
+  const stepIn=Number.isInteger(pd)&&Math.abs(degree-pd)===1;
+  const stepOut=Number.isInteger(nd)&&Math.abs(nd-degree)===1;
   const weak=(e.position%4)>=.6;
+  const prevChordTone=Number.isInteger(pd)&&triad.some(d=>mod(pd)===mod(chord+d));
+  const nextChordTone=Number.isInteger(nd)&&triad.some(d=>mod(nd)===mod(chord+d));
   let role=null;
-  if(stepIn&&stepOut&&Math.sign(degree-pd)===Math.sign(nd-degree))role='passing';
-  else if(stepIn&&stepOut&&pd===nd)role='neighbor';
-  else if(e.prepared===true&&stepOut&&nd<degree)role='suspension';
-  else if(!weak&&stepOut&&e.resolves===true)role='appoggiatura';
-  else if(e.nextChordDegree!=null&&mod(degree)===mod(e.nextChordDegree))role='anticipation';
+  if(weak&&stepIn&&stepOut&&prevChordTone&&nextChordTone&&Math.sign(degree-pd)===Math.sign(nd-degree))role='passing';
+  else if(weak&&stepIn&&stepOut&&prevChordTone&&nextChordTone&&pd===nd)role='neighbor';
+  else if(!weak&&e.prepared===true&&stepOut&&nextChordTone&&nd<degree)role='suspension';
+  else if(!weak&&stepOut&&nextChordTone&&e.resolves===true)role='appoggiatura';
+  else if(weak&&e.nextChordDegree!=null&&mod(degree)===mod(e.nextChordDegree))role='anticipation';
   const intentional=e.intentionalDissonance===true||e.nonChordToneRole==='intentional';
   const collision=!weak&&!role&&!intentional;
-  return {role,collision,chordTone,intentional};
+  return {role,collision,chordTone:false,intentional};
  });
  return {notes,collisions:notes.filter(n=>n.collision).length};
 }
@@ -96,7 +100,6 @@ function planH2(phrases,options={}){
  if(!Array.isArray(phrases)||!phrases.length||phrases.some(p=>!Array.isArray(p)||!p.length))
   throw new TypeError('phrase bars required');
  const original=Array.isArray(options.progression)&&options.progression.length?options.progression:[0,4,5,3];
- const tension=clamp(Number(options.tension)||0,0,1);
  const chords=[],decisions=[];
  for(let b=0;b<phrases.length;b++){
   const expected=mod(original[b%original.length]),previous=chords[b-1]??null;
