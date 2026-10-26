@@ -204,7 +204,11 @@ function chooseStyle(scene){
 }
 
 function random(seed){let x=(seed>>>0)||1;return ()=>{x^=x<<13;x^=x>>>17;x^=x<<5;return(x>>>0)/4294967296;};}
-function midi(root,scale,index){return root+scale[((index%7)+7)%7]+12*Math.floor(index/7);}
+function midi(root,scale,index){
+ // H1 shadow adapter: preserve the legacy calculation and output exactly.
+ const h1=window.PlotuneH1Degree;
+ return h1?h1.legacyDegreeToSoundingMidi(root,scale,index):root+scale[((index%7)+7)%7]+12*Math.floor(index/7);
+}
 // Emotional arcs express the sequence of musical tension and release.
 // A grief cue requests a dynamic arc even if the user chose "adventure".
 function analyzeEmotionalArc(scene,style){
