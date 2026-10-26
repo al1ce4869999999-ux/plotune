@@ -23,7 +23,7 @@ function evaluate(events,emotion){
  return -Math.abs(meanLeap-targetLeap)*1.6-Math.abs(rests-targetRests)*4-Math.abs(duration-targetDuration)*.35
    +(p.tension>.6?!resolved:resolved)*.9;
 }
-function candidate(source,emotion,seed,index){
+function candidate(source,emotion,seed,index,deferCadence=false){
  const p=profile(emotion),r=random(hash(seed+'|'+index)),out=source.map(e=>({...e}));
  for(let i=0;i<out.length;i++){
   const e=out[i],isLast=i===out.length-1;
@@ -34,7 +34,7 @@ function candidate(source,emotion,seed,index){
   e.durationUnits=+clamp(e.durationUnits*(.8+r()*.4+p.tenderness*.2-p.energy*.14),.25,16-e.position).toFixed(3);
  }
  const last=out[out.length-1];
- if(last){last.rest=false;last.degree=p.tension>.65?clamp(last.degree+1,1,8):[0,2,4].reduce((a,b)=>Math.abs(a-last.degree)<=Math.abs(b-last.degree)?a:b);last.cadence=p.tension<=.65;}
+ if(last){last.rest=false;if(deferCadence){delete last.cadence;}else{last.degree=p.tension>.65?clamp(last.degree+1,1,8):[0,2,4].reduce((a,b)=>Math.abs(a-last.degree)<=Math.abs(b-last.degree)?a:b);last.cadence=p.tension<=.65;}}
  if(!out.some(e=>!e.rest))out[0].rest=false;
  return out;
 }
@@ -42,7 +42,7 @@ function selectPhrase(source,emotion={},options={}){
  if(!Array.isArray(source)||!source.length)throw new TypeError('source events required');
  if(!source.every(e=>Number.isFinite(e.position)&&Number.isFinite(e.durationUnits)&&Number.isInteger(e.degree)&&e.degree>=0&&e.degree<=8&&e.durationUnits>0&&e.position>=0&&e.position+e.durationUnits<=16.001))throw new RangeError('invalid phrase events');
  const seed=options.seed??1,count=clamp(Math.floor(options.candidates??6),1,32);
- const choices=Array.from({length:count},(_,i)=>{const events=candidate(source,emotion,seed,i);return {events,score:evaluate(events,emotion),index:i}});
+ const choices=Array.from({length:count},(_,i)=>{const events=candidate(source,emotion,seed,i,options.deferCadence===true);return {events,score:evaluate(events,emotion),index:i}});
  const tensionDiagnostics=options.tensionTarget&&root.PlotuneTensionR2b?choices.map(c=>({index:c.index,assessment:root.PlotuneTensionR2b.phrase(c.events,options.tensionTarget)})):null;
  choices.sort((a,b)=>b.score-a.score||a.index-b.index);
  // R2 tension constraint applies only inside a bounded legacy-quality band.
