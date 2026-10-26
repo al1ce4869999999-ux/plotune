@@ -70,3 +70,10 @@ assert.deepEqual(phraseDiff,H0.comparePhrases(phraseTrace,42));
 assert.equal(JSON.stringify(phraseTrace),phraseOriginal);
 assert.deepEqual(H0.comparePhrases(null,42).events,[]);
 console.log('PASS H0 opt-in score and PCM preservation, fixed-seed JSON, safety, four conditions');
+
+const identified={preM4:[{h0Id:'a',t:0,d:.2,midi:60,voice:'lead'},{h0Id:'b',t:1,d:.2,midi:62,voice:'lead'}],postM4:[{h0Id:'b',t:1,d:.2,midi:63,voice:'lead'},{h0Id:'a',t:0,d:.2,midi:60,voice:'lead'},{h0Id:'c',t:.5,d:.2,midi:61,voice:'lead'}]};
+const identifiedDiff=H0.compareStages(identified,42);
+assert.equal(identifiedDiff.events.length,2);
+assert.equal(identifiedDiff.events.find(e=>e.evidence.noteId==='b').evidence.comparison,'persistent-note-id');
+assert.equal(identifiedDiff.events.find(e=>e.evidence.noteId==='c').evidence.comparison,'inserted-note');
+assert(identifiedDiff.events.every(e=>e.confidence==='high'));
