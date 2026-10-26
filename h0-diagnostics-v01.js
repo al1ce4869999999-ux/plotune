@@ -58,26 +58,46 @@ function ablate(engine,entry,seed){
  }
  return {schema:'plotune.h0.ablation',version:1,seed,condition:'M',variants};
 }
+// Align unchanged notes first, then conservatively match by voice and onset.
+function alignNotes(before,after){
+ const usedBefore=new Set(),usedAfter=new Set(),pairs=[];
+ const key=n=>JSON.stringify(snapshot(n)),buckets=new Map();
+ before.forEach((n,i)=>{const k=key(n);if(!buckets.has(k))buckets.set(k,[]);buckets.get(k).push(i);});
+ after.forEach((n,j)=>{const q=buckets.get(key(n));if(q?.length){const i=q.shift();usedBefore.add(i);usedAfter.add(j);}});
+ const candidates=[];
+ before.forEach((a,i)=>{
+  if(usedBefore.has(i)||!finite(a?.t))return;
+  after.forEach((b,j)=>{
+   if(usedAfter.has(j)||!finite(b?.t)||a.voice!==b.voice)return;
+   const delta=Math.abs(a.t-b.t),tolerance=Math.max(.08,Math.min(.5,Math.min(a.d||.5,b.d||.5)));
+   if(delta>tolerance)return;
+   candidates.push({i,j,cost:delta*100+Math.abs((a.midi??0)-(b.midi??0))*.05});
+  });
+ });
+ candidates.sort((a,b)=>a.cost-b.cost||a.i-b.i||a.j-b.j);
+ for(const {i,j} of candidates){if(usedBefore.has(i)||usedAfter.has(j))continue;usedBefore.add(i);usedAfter.add(j);pairs.push({i,j});}
+ before.forEach((_,i)=>{if(!usedBefore.has(i))pairs.push({i,j:null});});
+ after.forEach((_,j)=>{if(!usedAfter.has(j))pairs.push({i:null,j});});
+ return pairs.sort((a,b)=>(a.j??Infinity)-(b.j??Infinity)||(a.i??Infinity)-(b.i??Infinity));
+}
 function compareStages(stages,seed,condition='M'){
  if(!Number.isInteger(seed)||seed<0)throw new TypeError('invalid seed');
  if(!stages||typeof stages!=='object')throw new TypeError('stages required');
- const order=['preM4','postM4','postM5','postTransition'];
- const events=[];
+ const order=['preM4','postM4','postM5','postTransition'],events=[];
  for(let i=1;i<order.length;i++){
   const previous=stages[order[i-1]],current=stages[order[i]];
   if(!Array.isArray(previous)||!Array.isArray(current))continue;
-  const max=Math.max(previous.length,current.length);
-  for(let j=0;j<max;j++){
-   const a=snapshot(previous[j]),b=snapshot(current[j]);
-   if(JSON.stringify(a)===JSON.stringify(b))continue;
+  for(const {i:beforeIndex,j:afterIndex} of alignNotes(previous,current)){
+   const a=beforeIndex===null?null:snapshot(previous[beforeIndex]),b=afterIndex===null?null:snapshot(current[afterIndex]);
    events.push({seed,condition,section:null,bar:null,timestamp:b?.onset??a?.onset??null,voice:b?.voice??a?.voice??null,
     sourceStage:order[i],originalNote:a,transformedNote:b,activeChord:null,
-    suspectedProblem:'unconfirmed',evidence:{index:j,comparison:'ordered-score-snapshot',noteCountBefore:previous.length,noteCountAfter:current.length},
-    confidence:'unconfirmed'});
+    suspectedProblem:'unconfirmed',evidence:{beforeIndex,afterIndex,
+     comparison:beforeIndex===null?'inserted-note':afterIndex===null?'removed-note':'voice-and-onset-heuristic',
+     noteCountBefore:previous.length,noteCountAfter:current.length},confidence:'unconfirmed'});
   }
  }
  return {schema:'plotune.h0.stage-diff',version:1,seed,condition,events,
-  limitations:['INDEX_MATCHING_NOT_NOTE_IDENTITY','NO_CAUSAL_ATTRIBUTION']};
+  limitations:['HEURISTIC_MATCHING_NOT_NOTE_IDENTITY','NO_CAUSAL_ATTRIBUTION']};
 }
 function comparePhrases(phraseTrace,seed,condition='M'){
  if(!Number.isInteger(seed)||seed<0)throw new TypeError('invalid seed');
