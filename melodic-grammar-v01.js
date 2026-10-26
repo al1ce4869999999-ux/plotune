@@ -100,7 +100,7 @@ function composePhrase(g,bar,options={}){
   if(!planner)throw new Error('PlotuneMotifPlanner is required for motifIdentity');
   const identity=options.motifIdentity;
   const kind=options.motifTransform||'variation';
-  const transformed=planner.transform(identity,kind).events;
+  const transformed=planner.transform(identity,kind,{preserveSignature:options.preserveSignature===true}).events;
   // Preserve the original generator's per-bar cadence metadata, while
   // restoring an audible closing anchor for the return section.
   return transformed.map((event,i)=>({
