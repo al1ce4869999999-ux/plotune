@@ -1,7 +1,7 @@
 /* M7.3: human listening evaluations; no automatic quality claims. */
 (function(root){'use strict';
 const IDS=['baseline','phase','m','phase-m'];
-const CRITERIA=[['motif','旋律・動機'],['development','展開'],['emotion','感情表現'],['coherence','まとまり'],['preference','好み']];
+const CRITERIA=[['motif','旋律・動機'],['development','展開'],['emotion','感情表現'],['coherence','まとまり'],['preference','好み'],['liking','好き／嫌い'],['expectation','予想通り／予想外'],['memorability','記憶に残る／残らない'],['naturalness','自然／不自然']];
 function rating(value){if(value===''||value==null)return null;const n=Number(value);if(!Number.isInteger(n)||n<1||n>5)throw new RangeError('rating must be 1..5');return n;}
 function createRecord(generation){
  if(!generation||generation.tracks?.map(t=>t.conditionId).join('|')!==IDS.join('|'))throw new TypeError('M7 four-condition generation required');
