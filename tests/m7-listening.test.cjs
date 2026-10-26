@@ -12,6 +12,6 @@ assert.equal(m.validate({tracks}).tracks.length,4);
 assert.throws(()=>m.validate({tracks:tracks.slice(1)}),{name:'TypeError'});
 assert.throws(()=>m.validate({tracks:[...tracks.slice(0,3),{conditionId:'phase-m',track:{samples:new Float32Array(16),sampleRate:8}}]}),{name:'RangeError'});
 const html=fs.readFileSync('index.html','utf8');
-for(const id of ['m7Make','m7Seed','m7Stop','m7Status',...m.IDS.map(x=>'m7Play-'+x)])assert(html.includes('id="'+id+'"'));
+for(const id of ['m7Make','m7Seed','m7Stop','m7Status','m7Seek','m7Time',...m.IDS.map(x=>'m7Play-'+x)])assert(html.includes('id="'+id+'"'));
 assert(html.includes('m7-listening-v01.js'));
 console.log('M7.2 listening contract passed');
