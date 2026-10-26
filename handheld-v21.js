@@ -552,7 +552,7 @@ function score(plan){
        isBreath||isSynth?2:isPluck?3:4; // scene and preset both shape rhythm
      // M1 must reach the audible palette lead, not merely alter diagnostics.
      // Preserve the palette's accompaniment and instrument; replace only lead events.
-     if(m1Selection&&sharedPhrases?.[b]){
+     if(m1Selection?.selectedIndex>0&&sharedPhrases?.[b]){
        for(const event of sharedPhrases[b]){
          if(event.rest)continue;
          const t=start+event.position*step;
@@ -564,7 +564,7 @@ function score(plan){
        }
      }
      for(let slot=0;slot<16;slot+=unit){
-       if(m1Selection)continue;
+       if(m1Selection?.selectedIndex>0)continue;
        const t=start+slot*step;if(t>=duration)continue;
        const ordinal=Math.floor(slot/unit);
        // Silent gaps and phrase resolution are intentional.
