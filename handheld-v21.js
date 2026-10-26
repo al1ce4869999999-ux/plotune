@@ -377,7 +377,7 @@ function score(plan){
    if(sharedPhrases){
     for(const event of sharedPhrases[b]){
      if(Math.floor(event.position)!==i||event.rest)continue;
-     if(arcState.density<.8&&event.position>9&&event.position<13)continue;
+     if(!event.cadence&&arcState.density<.8&&event.position>9&&event.position<13)continue;
      add(barAt+event.position*step,event.durationUnits*step,
        midi(leadRoot,scale,m3JointPlan?event.degree:event.degree+chord+arcState.register),'lead',.125*energy);
     }
