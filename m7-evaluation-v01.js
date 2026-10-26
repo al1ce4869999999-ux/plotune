@@ -5,7 +5,7 @@ const CRITERIA=[['motif','旋律・動機'],['development','展開'],['emotion',
 function rating(value){if(value===''||value==null)return null;const n=Number(value);if(!Number.isInteger(n)||n<1||n>5)throw new RangeError('rating must be 1..5');return n;}
 function createRecord(generation){
  if(!generation||generation.tracks?.map(t=>t.conditionId).join('|')!==IDS.join('|'))throw new TypeError('M7 four-condition generation required');
- return {schema:'plotune.m7.listening.v1',seed:generation.request.seed,input:{scene:generation.request.scene,style:generation.request.style,gameStyle:generation.request.gameStyle,duration:generation.request.duration},ratings:Object.fromEntries(IDS.map(id=>[id,Object.fromEntries(CRITERIA.map(([key])=>[key,null]))])),notes:Object.fromEntries(IDS.map(id=>[id,'']))};
+ return {schema:'plotune.m7.listening.v1',seed:generation.request.seed,generation:{schemaVersion:generation.schemaVersion??null,version:generation.version??null,conditions:generation.tracks.map(t=>({id:t.conditionId,config:t.config??null,version:t.version??generation.version??null}))},input:{...generation.request},ratings:Object.fromEntries(IDS.map(id=>[id,Object.fromEntries(CRITERIA.map(([key])=>[key,null]))])),notes:Object.fromEntries(IDS.map(id=>[id,'']))};
 }
 function setRating(record,id,key,value){
  if(!IDS.includes(id)||!CRITERIA.some(c=>c[0]===key))throw new RangeError('unknown evaluation dimension');
