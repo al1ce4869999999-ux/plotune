@@ -156,23 +156,32 @@ function scoreMelody(events){
 // Keep event timing intact so the legacy rhythm, cadence and render contract survive.
 function hookPhrase(events,identity){
  const out=events.map(e=>({...e}));
- const sounding=out.map((e,i)=>({...e,index:i})).filter(e=>!e.rest);
- if(sounding.length<6)return out;
+ if(out.length<6)return out;
  const rand=rng((identity^0x68bc21eb)>>>0);
- const first=sounding.slice(0,3);
- const source=first.map(e=>e.degree);
- const base=source[0];
- // A compact contour with a deliberately repeated or contrasting third tone.
+ // Build a rhythm-and-pitch cell, then make its answer recognisably related.
+ // Existing event positions stay fixed: rests and note lengths create the rhythm.
+ const base=out[0].degree;
  const cell=[base,clamp(base+(rand()<.5?1:-1),0,8),
   clamp(base+(rand()<.5?3:-2),0,8)];
- for(let i=0;i<3;i++)out[first[i].index].degree=cell[i];
- const echo=sounding.slice(3,6);
- const transpose=rand()<.5?0:(rand()<.5?1:-1);
- for(let i=0;i<echo.length;i++){
-  out[echo[i].index].degree=clamp(cell[i]+transpose,0,8);
+ const count=Math.min(3,Math.floor(out.length/2));
+ const offset=count;
+ const gapIndex=rand()<.5?1:2;
+ for(let i=0;i<count;i++){
+  for(const j of [i,i+offset]){
+   out[j].degree=clamp(cell[i]+(j>=offset&&rand()<.35?1:0),0,8);
+   out[j].rest=i===gapIndex;
+   // Accented long tone followed by a gap; don't overlap the next event.
+   const next=j+1<out.length?out[j+1].position:16;
+   const space=Math.max(.25,next-out[j].position);
+   out[j].durationUnits=+Math.min(space*.94,i===0?space*.92:space*.66).toFixed(3);
+  }
  }
- for(let i=0;i<out.length;i++)
+ // Leave a clear cadence when the bar has one.
+ for(let i=0;i<out.length;i++){
+  if(out[i].cadence)out[i].rest=false;
   out[i].step=i?out[i].degree-out[i-1].degree:0;
+ }
+ if(!out.some(e=>!e.rest))out[0].rest=false;
  return out;
 }
 function selectMelody(g,bar,options={}){
