@@ -379,7 +379,7 @@ function score(plan){
      if(Math.floor(event.position)!==i||event.rest)continue;
      if(arcState.density<.8&&event.position>9&&event.position<13)continue;
      add(barAt+event.position*step,event.durationUnits*step,
-       midi(leadRoot,scale,event.degree+chord+arcState.register),'lead',.125*energy);
+       midi(leadRoot,scale,m3JointPlan?event.degree:event.degree+chord+arcState.register),'lead',.125*energy);
     }
    }else if(i%2===0)add(t,step*1.55,midi(leadRoot,scale,motif[(i+section*2)%8]),'lead',.125*energy);
    // Counterpoint answers primary melody in a different octave.
@@ -454,6 +454,8 @@ function score(plan){
   // Soft pickup to the next loop avoids terminal success cadence.
   if(isLast)add(barAt+14*step,step*1.7,midi(tonic+12,scale,next),'counter',.034);
  }
+ // Preserve the M3 melody before preset-specific arrangement replaces notes.
+ const m3Lead=m3JointPlan?notes.filter(n=>n.voice==='lead').map(n=>({...n})):null;
  // Re-orchestrate all layers for melancholy and dread. Pop/arpeggio
  // rhythms are deliberately removed; sustained melody and silence matter.
  const emotional=MOODS[plan.gameStyle];
@@ -525,7 +527,7 @@ function score(plan){
      isFlute||isSynth?hero:phrase;
    const cadence=isFlute||isSynth?[0,4,5,3]:[5,3,1,4];
    for(let b=0;b<bars;b++){
-     const start=b*meter,degree=prog[b%prog.length];
+     const start=b*meter,degree=m3JointPlan?m3JointPlan.chords[b]:prog[b%prog.length];
      const basis=midi(tonic+12,scale,degree);
      const sadMode=['sadness','lonely','farewell','rain'].includes(plan.gameStyle);
      const heroicMode=['retry','victory','battle','journey'].includes(plan.gameStyle);
@@ -640,32 +642,32 @@ function score(plan){
     const generatedPhrases=dynamicGrammar&&root.PlotuneMelodicGrammar?.composePhrase?Array.from({length:bars},(_,b)=>root.PlotuneMelodicGrammar.composePhrase(dynamicGrammar,b,{density:type==='reserved'?.38:type==='playful'?.85:.62})):null;
     const chordSteps=type==='playful'?[0,4,3,0]:type==='reserved'?[0,5,3,0]:[0,3,4,0];
     for(let bar=0;bar<bars;bar++){
-      const start=bar*meter,variation=bar%4,degree=chordSteps[variation];
+      const start=bar*meter,variation=bar%4,degree=m3JointPlan?m3JointPlan.chords[bar]:chordSteps[variation];
       const phrase=phrases[type],unit=meter/16;
       for(let j=0;j<(generatedPhrases?.[bar]?.length||phrase.length);j++){
         const generated=generatedPhrases?.[bar]?.[j];
         const n=phrase[j%phrase.length],t=start+(generated?generated.position:n.p)*unit;
         if(t>=duration||generated?.rest)continue;
         const pitch=(generated?generated.degree:degreeFor(j,bar))+shift;
-        notes.push({t,d:Math.min(duration-t,(generated?generated.durationUnits:n.d)*unit),midi:clamp(midi(upper,MAJOR,pitch),60,86),
+        notes.push({t,d:Math.min(duration-t,(generated?generated.durationUnits:n.d)*unit),midi:clamp(midi(upper,m3JointPlan?scale:MAJOR,pitch),60,86),
           voice:'lead',role:'lead',timbre:expressive[0],volume:type==='reserved'?.052:.070});
       }
       // Companion phrases and accompaniment must reflect the same grammar.
       const reply=start+(type==='playful'?7.7:type==='reserved'?12.2:9.7)*unit;
       if(reply<duration)notes.push({t:reply,d:Math.min(duration-reply,(type==='reserved'?3:1.2)*unit),
-        midi:midi(upper,MAJOR,degreeFor(type==='playful'?5:2,bar)),voice:'counter',role:'counter',
+        midi:midi(upper,m3JointPlan?scale:MAJOR,degreeFor(type==='playful'?5:2,bar)),voice:'counter',role:'counter',
         timbre:expressive[1],volume:.016});
       const chordPositions=type==='playful'?[0,7,12]:type==='reserved'?[0]:[0,8];
       for(const p of chordPositions){
         for(const interval of [0,2,4]){
           const t=start+p*unit;
           if(t<duration)notes.push({t,d:Math.min(duration-t,(type==='reserved'?14:3.3)*unit),
-            midi:midi(tonic,MAJOR,degree+interval),voice:'chords',role:'chords',
+            midi:midi(tonic,m3JointPlan?scale:MAJOR,degree+interval),voice:'chords',role:'chords',
             timbre:'softpiano',volume:type==='playful'?.012:.009});
         }
       }
       if(start<duration)notes.push({t:start,d:Math.min(duration-start,(type==='reserved'?12:4)*unit),
-        midi:midi(tonic-12,MAJOR,degree),voice:'bass',role:'bass',timbre:'kalimba',volume:.011});
+        midi:midi(tonic-12,m3JointPlan?scale:MAJOR,degree),voice:'bass',role:'bass',timbre:'kalimba',volume:.011});
     }
     // Sparse orchestral colours, independent of the lead melody.
     // The number of layers is bounded to preserve the gentle sadness preset.
@@ -683,13 +685,13 @@ function score(plan){
       }
     }
     for(let bar=0;bar<bars;bar++){
-      const start=bar*meter,degree=chordSteps[bar%4],unit=meter/16;
+      const start=bar*meter,degree=m3JointPlan?m3JointPlan.chords[bar]:chordSteps[bar%4],unit=meter/16;
       // Contrasting sustained background texture, below the melody.
       if(bar%2===0){
         for(const offset of [0,4]){
           const t=start;
-          if(t<duration)notes.push({t,d:Math.min(duration-t,meter*1.67),
-            midi:midi(tonic-12,MAJOR,degree+offset),voice:'pad',role:'pad',
+          if(t<duration)notes.push({t,d:Math.min(duration-t,m3JointPlan?meter:meter*1.67),
+            midi:midi(tonic-12,m3JointPlan?scale:MAJOR,degree+offset),voice:'pad',role:'pad',
             timbre:mystic?'synthpad':'strings',volume:.009});
         }
       }
@@ -697,14 +699,14 @@ function score(plan){
       if(bar%2===1){
         const t=start+(type==='playful'?10:11)*unit;
         if(t<duration)notes.push({t,d:Math.min(duration-t,2.8*unit),
-          midi:midi(tonic+12,MAJOR,degree+2),voice:'counter',role:'counter',
+          midi:midi(tonic+12,m3JointPlan?scale:MAJOR,degree+2),voice:'counter',role:'counter',
           timbre:indoors?'celesta':'musicbox',volume:.018});
       }
       // Very light sparkling pickup only where the phrasing has room.
       if((bar%4===1||bar%4===3)){
         const t=start+14*unit;
         if(t<duration)notes.push({t,d:Math.min(duration-t,1.6*unit),
-          midi:midi(tonic+24,MAJOR,degree+4),voice:'sparkle',role:'sparkle',
+          midi:midi(tonic+24,m3JointPlan?scale:MAJOR,degree+4),voice:'sparkle',role:'sparkle',
           timbre:mystic?'celesta':'kalimba',volume:.009});
       }
     }
@@ -886,6 +888,25 @@ function score(plan){
        n.volume*=cues.dynamicsFactor;
      }else if(n.voice==='chords'||n.voice==='pad') n.volume*=Math.sqrt(cues.dynamicsFactor);
    }
+ }
+ // Palette/emotion determine timbre, never the M3 lead pitches and timing.
+ if(m3Lead?.length){
+  const timbre=notes.find(n=>n.voice==='lead')?.timbre||palette?.family;
+  for(let i=notes.length-1;i>=0;i--)if(notes[i].voice==='lead')notes.splice(i,1);
+  notes.push(...m3Lead.map(n=>({...n,...(timbre?{timbre}:{})})));
+  notes.sort((a,b)=>a.t-b.t||a.midi-b.midi);
+  voices.lead=m3Lead.length;
+ }
+ // M3 chordal parts cannot bleed into a different planned harmony.
+ if(m3JointPlan){
+  for(const n of notes){
+   if(!['bass','chords','pad'].includes(n.voice))continue;
+   const bar=Math.min(bars-1,Math.max(0,Math.floor(n.t/meter)));
+   const boundary=(bar+1)*meter;
+   if(bar<bars-1&&m3JointPlan.chords[bar]!==m3JointPlan.chords[bar+1]&&n.t+n.d>boundary){
+    n.d=Math.max(.04,boundary-n.t);
+   }
+  }
  }
  // M4 opt-in: rebuild counterpoint after the instrument-specific renderers.
  // This affects the notes heard by the synthesizer, not just an abstract plan.
