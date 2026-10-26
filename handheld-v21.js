@@ -366,7 +366,7 @@ function score(plan){
    const selected=root.PlotuneM2Phrase.selectPhrase(sharedPhrases[b],
     {...stages[arcAt(b).stage],...(plan.phraseEmotion||{})},
     {seed:(seed^Math.imul(b+1,2654435761))>>>0,candidates:8,
-     ...(m1Anchors?{protectedIndices:m1Anchors[b]}:{}),
+     ...(m1Anchors?{protectedIndices:m1Anchors[b],preserveRhythm:arcAt(b).stage==='opening'||arcAt(b).stage==='resolution'}:{}),
      ...(r2TargetAt(b)&&root.PlotuneTensionR2b?{tensionTarget:r2TargetAt(b),tensionSelection:plan.musicTensionR2Selection===true}:{})});
    if(selected.tensionDiagnostics)r2PhraseDiagnostics.push({bar:b,candidateIndex:selected.candidateIndex,assessments:selected.tensionDiagnostics,tensionSelected:selected.tensionSelected||false});
    sharedPhrases[b]=selected.events;
