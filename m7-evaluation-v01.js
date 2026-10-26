@@ -5,10 +5,12 @@ const CRITERIA=[['motif','旋律・動機'],['development','展開'],['emotion',
 function rating(value){if(value===''||value==null)return null;const n=Number(value);if(!Number.isInteger(n)||n<1||n>5)throw new RangeError('rating must be 1..5');return n;}
 const DIAGNOSTIC_KEYS=['r0','r3','r4','r5','r7'];
 function diagnosticsFor(track){
+ const details=track.track?.details??track.track?.score?.details??{};
+ const sources={r0:details.researchEvaluations,r3:details.expectancyR3,r4:details.identityNoveltyR4,r5:details.arrangementPerceptionR5,r7:details.transitionEvaluationR7};
  const supplied=track.diagnostics??track.track?.diagnostics??{};
  const result={};
  for(const key of DIAGNOSTIC_KEYS){
-  const value=supplied[key]??null;
+  const value=supplied[key]??sources[key]??null;
   result[key]=value===null?null:JSON.parse(JSON.stringify(value));
  }
  return result;
