@@ -339,6 +339,7 @@ function score(plan){
      }:{
        density:clamp(pulseDensity*.68*arcAt(b).density,.25,.92),
        motif:motifPhrase,stage:arcAt(b).stage})):null;
+ const h0Phrases=plan.h0Trace===true?{beforeM2:sharedPhrases?sharedPhrases.map(p=>p.map(e=>({...e}))):null}:null;
  // M2 opt-in: emotional candidate selection, preserving legacy output when disabled.
  if(plan.musicDevelopment===true && root.PlotuneM2Phrase && sharedPhrases){
   const stages={opening:{tension:.18,energy:.25,tenderness:.65},development:{tension:.55,energy:.65,tenderness:.35},climax:{tension:.93,energy:.95,tenderness:.08},resolution:{tension:.08,energy:.22,tenderness:.9}};
@@ -346,10 +347,12 @@ function score(plan){
     {...stages[arcAt(b).stage],...(plan.phraseEmotion||{})},
     {seed:(seed^Math.imul(b+1,2654435761))>>>0,candidates:8}).events;
  }
+ if(h0Phrases)h0Phrases.afterM2=sharedPhrases?sharedPhrases.map(p=>p.map(e=>({...e}))):null;
  // M3 shared melody/harmony planning (opt-in).
  const m3JointPlan=plan.musicHarmony===true && sharedPhrases && root.PlotuneM3Harmony?
   root.PlotuneM3Harmony.plan(sharedPhrases,{progression:prog,tension:clamp(Number(plan.harmonicTension)||.45,0,1)}):null;
  if(m3JointPlan)for(let b=0;b<bars;b++)sharedPhrases[b]=m3JointPlan.phrases[b];
+ if(h0Phrases){h0Phrases.afterM3=sharedPhrases?sharedPhrases.map(p=>p.map(e=>({...e}))):null;h0Phrases.chords=m3JointPlan?[...m3JointPlan.chords]:null;}
  // Repeat 4-bar thematic material; vary density and fills but keep a looping identity.
  for(let b=0;b<bars;b++){
   const chord=m3JointPlan?m3JointPlan.chords[b]:chordAt(b),next=m3JointPlan?m3JointPlan.chords[(b+1)%bars]:chordAt((b+1)%bars),barAt=b*meter;
@@ -877,6 +880,22 @@ function score(plan){
      }else if(n.voice==='chords'||n.voice==='pad') n.volume*=Math.sqrt(cues.dynamicsFactor);
    }
  }
+ // H0 opt-in: capture immutable note snapshots; never consume random state.
+ const h0Stages=plan.h0Trace===true?{}:null;
+ let h0NextId=0;
+ const h0Capture=name=>{
+  if(!h0Stages)return;
+  const seen=new Set();
+  for(const n of notes){
+   if(!n.h0Id||seen.has(n.h0Id)){
+    if(n.h0Id)n.h0ParentId=n.h0Id;
+    n.h0Id='h0-'+(++h0NextId);
+   }
+   seen.add(n.h0Id);
+  }
+  h0Stages[name]=notes.map(n=>({...n}));
+ };
+ h0Capture('preM4');
  // M4 opt-in: rebuild counterpoint after the instrument-specific renderers.
  // This affects the notes heard by the synthesizer, not just an abstract plan.
  const voiceDialogue=plan.musicVoices===true&&root.PlotuneM4Voices?
@@ -887,6 +906,7 @@ function score(plan){
   for(const key of Object.keys(voices))
    if(key!=='drums')voices[key]=notes.filter(n=>n.voice===key).length;
  }
+ h0Capture('postM4');
  // M5 is applied after M4 to the final events actually rendered to PCM.
  const performance=plan.musicPerformance===true&&root.PlotuneM5Performance?
    root.PlotuneM5Performance.express({notes,duration,meter,seed,wholeTrackArc,
@@ -896,6 +916,7 @@ function score(plan){
   for(const key of Object.keys(voices))
    if(key!=='drums')voices[key]=notes.filter(n=>n.voice===key).length;
  }
+ h0Capture('postM5');
  // Disable speculative inserted seam notes: diagnose original M events first.
  const mSeamBridges=[];
  // Phase 4: phrase-boundary anticipation and breath. OFF remains unchanged.
@@ -924,8 +945,11 @@ function score(plan){
   notes.sort((a,b)=>a.t-b.t);
   for(const key of Object.keys(voices))if(key!=='drums')voices[key]=notes.filter(n=>n.voice===key).length;
  }
+ h0Capture('postTransition');
+ if(h0Stages)for(const n of notes){delete n.h0Id;delete n.h0ParentId;}
  const details={
   transitions,mSeamBridges,
+  ...(h0Stages?{h0Stages,h0Phrases}:{}),
   performance:performance?performance.details:null,
   voiceDialogue:voiceDialogue?{responseCount:voiceDialogue.responseCount,
    replies:voiceDialogue.responses.map(x=>({bar:x.bar,stage:x.stage,mode:x.mode,from:x.from,until:x.until})),
