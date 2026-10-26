@@ -550,7 +550,21 @@ function score(plan){
      const playfulMode=['proud','mischief','fun','prank','failure'].includes(plan.gameStyle);
      const unit=sadMode?4:heroicMode?2:playfulMode?2:
        isBreath||isSynth?2:isPluck?3:4; // scene and preset both shape rhythm
+     // M1 must reach the audible palette lead, not merely alter diagnostics.
+     // Preserve the palette's accompaniment and instrument; replace only lead events.
+     if(m1Selection&&sharedPhrases?.[b]){
+       for(const event of sharedPhrases[b]){
+         if(event.rest)continue;
+         const t=start+event.position*step;
+         if(t>=duration)continue;
+         notes.push({t,d:Math.min(event.durationUnits*step,duration-t),
+           midi:clamp(midi(tonic+12,scale,event.degree+degree)+(isBell?-12:0)+(palette.family==='strings'?-7:0),46,92),
+           voice:'lead',role:'lead',timbre:palette.family,
+           volume:isBreath?.124:isSynth?.115:isBell?.09:isSoft?.069:.096});
+       }
+     }
      for(let slot=0;slot<16;slot+=unit){
+       if(m1Selection)continue;
        const t=start+slot*step;if(t>=duration)continue;
        const ordinal=Math.floor(slot/unit);
        // Silent gaps and phrase resolution are intentional.
