@@ -882,7 +882,19 @@ function score(plan){
  }
  // H0 opt-in: capture immutable note snapshots; never consume random state.
  const h0Stages=plan.h0Trace===true?{}:null;
- const h0Capture=name=>{if(h0Stages)h0Stages[name]=notes.map(n=>({...n}));};
+ let h0NextId=0;
+ const h0Capture=name=>{
+  if(!h0Stages)return;
+  const seen=new Set();
+  for(const n of notes){
+   if(!n.h0Id||seen.has(n.h0Id)){
+    if(n.h0Id)n.h0ParentId=n.h0Id;
+    n.h0Id='h0-'+(++h0NextId);
+   }
+   seen.add(n.h0Id);
+  }
+  h0Stages[name]=notes.map(n=>({...n}));
+ };
  h0Capture('preM4');
  // M4 opt-in: rebuild counterpoint after the instrument-specific renderers.
  // This affects the notes heard by the synthesizer, not just an abstract plan.
@@ -934,6 +946,7 @@ function score(plan){
   for(const key of Object.keys(voices))if(key!=='drums')voices[key]=notes.filter(n=>n.voice===key).length;
  }
  h0Capture('postTransition');
+ if(h0Stages)for(const n of notes){delete n.h0Id;delete n.h0ParentId;}
  const details={
   transitions,mSeamBridges,
   ...(h0Stages?{h0Stages,h0Phrases}:{}),
