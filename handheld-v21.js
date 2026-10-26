@@ -349,7 +349,7 @@ function score(plan){
   for(let b=0;b<bars;b++){
    const selected=root.PlotuneM2Phrase.selectPhrase(sharedPhrases[b],
     {...stages[arcAt(b).stage],...(plan.phraseEmotion||{})},
-    {seed:(seed^Math.imul(b+1,2654435761))>>>0,candidates:8,
+    {seed:(seed^Math.imul(b+1,2654435761))>>>0,candidates:8,deferCadence:plan.musicHarmony===true,
      ...(r2TargetAt(b)&&root.PlotuneTensionR2b?{tensionTarget:r2TargetAt(b),tensionSelection:plan.musicTensionR2Selection===true}:{})});
    if(selected.tensionDiagnostics)r2PhraseDiagnostics.push({bar:b,candidateIndex:selected.candidateIndex,assessments:selected.tensionDiagnostics,tensionSelected:selected.tensionSelected||false});
    sharedPhrases[b]=selected.events;
