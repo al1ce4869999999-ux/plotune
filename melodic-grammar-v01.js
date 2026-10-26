@@ -152,12 +152,36 @@ function scoreMelody(events){
   Math.max(0,uniqueIntervals-5)*.65-Math.max(0,pitchRepetition-.4)*2-
   repeatedRuns*.3-Math.max(0,f.span-7)*.5;
 }
+// Compose a short recognisable cell before downstream Phase/M2/M3 variation.
+// Keep event timing intact so the legacy rhythm, cadence and render contract survive.
+function hookPhrase(events,identity){
+ const out=events.map(e=>({...e}));
+ const sounding=out.map((e,i)=>({...e,index:i})).filter(e=>!e.rest);
+ if(sounding.length<6)return out;
+ const rand=rng((identity^0x68bc21eb)>>>0);
+ const first=sounding.slice(0,3);
+ const source=first.map(e=>e.degree);
+ const base=source[0];
+ // A compact contour with a deliberately repeated or contrasting third tone.
+ const cell=[base,clamp(base+(rand()<.5?1:-1),0,8),
+  clamp(base+(rand()<.5?3:-2),0,8)];
+ for(let i=0;i<3;i++)out[first[i].index].degree=cell[i];
+ const echo=sounding.slice(3,6);
+ const transpose=rand()<.5?0:(rand()<.5?1:-1);
+ for(let i=0;i<echo.length;i++){
+  out[echo[i].index].degree=clamp(cell[i]+transpose,0,8);
+ }
+ for(let i=0;i<out.length;i++)
+  out[i].step=i?out[i].degree-out[i-1].degree:0;
+ return out;
+}
 function selectMelody(g,bar,options={}){
  const count=Math.max(1,Math.min(16,Math.trunc(Number(options.candidateCount)||6)));
  const candidates=[];
  for(let i=0;i<count;i++){
   const candidateGrammar={...g,identity:i===0?g.identity:(g.identity^Math.imul(i,0x9e3779b9))>>>0};
-  const events=composePhrase(candidateGrammar,bar,{...options,m1Selection:false});
+  const raw=composePhrase(candidateGrammar,bar,{...options,m1Selection:false});
+  const events=options.hookDesign===true&&i>0?hookPhrase(raw,candidateGrammar.identity):raw;
   candidates.push({index:i,events,score:scoreMelody(events),features:melodyFeatures(events)});
  }
  candidates.sort((a,b)=>b.score-a.score||a.index-b.index);
