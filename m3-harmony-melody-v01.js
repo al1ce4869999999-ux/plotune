@@ -64,5 +64,53 @@ function plan(phrases,options={}){
  }
  return {chords,phrases:events,decisions};
 }
-root.PlotuneM3Harmony={plan,phraseFit,voiceLeading};
+
+// H2: evaluate sounding scale degrees without interpreting motif degree as chord-relative.
+function h2Classify(events,chord,options={}){
+ const notes=events.map((e,i)=>{
+  if(e.rest)return {role:null,collision:false};
+  const degree=e.localScaleDegree??e.degree;
+  if(!Number.isFinite(degree))return {role:null,collision:false};
+  const chordTone=triad.some(d=>mod(degree)===mod(chord+d));
+  if(chordTone)return {role:null,collision:false};
+  const prev=events.slice(0,i).reverse().find(n=>!n.rest);
+  const next=events.slice(i+1).find(n=>!n.rest);
+  const pd=prev?.localScaleDegree??prev?.degree;
+  const nd=next?.localScaleDegree??next?.degree;
+  const stepIn=Number.isFinite(pd)&&Math.abs(degree-pd)===1;
+  const stepOut=Number.isFinite(nd)&&Math.abs(nd-degree)===1;
+  const weak=(e.position%4)>=.6;
+  let role=null;
+  if(stepIn&&stepOut&&Math.sign(degree-pd)===Math.sign(nd-degree))role='passing';
+  else if(stepIn&&stepOut&&pd===nd)role='neighbor';
+  else if(e.prepared===true&&stepOut&&nd<degree)role='suspension';
+  else if(!weak&&stepOut&&e.resolves===true)role='appoggiatura';
+  else if(e.nextChordDegree!=null&&mod(degree)===mod(e.nextChordDegree))role='anticipation';
+  const intentional=e.intentionalDissonance===true||e.nonChordToneRole==='intentional';
+  const collision=!weak&&!role&&!intentional;
+  return {role,collision,chordTone,intentional};
+ });
+ return {notes,collisions:notes.filter(n=>n.collision).length};
+}
+function planH2(phrases,options={}){
+ if(!Array.isArray(phrases)||!phrases.length||phrases.some(p=>!Array.isArray(p)||!p.length))
+  throw new TypeError('phrase bars required');
+ const original=Array.isArray(options.progression)&&options.progression.length?options.progression:[0,4,5,3];
+ const tension=clamp(Number(options.tension)||0,0,1);
+ const chords=[],decisions=[];
+ for(let b=0;b<phrases.length;b++){
+  const expected=mod(original[b%original.length]),previous=chords[b-1]??null;
+  const ranked=[0,1,2,3,4,5,6].map(chord=>{
+   const diagnostic=h2Classify(phrases[b],chord);
+   const fit=phrases[b].reduce((sum,e,i)=>sum+(e.rest?0:diagnostic.notes[i].chordTone?1:diagnostic.notes[i].role?.25:diagnostic.notes[i].intentional?0:-.5),0);
+   const score=fit-diagnostic.collisions*1.5-voiceLeading(chord,previous)*.19+
+     (chord===expected?.62:0)-(chord===previous?.46:0);
+   return {chord,score,diagnostic};
+  }).sort((a,b)=>b.score-a.score||a.chord-b.chord);
+  chords.push(ranked[0].chord);
+  decisions.push({bar:b,chord:ranked[0].chord,score:ranked[0].score,diagnostic:ranked[0].diagnostic});
+ }
+ return {chords,phrases:phrases.map(p=>p.map(e=>({...e}))),decisions};
+}
+root.PlotuneM3Harmony={plan,phraseFit,voiceLeading,planH2,h2Classify};
 })(window);
