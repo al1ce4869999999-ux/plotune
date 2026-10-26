@@ -2,8 +2,36 @@
 (function(root){'use strict';
 const VERSION='r8.1',STRATEGIES=['COMMON_TONE','MOTIF_PREVIEW','RHYTHMIC_BRIDGE','BASS_LEAD','TEXTURE_DOVETAIL','CADENCE_BREATH','SUSPENSION','HARD_CUT'];
 const finite=n=>Number.isFinite(n), round=x=>Math.round(x*1e6)/1e6;
+// M3 chord/scale contract: compare candidate harmony cost against the original note.
+function harmonyAssessment(note,notes,index,context){
+ const {harmony,tonic,scale,meter}=context||{};
+ if(!Array.isArray(harmony)||!harmony.length||!Array.isArray(scale)||scale.length!==7||!finite(tonic)||!finite(meter)||meter<=0)
+  return {status:'unavailable',cost:0,kind:'unknown'};
+ const at=t=>harmony.reduce((a,h)=>h&&finite(h.t)&&h.t<=t+1e-7?h:a,null);
+ const entry=at(note.t);
+ if(!entry||!Number.isInteger(entry.chord))return {status:'unavailable',cost:0,kind:'unknown'};
+ const pitch=degree=>tonic+scale[((degree%7)+7)%7]+12*Math.floor(degree/7);
+ const chordClasses=new Set([0,2,4].map(d=>((pitch(entry.chord+d)%12)+12)%12));
+ const pc=((note.midi%12)+12)%12;
+ const offset=((note.t-entry.t)%meter+meter)%meter;
+ const strong=offset<meter/16+.0001||Math.abs(offset-meter/2)<meter/16+.0001;
+ const peers=notes.map((n,i)=>({...n,i})).filter(n=>n.i!==index&&n.voice===note.voice&&finite(n.t)&&finite(n.midi)).sort((a,b)=>a.t-b.t);
+ const previous=peers.filter(n=>n.t<note.t-.0001).at(-1);
+ const following=peers.find(n=>n.t>=note.t+note.d-.0001);
+ const stepIn=previous&&Math.abs(previous.midi-note.midi)<=2;
+ const stepOut=following&&Math.abs(following.midi-note.midi)<=2;
+ const resolves=following&&chordClasses.has(((following.midi%12)+12)%12);
+ const chordTone=chordClasses.has(pc);
+ const passing=!chordTone&&!strong&&note.d<=meter/4+.0001&&stepIn&&stepOut;
+ const suspension=!chordTone&&previous&&previous.midi===note.midi&&resolves&&stepOut;
+ const color=!chordTone&&!passing&&!suspension&&!strong&&resolves&&stepOut;
+ const cost=chordTone?0:passing?.12:suspension?.22:color?.45:strong?2.5:1.1;
+ return {status:'ok',cost,kind:chordTone?'chord-tone':passing?'passing':suspension?'suspension':color?'tension-resolves':'unresolved',strong};
+}
 function optimize(input){
- const {notes,duration,bpm,wholeTrackArc,transitionPlans=[]}=input||{};
+ const {notes,duration,bpm,wholeTrackArc,transitionPlans=[],harmony,tonic,scale,meter}=input||{};
+ const harmonyContext={harmony,tonic,scale,meter};
+ const hasHarmony=Array.isArray(harmony)&&harmony.length>0&&Array.isArray(scale)&&scale.length===7&&finite(tonic)&&finite(meter)&&meter>0;
  const diagnostic=root.PlotuneTransitionR7?.evaluate({notes,duration,bpm,wholeTrackArc});
  const trace={version:VERSION,status:'fallback',reason:'NO_ELIGIBLE_BOUNDARY',strategies:[],diagnosticStatus:diagnostic?.status||'unavailable'};
  if(!Array.isArray(notes)||diagnostic?.status!=='ok'||!finite(bpm)||bpm<=0)
@@ -48,7 +76,23 @@ function optimize(input){
    if(result.some((other,j)=>j!==x.i&&other.voice===after.voice&&valid(other)&&
       Math.max(after.t,other.t)<Math.min(after.t+after.d,other.t+other.d)-.001 &&
       !(Math.max(x.n.t,other.t)<Math.min(x.n.t+x.n.d,other.t+other.d)-.001)))return;
-   candidates.push({strategy,index:x.i,patch,reason,penalty});
+   let harmonyDelta=0,harmonyBefore=null,harmonyAfter=null;
+   if(hasHarmony){
+    harmonyBefore=harmonyAssessment(x.n,result,x.i,harmonyContext);
+    const updated=result.slice();updated[x.i]=after;
+    harmonyAfter=harmonyAssessment(after,updated,x.i,harmonyContext);
+    if(harmonyBefore.status!=='ok'||harmonyAfter.status!=='ok')return;
+    harmonyDelta=harmonyAfter.cost-harmonyBefore.cost;
+    if(harmonyDelta>.00001)return;
+    if(after.midi!==x.n.midi){
+     const peers=result.filter((n,i)=>i!==x.i&&n.voice===after.voice&&finite(n.t)&&finite(n.midi));
+     const prev=peers.filter(n=>n.t<after.t).sort((a,b)=>b.t-a.t)[0];
+     const next=peers.filter(n=>n.t>=after.t+after.d-.0001).sort((a,b)=>a.t-b.t)[0];
+     const leap=n=>n&&Math.abs(after.midi-n.midi)>12&&Math.abs(after.midi-n.midi)>Math.abs(x.n.midi-n.midi);
+     if(leap(prev)||leap(next))return;
+    }
+   }
+   candidates.push({strategy,index:x.i,patch,reason,penalty,harmonyDelta,harmonyBefore,harmonyAfter});
   };
   const last=role=>left.filter(x=>!role||role.includes(x.n.voice)).sort((a,b)=>(b.n.t+b.n.d)-(a.n.t+a.n.d))[0];
   const first=role=>right.filter(x=>!role||role.includes(x.n.voice)).sort((a,b)=>a.n.t-b.n.t)[0];
@@ -113,7 +157,8 @@ function optimize(input){
    trace.strategies.push({time:t,strategy:winner.strategy,changed:1,index:winner.index,
     candidates:scored.map(c=>({strategy:c.strategy,score:round(c.score)})),reason:winner.reason,
     before:{t:notes[winner.index].t,d:notes[winner.index].d,midi:notes[winner.index].midi},
-    after:{t:result[winner.index].t,d:result[winner.index].d,midi:result[winner.index].midi}});
+    after:{t:result[winner.index].t,d:result[winner.index].d,midi:result[winner.index].midi},
+    ...(hasHarmony?{harmony:{before:winner.harmonyBefore,after:winner.harmonyAfter,delta:round(winner.harmonyDelta)}}:{})});
   }else trace.strategies.push({time:t,strategy:'UNCHANGED',changed:0,candidates:[],reason:'no safe local candidate'});
  }
  trace.status=changed?'selected':'unchanged';trace.changedNotes=changed;
