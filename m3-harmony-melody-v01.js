@@ -21,13 +21,13 @@ function voiceLeading(chord,prev){
  const from=triad.map(d=>prev+d),to=triad.map(d=>chord+d);
  return to.reduce((sum,n)=>sum+Math.min(...from.map(p=>distance(n,p))),0)/3;
 }
-function refine(events,chord,tension,close){
+function refine(events,chord,tension,close,protectedIndices){
  return events.map((e,i)=>{
   const out={...e};
   if(e.rest)return out;
   // Strong beats are guided to harmony; weak beats retain passing motion.
   const accented=e.position%4<.6;
-  if(accented&&tension<.78&&distance(e.degree,0)>0){
+  if(accented&&tension<.78&&distance(e.degree,0)>0&&!(protectedIndices&&protectedIndices.includes(i))){
    const choices=triad.map(x=>x+7*Math.floor(e.degree/7)).flatMap(x=>[x-7,x,x+7]).filter(x=>x>=0&&x<=8);
    if(choices.length)out.degree=choices.reduce((a,b)=>Math.abs(b-e.degree)<Math.abs(a-e.degree)?b:a);
   }
@@ -48,7 +48,7 @@ function plan(phrases,options={}){
   const expected=mod(original[b%original.length]);
   const candidates=isCadence?[0]:pool;
   const graded=candidates.map(chord=>{
-   const adapted=refine(phrases[b],chord,tension,isCadence);
+   const adapted=refine(phrases[b],chord,tension,isCadence,options.protectedIndices?.[b]);
    const fit=phraseFit(adapted,chord,tension);
    const motion=voiceLeading(chord,previous);
    // Prefer contextual progression rather than an identical chord every bar.
