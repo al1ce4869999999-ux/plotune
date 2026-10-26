@@ -143,7 +143,7 @@ function selectMelody(g,bar,options={}){
  const count=Math.max(1,Math.min(16,Math.trunc(Number(options.candidateCount)||6)));
  const candidates=[];
  for(let i=0;i<count;i++){
-  const candidateGrammar={...g,identity:(g.identity^Math.imul(i,0x9e3779b9))>>>0};
+  const candidateGrammar={...g,identity:i===0?g.identity:(g.identity^Math.imul(i,0x9e3779b9))>>>0};
   const events=composePhrase(candidateGrammar,bar,{...options,m1Selection:false});
   candidates.push({index:i,events,score:scoreMelody(events),features:melodyFeatures(events)});
  }
