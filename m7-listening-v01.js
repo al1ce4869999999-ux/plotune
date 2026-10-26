@@ -29,22 +29,22 @@ function attach(doc,api,AudioContextClass){
  const clock=v=>Math.floor(v/60)+':'+String(Math.floor(v%60)).padStart(2,'0');
  let context=null,source=null,transport=null,result=null,buffers=new Map(),epoch=0;
  const report=(s)=>{message.textContent=s;};
- function position(){if(!transport||!context)return 0;const d=transport.duration;return (transport.offset+Math.max(0,context.currentTime-transport.started))%d;}
- function refresh(){const d=result?.tracks?.[0]?.track?.samples.length/result.tracks[0].track.sampleRate||0,p=position();if(seek&&!seek.matches(':active'))seek.value=String(p);if(time)time.textContent=clock(p)+' / '+clock(d);}
- function stop(){epoch++;if(source){try{source.onended=null;source.stop();source.disconnect();}catch{}source=null;}transport=null;refresh();}
+ function position(){if(!transport||!context)return Number(seek?.value||0);const d=transport.duration;return Math.min(d,transport.offset+Math.max(0,context.currentTime-transport.started));}
+ function refresh(){const track=result?.tracks?.[0]?.track;const d=track?track.samples.length/track.sampleRate:0,p=position();if(seek&&transport&&!seek.matches(':active'))seek.value=String(p);if(time)time.textContent=clock(p)+' / '+clock(d);}
+ function stop(){epoch++;if(source){try{source.onended=null;source.stop();source.disconnect();}catch{}source=null;}transport=null;}
  async function play(id){
   if(!result)return;
   const item=result.tracks.find(x=>x.conditionId===id);if(!item)return;
-  const offset=transport?position():Number(seek?.value||0);stop();const ticket=epoch;
+  const offset=Number(seek?.value||0);stop();const ticket=epoch;
   try{
    if(!AudioContextClass)throw new Error('Web Audio unavailable');
    context=context||new AudioContextClass();await context.resume();if(ticket!==epoch)return;
    let buffer=buffers.get(id);
    if(!buffer){const t=item.track;buffer=context.createBuffer(1,t.samples.length,t.sampleRate);buffer.copyToChannel(t.samples,0);buffers.set(id,buffer);}
    const node=context.createBufferSource(),gain=context.createGain();
-   gain.gain.value=gainFor(item.track);node.buffer=buffer;node.loop=true;node.connect(gain);gain.connect(context.destination);
+   gain.gain.value=gainFor(item.track);node.buffer=buffer;node.loop=false;node.connect(gain);gain.connect(context.destination);
    node.start(0,Math.min(offset,Math.max(0,buffer.duration-.02)));source=node;transport={id,offset,started:context.currentTime,duration:buffer.duration};
-   node.loop=false;node.onended=()=>{if(source===node){source=null;transport=null;refresh();}};
+   node.onended=()=>{if(source===node){source=null;transport=null;if(seek)seek.value=String(buffer.duration);refresh();}};
    refresh();
    report(LABELS[id]+' · '+offset.toFixed(1)+'秒から再生');
   }catch(e){stop();report('再生エラー: '+e.message);}
@@ -64,7 +64,7 @@ function attach(doc,api,AudioContextClass){
  make.addEventListener('click',create);
  buttons.forEach((b,i)=>b.addEventListener('click',()=>play(IDS[i])));
  stopButton.addEventListener('click',()=>{stop();if(seek)seek.value='0';refresh();report('停止しました');});
- if(seek)seek.addEventListener('input',()=>{const id=transport?.id;const at=Number(seek.value);if(transport&&context){transport.offset=at;transport.started=context.currentTime;}refresh();if(id)play(id);});
+ if(seek)seek.addEventListener('change',()=>{const id=transport?.id;if(id)play(id);else refresh();});
  const timer=typeof setInterval==='function'?setInterval(()=>{if(transport)refresh();},200):null;
  return {create,play,stop,get result(){return result;}};
 }
