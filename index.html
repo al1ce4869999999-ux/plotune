@@ -100,6 +100,44 @@ button:focus-visible{outline:3px solid #f4e1a6;outline-offset:2px}
 .poppo-hero-copy{flex:1;min-width:0;position:relative;z-index:1}
 .poppo-hero-image{display:block;flex:0 0 auto;width:min(35%,160px);height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:16px;border:1px solid #ece2e533;box-shadow:0 8px 24px #0004;pointer-events:none}
 @media(max-width:420px){.poppo-hero{align-items:center}.poppo-hero-image{width:31%}.poppo-hero-copy h1{font-size:clamp(25px,7.4vw,34px)}.poppo-hero-copy .lead{font-size:13px}.poppo-hero-copy .lead span{font-size:11px}}
+
+/* DJぽっぽ: refined fantasy music studio UI, functional elements unchanged */
+:root{--surface:#1d2238;--rim:#596081;--ink:#f8f3ff;--accent:#cbc3fc;--muted:#c5c0dc}
+body{background:radial-gradient(ellipse at 50% -20%,#49416b 0%,transparent 52%),#11172a;color:var(--ink)}
+main{max-width:760px;padding:14px 14px 56px}
+header{min-height:0;margin:0 0 12px;padding:26px 20px 25px;border-radius:25px 25px 16px 16px;background:radial-gradient(circle at 76% 25%,#6b598c77,transparent 45%),linear-gradient(145deg,#1e2749,#262143 58%,#171d37);box-shadow:0 10px 36px #0b0c2280;border:1px solid #9181b74d}
+header:before{content:'✦　✧　　　 ✦　⋆';right:0;left:0;top:5px;text-align:center;color:#c9b0fa55}
+header:after{content:''}
+.hero-overline{display:block;font-size:10px;letter-spacing:2px;color:#ddccf6;margin-bottom:8px;font-weight:700}
+.poppo-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(90px,36%);gap:12px;align-items:center}
+.poppo-hero h1{font-size:clamp(31px,7vw,46px);line-height:1.2;white-space:nowrap;letter-spacing:-1px;margin-bottom:12px;text-shadow:0 2px 16px #9991cf55}
+.poppo-hero h1 small{font-size:11px;vertical-align:middle}
+.poppo-hero .lead{font-size:clamp(13px,3.4vw,18px);line-height:1.55;font-weight:750}
+.poppo-hero .lead span{font-size:12px;line-height:1.5;margin-top:7px;font-weight:500;color:#d7d3ed}
+.poppo-art{position:relative;display:flex;align-items:center;justify-content:center;min-width:0;filter:drop-shadow(0 8px 18px #0b0c2a77)}
+.poppo-hero-image{width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;border:2px solid #cbc0e94d;border-radius:22px}
+.poppo-music-note{position:absolute;top:-9px;right:0;background:#4e4376;color:#f5e2ff;padding:6px 9px;border:1px solid #b8a5e955;border-radius:14px;font-size:19px;transform:rotate(13deg)}
+.card{background:linear-gradient(155deg,#222840,#1a2135 64%);border:1px solid #67678b7d;border-radius:21px;padding:20px;box-shadow:0 12px 38px #05091645}
+.story-card{margin-top:0;border-radius:16px 16px 24px 24px;border-color:#9a88b763;background:linear-gradient(155deg,#252942,#1c2035 66%)}
+.story-intro{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.story-intro-icon{display:grid;place-items:center;flex-shrink:0;background:#4c4277aa;color:#f3dcff;width:45px;height:45px;border:1px solid #a898d080;border-radius:14px;font-size:25px}
+.story-card h2{font-size:21px;margin:0 0 5px;color:#fff3ff}
+.story-help{margin:0;color:#c8bddf;font-size:12px}
+.story-card label{font-size:14px;color:#e8ddff;font-weight:700;letter-spacing:.1px}
+.story-card label[for=title]:before{content:'♧';margin-right:8px;color:#d8c8ff}
+.story-card label[for=character]:before{content:'◉';margin-right:8px;color:#d8c8ff}
+.story-card label[for=world]:before{content:'✧';margin-right:8px;color:#d8c8ff}
+.story-card label[for=scene]:before{content:'♫';margin-right:8px;color:#d8c8ff}
+textarea,input,select{border-radius:12px;background:#13192e;color:#fff8ff;border:1px solid #747195a3;padding:13px 14px;box-shadow:inset 0 1px 3px #080d2628}
+textarea:focus,input:focus,select:focus{border-color:#dbbdfb;box-shadow:0 0 0 3px #c3a2ff33}
+.story-card .actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;padding-top:10px}
+.story-card #make{grid-column:1/-1;grid-row:1;min-height:61px;border-radius:18px;background:linear-gradient(110deg,#b2a4f9,#ead1fb);color:#24203a;border:1px solid #f2ddff;font-size:18px;box-shadow:0 8px 24px #6450ae50}
+button{border-radius:13px;min-height:46px;transition:filter .15s,transform .15s}
+button:not(:disabled):active{transform:scale(.985);filter:brightness(.93)}
+button.alt{background:#2b304b;border-color:#686784;color:#f5edff}
+.story-card #compare,.story-card #analyze,.story-card #save,.story-card #loadSaved{font-size:12px;line-height:1.4}
+.note,.loop-note,.compare-help{color:#c8c4dc}
+@media(max-width:410px){main{padding:10px 10px 42px}header{padding:21px 14px}.poppo-hero{gap:8px;grid-template-columns:minmax(0,1fr) 32%}.poppo-hero h1{font-size:clamp(26px,7.3vw,33px)}.poppo-hero .lead{font-size:12px}.poppo-hero .lead span{font-size:10px}.card{padding:16px}.story-card h2{font-size:19px}}
 </style>
 <script defer src="analyzer.js"></script>
 <script defer src="resonare-v08.js"></script>
@@ -122,11 +160,11 @@ button:focus-visible{outline:3px solid #f4e1a6;outline-offset:2px}
 <body>
 <main>
 <header>
-<div class="poppo-hero"><div class="poppo-hero-copy"><h1>DJぽっぽ <small>v2.4</small></h1>
-<p class="lead">ものがたりからBGMをつくるぽ！<span>ぽっぽがシーンにあわせて作曲するぽ。</span></p></div><img class="poppo-hero-image" src="./poppo-mascot.svg" alt="DJぽっぽ" width="160" height="120" loading="eager"></div>
+<div class="poppo-hero"><div class="poppo-hero-copy"><span class="hero-overline">✦ STORY TO MUSIC</span><h1>DJぽっぽ <small>v2.4</small></h1>
+<p class="lead">ものがたりからBGMをつくるぽ！<span>キャラや場面を書くと、ぽっぽが曲にするぽ！</span></p></div><div class="poppo-art"><img class="poppo-hero-image" src="./poppo-mascot.svg" alt="羽飾りをつけたDJぽっぽ" width="160" height="120" loading="eager"><span class="poppo-music-note" aria-hidden="true">♫</span></div></div>
 </header>
 <section class="card story-card">
-<h2>ものがたりをおしえてぽ</h2><p class="story-help">キャラや場面を書くと、ぽっぽが曲にするぽ！</p>
+<div class="story-intro"><span class="story-intro-icon" aria-hidden="true">♫</span><div><h2>ものがたりの設定</h2><p class="story-help">ぽっぽに、どんな曲をつくってほしいか教えてほしいぽ！</p></div></div>
 <label for="title">タイトル</label>
 <input id="title" placeholder="たぬきの里 など" value="夕暮れの小さな冒険">
 <label for="character">だれのおはなし？</label>
