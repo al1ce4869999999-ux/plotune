@@ -25,8 +25,25 @@ function optimize(input){
   const add=(strategy,x,patch,reason,penalty)=>{
    if(!x||!patch||!STRATEGIES.includes(strategy))return;
    const after={...x.n,...patch};
+   // Preserve motif identity and limit the edit to the actual boundary neighborhood.
+   if(x.n.voice==='lead'||x.n.role==='lead')return;
+   if(Object.keys(patch).some(key=>!['t','d','midi'].includes(key)))return;
+   if(after.t<t-4*beat||after.t>=t+2*beat)return;
+   if(!Number.isInteger(after.midi)||after.midi<24||after.midi>105)return;
    if(!(after.d>=.035&&after.t>=0&&after.t+after.d<=duration+.000001&&after.t<t+2*beat))return;
    if(after.t===x.n.t&&after.d===x.n.d&&after.midi===x.n.midi)return;
+   // Reject newly introduced semitone/tritone clashes with sustaining chord/pad.
+   // This is a local proxy, not full M3 harmonic metadata validation.
+   if(after.midi!==x.n.midi){
+    const clashes=(pitch,other)=>{
+     const interval=Math.abs(pitch-other.midi)%12;
+     return interval===1||interval===6||interval===11;
+    };
+    if(result.some((other,j)=>j!==x.i&&valid(other)&&
+       (other.voice==='chords'||other.voice==='pad')&&other.voice!==x.n.voice&&
+       Math.max(after.t,other.t)<Math.min(after.t+after.d,other.t+other.d)-.001&&
+       !clashes(x.n.midi,other)&&clashes(after.midi,other)))return;
+   }
    // Protect a voice from accidental new simultaneous overlaps and cross-boundary collisions.
    if(result.some((other,j)=>j!==x.i&&other.voice===after.voice&&valid(other)&&
       Math.max(after.t,other.t)<Math.min(after.t+after.d,other.t+other.d)-.001 &&
@@ -94,7 +111,9 @@ function optimize(input){
   if(winner){
    Object.assign(result[winner.index],winner.patch);changed++;
    trace.strategies.push({time:t,strategy:winner.strategy,changed:1,index:winner.index,
-    candidates:scored.map(c=>({strategy:c.strategy,score:round(c.score)})),reason:winner.reason});
+    candidates:scored.map(c=>({strategy:c.strategy,score:round(c.score)})),reason:winner.reason,
+    before:{t:notes[winner.index].t,d:notes[winner.index].d,midi:notes[winner.index].midi},
+    after:{t:result[winner.index].t,d:result[winner.index].d,midi:result[winner.index].midi}});
   }else trace.strategies.push({time:t,strategy:'UNCHANGED',changed:0,candidates:[],reason:'no safe local candidate'});
  }
  trace.status=changed?'selected':'unchanged';trace.changedNotes=changed;
