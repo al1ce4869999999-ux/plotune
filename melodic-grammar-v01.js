@@ -132,12 +132,25 @@ function scoreMelody(events){
  const durationsValid=events.every(e=>Number.isFinite(e.position)&&Number.isFinite(e.durationUnits)&&
   e.position>=0&&e.durationUnits>0&&e.position+e.durationUnits<=16.001);
  if(!durationsValid)return -Infinity;
- const distinctRhythm=new Set(f.rhythm.slice(1).map((p,i)=>Math.round((p-f.rhythm[i])*2))).size;
- const leapBalance=f.leaps===0?0:f.leaps<=2?1:.5;
- const restBalance=f.rests<=2?1:.5;
+ const notes=events.filter(e=>!e.rest);
+ const intervals=notes.slice(1).map((e,i)=>e.degree-notes[i].degree);
+ const uniqueIntervals=new Set(intervals).size;
+ const leapBalance=f.leaps===0?0:f.leaps<=2?1:.4;
+ const restBalance=f.rests<=2?1:.4;
+ const rhythmIntervals=events.slice(1).map((e,i)=>Math.round((e.position-events[i].position)*4)/4);
+ const rhythmVariety=new Set(rhythmIntervals).size;
+ const durationVariety=new Set(events.map(e=>Math.round(e.durationUnits*4)/4)).size;
+ const pitchRepetition=intervals.filter(d=>d===0).length/Math.max(1,intervals.length);
+ const repeatedRuns=intervals.slice(2).filter((d,i)=>d===intervals[i]&&d===intervals[i+1]).length;
  const contourVariety=new Set(f.contour).size;
- return distinctRhythm*.65+leapBalance*1.3+Math.min(f.turns,3)*.35+
-  restBalance*.6+Math.min(contourVariety,3)*.45-Math.max(0,f.span-7)*.4;
+ // Listener A/B reported no preference or memorability gain from the old ranking.
+ // Reward a recognisable rhythmic gesture and a small interval vocabulary, not raw busyness.
+ return Math.min(rhythmVariety,4)*.8+Math.min(durationVariety,4)*.65+
+  leapBalance*1.15+restBalance*.5+Math.min(f.turns,2)*.3+
+  Math.min(contourVariety,3)*.25+
+  (uniqueIntervals>=2&&uniqueIntervals<=4?1:0)-
+  Math.max(0,uniqueIntervals-5)*.65-Math.max(0,pitchRepetition-.4)*2-
+  repeatedRuns*.3-Math.max(0,f.span-7)*.5;
 }
 function selectMelody(g,bar,options={}){
  const count=Math.max(1,Math.min(16,Math.trunc(Number(options.candidateCount)||6)));
