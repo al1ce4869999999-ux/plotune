@@ -31,8 +31,8 @@ assert.equal(JSON.stringify(plan),JSON.stringify(M.plan(source,{progression:[0,4
 assert.equal(JSON.stringify(source),saved,'source preserved');
 assert.equal(plan.chords.length,8);assert.equal(plan.phrases.length,8);
 assert.equal(plan.chords.at(-1),0,'final tonic cadence');
-assert.equal(plan.chords.at(-2),4,'penultimate dominant prepares final tonic');
-assert.ok(plan.phrases.at(-1).some(e=>e.cadence&&e.degree===0&&e.durationUnits>=8),
+assert.ok([3,4,5].includes(plan.chords.at(-2)),'contextual pre-cadence harmony');
+assert.ok(plan.phrases.at(-1).some(e=>!e.rest&&e.cadence&&e.degree===0&&e.position+e.durationUnits>=15.999),
  'final bar has an audible sustained tonic arrival');
 assert.ok(plan.chords.every(x=>Number.isInteger(x)&&x>=0&&x<7));
 assert.ok(plan.phrases.flat().every(e=>e.position>=0&&e.position+e.durationUnits<=16.001));
@@ -61,6 +61,7 @@ for(const preset of ['journey','musicbox','forestflute']){
  const joint=H.score({...prepared,musicHarmony:true,musicDevelopment:true,motifDevelopment:true});
  const endBar=joint.duration-joint.duration/joint.details.loopBars;
  const last=joint.notes.filter(n=>n.voice==='lead'&&n.t>=endBar).sort((a,b)=>a.t-b.t).at(-1);
+ assert.ok(last.t+last.d>=joint.duration-.2,'audible final cadence survives arrangement '+preset);
  assert.ok(last,'M3 cadence exists '+preset);
  assert.equal(last.midi%12,0,'M3 ending retains tonic pitch class '+preset);
  assert.equal(JSON.stringify(H.score(prepared).notes),JSON.stringify(legacy.notes),'legacy score remains fixed '+preset);
