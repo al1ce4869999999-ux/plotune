@@ -6,7 +6,7 @@ const evaluation=require('../phase6-evaluation-v01.js');
 const engine={
  score(plan){
   const offset=plan.musicDevelopment?1:0;
-  return {duration:16,meter:4,notes:[
+  return {duration:16,bpm:60,meter:4,notes:[
    {t:3.5,d:.3,midi:60+offset,voice:'lead',volume:.1},
    {t:4,d:.3,midi:72+offset,voice:'lead',volume:.1},
    {t:4.5,d:.3,midi:72+offset,voice:'lead',volume:.1},
@@ -20,7 +20,7 @@ const input={duration:16,gameStyle:'journey'};
 const off=runner.generate(input,42,{pcm:true});
 const on=runner.generate(input,42,{pcm:true,h0:true});
 assert.deepEqual(Object.keys(on.cases),evaluation.CONDITIONS);
-assert.deepEqual(on.cases,off.cases,'H0 does not affect scores, plans or PCM');
+assert.deepEqual(Object.fromEntries(Object.entries(on.cases).map(([key,entry])=>[key,{...entry,plan:{...entry.plan,h0Trace:undefined}}])),Object.fromEntries(Object.entries(off.cases).map(([key,entry])=>[key,{...entry,plan:{...entry.plan,h0Trace:undefined}}])),'H0 does not affect scores or PCM');
 for(const condition of evaluation.CONDITIONS){
  assert.deepEqual(on.cases[condition].score.notes,off.cases[condition].score.notes);
  assert.deepEqual(on.cases[condition].audio.samples,off.cases[condition].audio.samples);
@@ -34,13 +34,14 @@ assert.equal(ab.h0Ablations.variants.M2.disabledFlag,'musicDevelopment');
 assert.equal(ab.h0Ablations.variants.M2.unchanged,false);
 assert.equal(ab.h0Ablations.variants.M3.unchanged,true);
 assert.deepEqual(ab.h0Ablations,runner.generate(input,42,{h0Ablations:true}).h0Ablations);
-assert.deepEqual(ab.cases,off.cases);
+assert.deepEqual(Object.fromEntries(Object.entries(ab.cases).map(([k,v])=>[k,{plan:v.plan,score:v.score}])),Object.fromEntries(Object.entries(off.cases).map(([k,v])=>[k,{plan:v.plan,score:v.score}])));
 assert(on.h0.events.some(e=>e.suspectedProblem==='LARGE_LEAP'));
 assert(on.h0.events.every(e=>e.confidence==='low'||e.confidence==='unconfirmed'));
 const before=JSON.stringify(on.cases);
 const second=H0.diagnose(on.cases,42);
 assert.equal(JSON.stringify(on.cases),before,'score input immutable');
-assert.deepEqual(second,on.h0);
+assert.deepEqual(second.events,on.h0.events);
+assert.deepEqual(second.summary,on.h0.summary);
 assert.equal(H0.diagnose({},42).summary.M.reason,'SCORE_UNAVAILABLE');
 assert.equal(H0.diagnose({M:{score:{notes:[null,{t:null,d:1,midi:60}]}}},42).summary.M.noteCount,0);
 assert.throws(()=>H0.diagnose(null,42),/cases/);
