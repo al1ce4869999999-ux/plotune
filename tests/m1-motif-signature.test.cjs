@@ -19,6 +19,8 @@ for(const i of sig.protectedIndices){
  assert.equal(transformed[i].rest,source[i].rest);
 }
 const m2=M2.selectPhrase(transformed,{tension:.8},{seed:4,protectedIndices:sig.protectedIndices});
+const reprise=M2.selectPhrase(transformed,{tension:.2},{seed:4,protectedIndices:sig.protectedIndices,preserveRhythm:true});
+assert.equal(JSON.stringify(reprise.events.map(e=>[e.position,e.durationUnits,e.rest])),JSON.stringify(transformed.map(e=>[e.position,e.durationUnits,e.rest])));
 const m3=M3.plan([m2.events,m2.events],{protectedIndices:[sig.protectedIndices,sig.protectedIndices]});
 for(const i of sig.protectedIndices){
  assert.equal(m2.events[i].degree,transformed[i].degree);
