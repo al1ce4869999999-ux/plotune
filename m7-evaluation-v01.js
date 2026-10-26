@@ -57,9 +57,14 @@ function attach(doc,listening,storage){
   }
  };
  function begin(generation){record=createRecord(generation);panel.hidden=false;render();message.textContent='新しい4曲の評価を開始しました。未評価は空欄のまま保存できます。';}
+ function comparisonText(){
+  const compared=compareRatings(record);
+  const labels={liking:'好き',expectation:'意外性',memorability:'記憶性',naturalness:'自然さ'};
+  return Object.entries(compared.axes).map(([key,value])=>labels[key]+': '+(value.delta===null?'未評価':(value.delta>0?'+':'')+value.delta)).join(' / ');
+ }
  function persist(){
   if(!record)return;
-  try{storage.setItem('plotune-m7-rating-v1',JSON.stringify(record));message.textContent='評価をこの端末に保存しました。'+(complete(record)?'全項目入力済み。':'未評価項目あり。');}
+  try{storage.setItem('plotune-m7-rating-v1',JSON.stringify(record));message.textContent='評価をこの端末に保存しました。'+(complete(record)?'全項目入力済み。':'未評価項目あり。')+' Baseline→Phase + M: '+comparisonText();}
   catch(e){message.textContent='保存失敗: '+e.message;}
  }
  function exportJson(){
