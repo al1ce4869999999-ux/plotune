@@ -35,7 +35,7 @@ function candidate(source,emotion,seed,index,protectedIndices,preserveRhythm){
   if(!preserveRhythm)e.durationUnits=+clamp(e.durationUnits*(.8+r()*.4+p.tenderness*.2-p.energy*.14),.25,16-e.position).toFixed(3);
  }
  const last=out[out.length-1];
- if(last&&!(protectedIndices&&protectedIndices.includes(out.length-1))){last.rest=false;last.degree=p.tension>.65?clamp(last.degree+1,1,8):[0,2,4].reduce((a,b)=>Math.abs(a-last.degree)<=Math.abs(b-last.degree)?a:b);last.cadence=p.tension<=.65;}
+ if(last&&!preserveRhythm&&!(protectedIndices&&protectedIndices.includes(out.length-1))){last.rest=false;last.degree=p.tension>.65?clamp(last.degree+1,1,8):[0,2,4].reduce((a,b)=>Math.abs(a-last.degree)<=Math.abs(b-last.degree)?a:b);last.cadence=p.tension<=.65;}
  if(!out.some(e=>!e.rest))out[0].rest=false;
  return out;
 }
