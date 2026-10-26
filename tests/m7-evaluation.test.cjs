@@ -5,6 +5,15 @@ const m=ctx.PlotuneM7Evaluation;
 const generation={request:{seed:42,scene:'forest',style:'handheld',gameStyle:'auto',duration:15},tracks:m.IDS.map(conditionId=>({conditionId}))};
 const record=m.createRecord(generation);
 assert.equal(record.seed,42);assert.equal(m.complete(record),false);
+assert.equal(record.generation.schemaVersion,null);
+assert.equal(record.generation.conditions.length,4);
+assert.equal(record.generation.conditions[0].id,'baseline');
+assert.equal(record.input.seed,42);
+const versioned=m.createRecord({...generation,schemaVersion:'m7.1-v1',version:'test-revision',tracks:generation.tracks.map(t=>({...t,config:{flags:{musicHarmony:false}}}))});
+assert.equal(versioned.generation.schemaVersion,'m7.1-v1');
+assert.equal(versioned.generation.version,'test-revision');
+assert.equal(versioned.generation.conditions[0].version,'test-revision');
+assert.equal(versioned.generation.conditions[0].config.flags.musicHarmony,false);
 for(const key of ['liking','expectation','memorability','naturalness']){
  assert(m.CRITERIA.some(([name])=>name===key));
  assert.equal(record.ratings.baseline[key],null);
