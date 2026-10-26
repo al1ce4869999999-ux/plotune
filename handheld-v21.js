@@ -353,8 +353,8 @@ function score(plan){
  }
  if(h0Phrases)h0Phrases.afterM2=sharedPhrases?sharedPhrases.map(p=>p.map(e=>({...e}))):null;
  // M3 shared melody/harmony planning (opt-in).
- const h2Enabled=plan.h2HarmonyAlignment===true && plan.musicHarmony===true && !!root.PlotuneM3Harmony?.planH2;
- const m3JointPlan=plan.musicHarmony===true && sharedPhrases && root.PlotuneM3Harmony?
+ const h2Enabled=plan.h2HarmonyAlignment===true && !!root.PlotuneM3Harmony?.planH2;
+ const m3JointPlan=(plan.musicHarmony===true||h2Enabled) && sharedPhrases && root.PlotuneM3Harmony?
   (h2Enabled?root.PlotuneM3Harmony.planH2:root.PlotuneM3Harmony.plan)(sharedPhrases,{progression:prog,tension:clamp(Number(plan.harmonicTension)||.45,0,1)}):null;
  if(m3JointPlan)for(let b=0;b<bars;b++)sharedPhrases[b]=m3JointPlan.phrases[b];
  if(h0Phrases){h0Phrases.afterM3=sharedPhrases?sharedPhrases.map(p=>p.map(e=>({...e}))):null;h0Phrases.chords=m3JointPlan?[...m3JointPlan.chords]:null;}
