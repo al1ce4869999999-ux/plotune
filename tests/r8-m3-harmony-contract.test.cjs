@@ -9,7 +9,7 @@ const arc=[{stage:'opening'},{stage:'opening'},{stage:'climax'},{stage:'resoluti
 const args={notes,duration:4,bpm:240,wholeTrackArc:arc,transitionPlans:[{time:3,strategy:'BASS_LEAD'}]};
 const without=R.optimize(args),withM3=R.optimize({...args,harmony:[{t:0,chord:0},{t:3,chord:0}],tonic:60,scale:[0,2,4,5,7,9,11],meter:1});
 assert.equal(without.trace.status,'selected');
-assert.equal(withM3.trace.status,'unchanged','reject worsening chord fit');
+assert.ok(!withM3.trace.strategies.some(x=>x.strategy==='BASS_LEAD'&&x.changed),'reject worsening BASS_LEAD while allowing a safe alternative');
 assert.equal(JSON.stringify(notes),JSON.stringify(args.notes),'do not mutate input');
 const request={scene:'森を歩く旅人',character:'旅人',world:'森',style:'handheld',gameStyle:'journey',duration:15};
 const plans=G.makePlans(G.request(request,42),G.dependenciesFromRoot());
