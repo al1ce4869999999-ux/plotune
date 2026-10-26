@@ -327,7 +327,7 @@ function score(plan){
  };
  const wholeTrackArc=Array.from({length:bars},(_,b)=>({bar:b+1,...arcAt(b)}));
  const m1Selection=plan.musicDevelopment===true&&plan.m1CandidateSelection!==false&&sharedGrammar&&root.PlotuneMelodicGrammar?.selectMelody?
-   root.PlotuneMelodicGrammar.selectMelody(sharedGrammar,0,{density:clamp(pulseDensity*.68,.25,.92),candidateCount:6}):null;
+   root.PlotuneMelodicGrammar.selectMelody(sharedGrammar,0,{density:clamp(pulseDensity*.68,.25,.92),candidateCount:6,hookDesign:true}):null;
  const motifPhrase=m1Selection?.events||(sharedGrammar&&root.PlotuneMelodicGrammar?.composePhrase?
    root.PlotuneMelodicGrammar.composePhrase(sharedGrammar,0,{density:clamp(pulseDensity*.68,.25,.92)}):null);
  const motifIdentity=plan.motifDevelopment===true&&motifPhrase&&root.PlotuneMotifPlanner?
