@@ -87,17 +87,28 @@ function compareStages(stages,seed,condition='M'){
  for(let i=1;i<order.length;i++){
   const previous=stages[order[i-1]],current=stages[order[i]];
   if(!Array.isArray(previous)||!Array.isArray(current))continue;
-  for(const {i:beforeIndex,j:afterIndex} of alignNotes(previous,current)){
+  const identityAvailable=previous.every(n=>typeof n?.h0Id==='string')&&current.every(n=>typeof n?.h0Id==='string');
+  let matches;
+  if(identityAvailable){
+   const beforeById=new Map(previous.map((n,i)=>[n.h0Id,i]));
+   const afterById=new Map(current.map((n,j)=>[n.h0Id,j]));
+   matches=[...beforeById].map(([id,i])=>({i,j:afterById.has(id)?afterById.get(id):null}));
+   current.forEach((n,j)=>{if(!beforeById.has(n.h0Id))matches.push({i:null,j});});
+  }else matches=alignNotes(previous,current);
+  for(const {i:beforeIndex,j:afterIndex} of matches){
    const a=beforeIndex===null?null:snapshot(previous[beforeIndex]),b=afterIndex===null?null:snapshot(current[afterIndex]);
+   if(JSON.stringify(a)===JSON.stringify(b))continue;
    events.push({seed,condition,section:null,bar:null,timestamp:b?.onset??a?.onset??null,voice:b?.voice??a?.voice??null,
     sourceStage:order[i],originalNote:a,transformedNote:b,activeChord:null,
     suspectedProblem:'unconfirmed',evidence:{beforeIndex,afterIndex,
-     comparison:beforeIndex===null?'inserted-note':afterIndex===null?'removed-note':'voice-and-onset-heuristic',
-     noteCountBefore:previous.length,noteCountAfter:current.length},confidence:'unconfirmed'});
+     noteId:identityAvailable?(beforeIndex===null?current[afterIndex].h0Id:previous[beforeIndex].h0Id):null,
+     parentId:identityAvailable&&afterIndex!==null?current[afterIndex].h0ParentId||null:null,
+     comparison:beforeIndex===null?'inserted-note':afterIndex===null?'removed-note':identityAvailable?'persistent-note-id':'voice-and-onset-heuristic',
+     noteCountBefore:previous.length,noteCountAfter:current.length},confidence:identityAvailable?'high':'unconfirmed'});
   }
  }
  return {schema:'plotune.h0.stage-diff',version:1,seed,condition,events,
-  limitations:['HEURISTIC_MATCHING_NOT_NOTE_IDENTITY','NO_CAUSAL_ATTRIBUTION']};
+  limitations:['FALLBACK_HEURISTIC_WHEN_IDS_ABSENT','NO_CAUSAL_ATTRIBUTION']};
 }
 function comparePhrases(phraseTrace,seed,condition='M'){
  if(!Number.isInteger(seed)||seed<0)throw new TypeError('invalid seed');
