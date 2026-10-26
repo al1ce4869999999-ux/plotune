@@ -31,12 +31,8 @@ function refine(events,chord,tension,close){
    const choices=triad.map(x=>x+chord+7*Math.floor(e.degree/7)).flatMap(x=>[x-7,x,x+7]).filter(x=>x>=0&&x<=8);
    if(choices.length)out.degree=choices.reduce((a,b)=>Math.abs(b-e.degree)<Math.abs(a-e.degree)?b:a);
   }
-  if(close&&!out.rest&&i===events.findLastIndex(x=>!x.rest)){
-   out.degree=0;out.cadence=true;
-   // Finish the existing phrase at its barline instead of adding a filler note.
-   if(out.position>=0&&out.position<16&&out.durationUnits>0)
-    out.durationUnits=Math.max(out.durationUnits,16-out.position);
-  }
+  // Final arrival is selected after chord scoring, from the phrase context.
+  if(close)delete out.cadence;
   return out;
  });
 }
@@ -84,7 +80,7 @@ function plan(phrases,options={}){
      Math.abs(e.position-9)<Math.abs(best.position-9)?e:best):audible.at(-1);
    if(arrival){
     // Reuse a real thematic onset instead of moving a late note into empty space.
-    for(const e of audible)if(e.position>arrival.position)e.rest=true;
+    for(const e of audible)if(e.position>arrival.position){e.rest=true;delete e.cadence;}
     arrival.degree=0;arrival.cadence=true;
     arrival.durationUnits=16-arrival.position;
    }
