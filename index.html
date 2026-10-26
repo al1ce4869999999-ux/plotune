@@ -94,6 +94,12 @@ button.alt{background:#2b3045;border:1px solid #5c5d71;color:#eee9f4}
 .story-card #save,.story-card #loadSaved{font-size:12px;padding:10px 6px}
 button:focus-visible{outline:3px solid #f4e1a6;outline-offset:2px}
 @media(max-width:380px){header{padding:21px 17px 28px}.card{padding:16px}.story-card .actions{grid-template-columns:1fr 1fr}}
+
+/* Original user-selected character illustration; decorative, no change to app behavior */
+.poppo-hero{display:flex;align-items:center;justify-content:space-between;gap:9px}
+.poppo-hero-copy{flex:1;min-width:0;position:relative;z-index:1}
+.poppo-hero-image{display:block;flex:0 0 auto;width:min(35%,160px);height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:16px;border:1px solid #ece2e533;box-shadow:0 8px 24px #0004;pointer-events:none}
+@media(max-width:420px){.poppo-hero{align-items:center}.poppo-hero-image{width:31%}.poppo-hero-copy h1{font-size:clamp(25px,7.4vw,34px)}.poppo-hero-copy .lead{font-size:13px}.poppo-hero-copy .lead span{font-size:11px}}
 </style>
 <script defer src="analyzer.js"></script>
 <script defer src="resonare-v08.js"></script>
@@ -116,8 +122,8 @@ button:focus-visible{outline:3px solid #f4e1a6;outline-offset:2px}
 <body>
 <main>
 <header>
-<h1>DJぽっぽ <small>v2.4</small></h1>
-<p class="lead">ものがたりからBGMをつくるぽ！<span>ぽっぽがシーンにあわせて作曲するぽ。</span></p>
+<div class="poppo-hero"><div class="poppo-hero-copy"><h1>DJぽっぽ <small>v2.4</small></h1>
+<p class="lead">ものがたりからBGMをつくるぽ！<span>ぽっぽがシーンにあわせて作曲するぽ。</span></p></div><img class="poppo-hero-image" src="./poppo-mascot.svg" alt="DJぽっぽ" width="160" height="120" loading="eager"></div>
 </header>
 <section class="card story-card">
 <h2>ものがたりをおしえてぽ</h2><p class="story-help">キャラや場面を書くと、ぽっぽが曲にするぽ！</p>
