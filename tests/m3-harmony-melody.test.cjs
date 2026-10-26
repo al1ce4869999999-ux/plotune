@@ -16,6 +16,15 @@ const engine=fs.readFileSync(path.join(__dirname,'../handheld-v21.js'),'utf8');
 assert.match(engine,/const start=bar\*meter,degree=m3JointPlan\?m3JointPlan\.chords\[bar\]:chordSteps\[bar%4\],unit=meter\/16/);
 assert.match(engine,/m3JointPlan\?meter:meter\*1\.67/,'M3 pads may not bleed into following chord');
 assert.match(engine,/m3JointPlan\?scale:MAJOR/,'M3 backing must use the active mode');
+const shortCadence=M.plan([[{position:1,durationUnits:2,degree:5,rest:false},
+ {position:13.594,durationUnits:1.234,degree:4,rest:false}]]);
+assert.equal(shortCadence.phrases[0].at(-1).degree,0);
+assert.ok(shortCadence.phrases[0].at(-1).durationUnits>=2.406-1e-9,
+ 'final tonic is sustained to the barline rather than cut short');
+const restingCadence=M.plan([[{position:12,durationUnits:1,degree:3,rest:false},
+ {position:14,durationUnits:2,degree:4,rest:true}]]);
+assert.equal(restingCadence.phrases[0][0].degree,0,'last audible note resolves despite trailing rest');
+assert.equal(restingCadence.phrases[0][1].rest,true,'trailing rest preserved');
 const saved=JSON.stringify(source);
 const plan=M.plan(source,{progression:[0,4,5,3],tension:.4});
 assert.equal(JSON.stringify(plan),JSON.stringify(M.plan(source,{progression:[0,4,5,3],tension:.4})),'deterministic');
