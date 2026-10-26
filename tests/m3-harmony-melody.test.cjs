@@ -45,4 +45,16 @@ assert.equal(M.h2Classify(h2Source[0].slice(0,3),0).notes[1].role,'passing');
 assert.equal(M.h2Classify([{position:0,durationUnits:2,degree:1,rest:false}],0).collisions,1);
 assert.equal(M.h2Classify([{position:0,durationUnits:2,degree:1,rest:false,intentionalDissonance:true}],0).collisions,0);
 assert.equal(M.h2Classify([{position:1,durationUnits:1,degree:1,rest:false}],0).notes[0].role,null);
+// H2 OFF must preserve H1 note and harmony arrays at each supported duration.
+for(const seconds of [15,30,60]){
+ const scenario={...input,duration:seconds};
+ const prepared=H.prepare(A.plan(scenario,A.analyze(scenario)),'journey',null,false,scenario.scene);
+ const base={...prepared,musicHarmony:true,musicDevelopment:true,motifDevelopment:true};
+ const h1=H.score(base);
+ const off=H.score({...base,h2HarmonyAlignment:false});
+ assert.equal(JSON.stringify(off.notes),JSON.stringify(h1.notes),'H2 OFF H1 notes '+seconds);
+ assert.equal(JSON.stringify(off.harmony),JSON.stringify(h1.harmony),'H2 OFF H1 harmony '+seconds);
+ const enabled=H.score({...base,h2HarmonyAlignment:true});
+ assert.equal(JSON.stringify(enabled.notes),JSON.stringify(H.score({...base,h2HarmonyAlignment:true}).notes),'H2 ON deterministic '+seconds);
+}
 console.log('PASS M3 joint harmony melody: deterministic, cadence, instruments, legacy, bounds');
