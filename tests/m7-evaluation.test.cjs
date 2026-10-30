@@ -49,6 +49,8 @@ m.setRating(record,'phase-m','liking',5);
 const compared=m.compareRatings(record);
 assert.equal(compared.axes.liking.delta,3);
 assert.equal(compared.axes.expectation.delta,0);
+assert.equal(compared.axes.emotionalComplexity.delta,0);
+assert.equal(Object.keys(compared.axes).length,m.CRITERIA.length);
 assert.equal(compared.objective.left.r0,null);
 m.setRating(record,'phase-m','memorability','');
 assert.equal(m.compareRatings(record).axes.memorability.delta,null);
