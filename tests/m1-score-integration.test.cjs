@@ -9,7 +9,7 @@ const plan=A.plan(input,A.analyze(input)),prepared=H.prepare(plan,'journey',null
 const original=H.score(prepared),off=H.score({...prepared,musicDevelopment:false,musicHarmony:false,motifDevelopment:false});
 assert.equal(JSON.stringify(original.notes),JSON.stringify(off.notes),'M1 opt-in keeps legacy notes');
 assert.equal(original.details.melodySelection,null,'legacy has no candidate selection');
-const options={...prepared,musicDevelopment:true,musicHarmony:true,motifDevelopment:true};
+const options={...prepared,musicDevelopment:true,musicHarmony:true,motifDevelopment:true,m1CandidateSelection:true};
 const a=H.score(options),b=H.score(options);
 assert.equal(JSON.stringify(a.notes),JSON.stringify(b.notes),'same seed yields same notes');
 assert.ok(a.notes.some(n=>n.voice==='lead'));
