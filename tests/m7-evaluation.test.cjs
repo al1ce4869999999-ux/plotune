@@ -68,6 +68,10 @@ const researchPair={schemaVersion:'r9.research-pairs.v1',request:generation.requ
 const researchRecord=m.createResearchRecord(researchPair,'phase-m');
 assert.equal(researchRecord.ratings.off.liking,null);
 assert.equal(researchRecord.ratings.on.liking,null);
+assert.equal(m.compareResearchRatings(researchRecord).liking.delta,null);
+researchRecord.ratings.off.liking=2;
+researchRecord.ratings.on.liking=4;
+assert.equal(m.compareResearchRatings(researchRecord).liking.delta,2);
 assert.equal(researchRecord.objectiveDiagnostics.on.r3.mean,2);
 assert.equal(researchRecord.ablation[0],'r8');
 assert.deepEqual(Array.from(researchRecord.presentationOrder),['off','on']);
