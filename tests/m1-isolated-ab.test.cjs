@@ -6,7 +6,7 @@ for(const name of ['analyzer.js','resonare-v08.js','loop-arranger-v09.js','motif
 const A=context.window.PlotuneAnalysis,H=context.window.PlotuneHandheld,G=context.window.PlotuneMelodicGrammar;
 const input={title:'M1 isolated comparison',character:'旅人',world:'森',scene:'森を歩いて帰る',style:'handheld',duration:15};
 const plan=A.plan(input,A.analyze(input)),prepared=H.prepare(plan,'journey',null,false,input.scene);
-const opts={...prepared,musicDevelopment:true,musicHarmony:true,motifDevelopment:true};
+const opts={...prepared,musicDevelopment:true,musicHarmony:true,motifDevelopment:true,m1CandidateSelection:true};
 const legacy=H.score({...opts,m1CandidateSelection:false}),selected=H.score(opts);
 assert.equal(legacy.details.melodySelection,null,'OFF disables candidate ranking');
 assert.equal(selected.details.melodySelection.scores.length,6,'ON exposes six scores');
