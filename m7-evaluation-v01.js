@@ -80,7 +80,7 @@ function attach(doc,listening,storage){
 function createResearchRecord(generation,conditionId){
  const pair=generation.tracks.filter(t=>t.conditionId===conditionId);
  if(pair.length!==2||pair[0].mode!=='off'||pair[1].mode!=='on')throw new TypeError('R9 research pair required');
- return {schema:'plotune.r9.listening.v1',seed:generation.request.seed,input:{...generation.request},conditionId,ablation:generation.ablation.slice(),generationVersion:generation.schemaVersion,
+ return {schema:'plotune.r9.listening.v1',seed:generation.request.seed,input:{...generation.request},conditionId,ablation:generation.ablation.slice(),generationVersion:generation.schemaVersion,presentationOrder:generation.presentationOrder??['off','on'],
   researchFlags:pair.map(t=>({mode:t.mode,flags:{...t.config.research}})),
   objectiveDiagnostics:Object.fromEntries(pair.map(t=>[t.mode,diagnosticsFor(t)])),
   ratings:Object.fromEntries(['off','on'].map(mode=>[mode,Object.fromEntries(CRITERIA.map(([key])=>[key,null]))])),notes:{off:'',on:''}};
@@ -91,11 +91,11 @@ function attachResearch(doc,storage){
  let record=null;
  function begin(generation,conditionId){
   record=createResearchRecord(generation,conditionId);panel.hidden=false;body.replaceChildren();
-  for(const mode of ['off','on']){
-   const fieldset=doc.createElement('fieldset'),legend=doc.createElement('legend');legend.textContent='研究'+mode.toUpperCase();fieldset.append(legend);
+  for(const [i,mode] of record.presentationOrder.entries()){
+   const fieldset=doc.createElement('fieldset'),legend=doc.createElement('legend');legend.textContent='曲'+(i+1);fieldset.append(legend);
    for(const [key,label] of CRITERIA){
     const row=doc.createElement('label');row.textContent=label+'（1〜5） ';
-    const select=doc.createElement('select');select.setAttribute('aria-label',mode+' '+label);
+    const select=doc.createElement('select');select.setAttribute('aria-label','曲'+(i+1)+' '+label);
     for(const value of ['',1,2,3,4,5]){const option=doc.createElement('option');option.value=String(value);option.textContent=value===''?'未評価':String(value);select.append(option);}
     select.addEventListener('change',()=>{record.ratings[mode][key]=rating(select.value);});row.append(select);fieldset.append(row);
    }
