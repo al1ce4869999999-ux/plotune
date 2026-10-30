@@ -31,13 +31,13 @@ function attach(doc,api,AudioContextClass){
  if(!make||!panel)return null;
  const buttons=IDS.map(id=>doc.getElementById('m7Play-'+id));
  const message=doc.getElementById('m7Status'),stopButton=doc.getElementById('m7Stop');
- let context=null,source=null,transport=null,result=null,buffers=new Map(),epoch=0;
+ let context=null,source=null,transport=null,result=null,research=null,buffers=new Map(),epoch=0;
  const report=(s)=>{message.textContent=s;};
  function position(){if(!transport||!context)return 0;const d=transport.duration;return (transport.offset+Math.max(0,context.currentTime-transport.started))%d;}
  function stop(){epoch++;if(source){try{source.onended=null;source.stop();source.disconnect();}catch{}source=null;}transport=null;}
  async function play(id){
   if(!result)return;
-  const item=result.tracks.find(x=>x.conditionId===id);if(!item)return;
+  const item=id.startsWith('r9-')?research?.tracks.find(x=>x.conditionId===doc.getElementById('r9Condition')?.value&&x.mode===id.slice(3)):result.tracks.find(x=>x.conditionId===id);if(!item)return;
   const offset=transport?position():0;stop();const ticket=epoch;
   try{
    if(!AudioContextClass)throw new Error('Web Audio unavailable');
@@ -47,7 +47,7 @@ function attach(doc,api,AudioContextClass){
    const node=context.createBufferSource(),gain=context.createGain();
    gain.gain.value=gainFor(item.track);node.buffer=buffer;node.loop=true;node.connect(gain);gain.connect(context.destination);
    node.start(0,offset);source=node;transport={id,offset,started:context.currentTime,duration:buffer.duration};
-   report(LABELS[id]+' · '+offset.toFixed(1)+'秒から再生');
+   report((LABELS[id]||('研究'+id.slice(3).toUpperCase()))+' · '+offset.toFixed(1)+'秒から再生');
   }catch(e){stop();report('再生エラー: '+e.message);}
  }
  function create(){
@@ -64,10 +64,24 @@ function attach(doc,api,AudioContextClass){
    report('4曲生成完了 · 同じ位置で切り替え可能 · 音量を静的補正');
   }catch(e){report('4条件生成エラー: '+e.message);}
  }
- make.addEventListener('click',create);
+ const researchMake=doc.getElementById('r9Make'),researchButtons=['off','on'].map(mode=>doc.getElementById('r9Play-'+mode));
+ function createResearch(){
+  stop();research=null;buffers.clear();researchButtons.forEach(b=>{if(b)b.disabled=true;});
+  const input=Object.fromEntries(['title','character','world','scene','style','gameStyle','duration'].map(k=>[k,doc.getElementById(k)?.value]));
+  const seed=Number(doc.getElementById('m7Seed').value),excluded=doc.getElementById('r9Ablation')?.value;
+  try{
+   research=api.generateResearchPairs(input,seed,undefined,excluded?[excluded]:[]);
+   researchButtons.forEach(b=>{if(b)b.disabled=false;});
+   report('研究OFF/ON生成完了 · 同じ位置で比較可能');
+  }catch(e){report('研究比較生成エラー: '+e.message);}
+ }
+ researchMake?.addEventListener('click',createResearch);
+ researchButtons.forEach((b,i)=>b?.addEventListener('click',()=>play('r9-'+(i===0?'off':'on'))));
+ doc.getElementById('r9Condition')?.addEventListener('change',()=>{stop();});
+make.addEventListener('click',create);
  buttons.forEach((b,i)=>b.addEventListener('click',()=>play(IDS[i])));
  stopButton.addEventListener('click',()=>{stop();report('停止しました');});
- return {create,play,stop,get result(){return result;}};
+ return {create,createResearch,play,stop,get result(){return result;},get research(){return research;}};
 }
 root.PlotuneM7Listening={IDS,LABELS,gainFor,presentationOrder,validate,attach};
 if(typeof document!=='undefined')root.PlotuneM7Listening.controller=attach(document,root.PlotuneM7Generation,root.AudioContext||root.webkitAudioContext);
