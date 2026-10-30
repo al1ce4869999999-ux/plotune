@@ -61,8 +61,19 @@ m.setRating(record,'phase-m','memorability',4);
 assert.throws(()=>m.compareRatings(record,'baseline','baseline'),{name:'RangeError'});
 m.setRating(record,'m','emotion','');assert.equal(m.complete(record),false);
 assert.throws(()=>m.setRating(record,'other','emotion',2),{name:'RangeError'});
+const researchPair={schemaVersion:'r9.research-pairs.v1',request:generation.request,ablation:['r8'],tracks:[
+ {conditionId:'phase-m',mode:'off',config:{research:{musicTransitionOptimizationR8:false}},track:{details:{expectancyR3:{mean:1}}}},
+ {conditionId:'phase-m',mode:'on',config:{research:{musicTransitionOptimizationR8:false}},track:{details:{expectancyR3:{mean:2}}}}
+]};
+const researchRecord=m.createResearchRecord(researchPair,'phase-m');
+assert.equal(researchRecord.ratings.off.liking,null);
+assert.equal(researchRecord.ratings.on.liking,null);
+assert.equal(researchRecord.objectiveDiagnostics.on.r3.mean,2);
+assert.equal(researchRecord.ablation[0],'r8');
+assert.throws(()=>m.createResearchRecord(researchPair,'baseline'),{name:'TypeError'});
 const html=fs.readFileSync('index.html','utf8');
 for(const id of ['m7Evaluation','m7RatingFields','m7RatingSave','m7RatingExport','m7RatingStatus'])assert(html.includes('id="'+id+'"'));
+for(const id of ['r9Evaluation','r9RatingFields','r9RatingSave','r9RatingExport'])assert(html.includes('id="'+id+'"'));
 assert(html.includes('m7-evaluation-v01.js'));
 assert(fs.readFileSync('m7-listening-v01.js','utf8').includes('controller.begin(result)'));
 console.log('M7.3 evaluation contract passed');
