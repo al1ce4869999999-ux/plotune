@@ -7,5 +7,5 @@ assert.match(app,/enhanced=\$\('harmonyComparison'\)\?\.checked\?/);
 assert.match(app,/\{\.\.\.base,musicHarmony:true\}/);
 assert.match(app,/harmonyAB\?'▶ M3 和声OFF'/);
 assert.match(app,/harmonyAB\?'▶ M3 和声ON'/);
-assert.match(engine,/plan\.musicHarmony===true && sharedPhrases && root\.PlotuneM3Harmony/);
+assert.match(engine,/\(plan\.musicHarmony===true\|\|h2Enabled\) && sharedPhrases && root\.PlotuneM3Harmony/);
 console.log('PASS M3 harmony-only A/B controls and flag');
