@@ -9,6 +9,12 @@ function gainFor(track,reference=0.18){
  const rms=Math.sqrt(sum/samples.length);if(rms<1e-7)throw new RangeError('silent track');
  return Math.min(1,reference/rms,0.95/Math.max(peak(samples),1e-8));
 }
+function presentationOrder(seed){
+ if(!Number.isSafeInteger(seed)||seed<0||seed>0xffffffff)throw new RangeError('invalid presentation seed');
+ const ids=IDS.slice();let state=(seed^0x9e3779b9)>>>0;
+ for(let i=ids.length-1;i>0;i--){state^=state<<13;state^=state>>>17;state^=state<<5;const j=(state>>>0)%(i+1);[ids[i],ids[j]]=[ids[j],ids[i]];}
+ return ids;
+}
 function validate(result){
  if(result?.tracks?.length!==4)throw new TypeError('four tracks required');
  const ids=result.tracks.map(x=>x.conditionId);
@@ -60,6 +66,6 @@ function attach(doc,api,AudioContextClass){
  stopButton.addEventListener('click',()=>{stop();report('停止しました');});
  return {create,play,stop,get result(){return result;}};
 }
-root.PlotuneM7Listening={IDS,LABELS,gainFor,validate,attach};
+root.PlotuneM7Listening={IDS,LABELS,gainFor,presentationOrder,validate,attach};
 if(typeof document!=='undefined')root.PlotuneM7Listening.controller=attach(document,root.PlotuneM7Generation,root.AudioContext||root.webkitAudioContext);
 })(typeof window!=='undefined'?window:globalThis);
