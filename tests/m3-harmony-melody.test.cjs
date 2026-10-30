@@ -57,4 +57,14 @@ for(const seconds of [15,30,60]){
  const enabled=H.score({...base,h2HarmonyAlignment:true});
  assert.equal(JSON.stringify(enabled.notes),JSON.stringify(H.score({...base,h2HarmonyAlignment:true}).notes),'H2 ON deterministic '+seconds);
 }
+// H2 must work independently of the legacy M3 switch.
+const independent=H.score({...H.prepare(p,'journey',null,false,input.scene),musicHarmony:false,h2HarmonyAlignment:true});
+const independentOff=H.score({...H.prepare(p,'journey',null,false,input.scene),musicHarmony:false,h2HarmonyAlignment:false});
+assert.notEqual(JSON.stringify(independent.harmony),JSON.stringify(independentOff.harmony),'H2 independent opt-in');
+assert.equal(M.h2Classify([
+ {position:0,degree:0,rest:false},{position:1,degree:1,rest:false},{position:2,degree:0,rest:false}
+],0).notes[1].role,'neighbor','weak neighbor');
+assert.equal(M.h2Classify([
+ {position:0,degree:1,rest:false,prepared:true},{position:1,degree:0,rest:false}
+],0).notes[0].role,'suspension','prepared suspension resolves');
 console.log('PASS M3 joint harmony melody: deterministic, cadence, instruments, legacy, bounds');
