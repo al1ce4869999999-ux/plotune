@@ -17,7 +17,7 @@ function diagnosticsFor(track){
 }
 function createRecord(generation){
  if(!generation||generation.tracks?.map(t=>t.conditionId).join('|')!==IDS.join('|'))throw new TypeError('M7 four-condition generation required');
- return {schema:'plotune.m7.listening.v1',seed:generation.request.seed,generation:{schemaVersion:generation.schemaVersion??null,version:generation.version??null,conditions:generation.tracks.map(t=>({id:t.conditionId,config:t.config??null,version:t.version??generation.version??null}))},input:{...generation.request},objectiveDiagnostics:Object.fromEntries(generation.tracks.map(t=>[t.conditionId,diagnosticsFor(t)])),ratings:Object.fromEntries(IDS.map(id=>[id,Object.fromEntries(CRITERIA.map(([key])=>[key,null]))])),notes:Object.fromEntries(IDS.map(id=>[id,'']))};
+ return {schema:'plotune.m7.listening.v1',seed:generation.request.seed,generation:{schemaVersion:generation.schemaVersion??null,version:generation.version??null,conditions:generation.tracks.map(t=>({id:t.conditionId,config:t.config??null,version:t.version??generation.version??null}))},input:{...generation.request},presentationOrder:generation.presentationOrder??null,objectiveDiagnostics:Object.fromEntries(generation.tracks.map(t=>[t.conditionId,diagnosticsFor(t)])),ratings:Object.fromEntries(IDS.map(id=>[id,Object.fromEntries(CRITERIA.map(([key])=>[key,null]))])),notes:Object.fromEntries(IDS.map(id=>[id,'']))};
 }
 function setRating(record,id,key,value){
  if(!IDS.includes(id)||!CRITERIA.some(c=>c[0]===key))throw new RangeError('unknown evaluation dimension');
