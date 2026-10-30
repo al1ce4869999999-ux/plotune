@@ -72,12 +72,13 @@ function attach(doc,api,AudioContextClass){
   try{
    research=api.generateResearchPairs(input,seed,undefined,excluded?[excluded]:[]);
    researchButtons.forEach(b=>{if(b)b.disabled=false;});
+   root.PlotuneM7Evaluation?.researchController?.begin(research,doc.getElementById('r9Condition')?.value||'phase-m');
    report('研究OFF/ON生成完了 · 同じ位置で比較可能');
   }catch(e){report('研究比較生成エラー: '+e.message);}
  }
  researchMake?.addEventListener('click',createResearch);
  researchButtons.forEach((b,i)=>b?.addEventListener('click',()=>play('r9-'+(i===0?'off':'on'))));
- doc.getElementById('r9Condition')?.addEventListener('change',()=>{stop();buffers.clear();});
+ doc.getElementById('r9Condition')?.addEventListener('change',()=>{stop();buffers.clear();if(research)root.PlotuneM7Evaluation?.researchController?.begin(research,doc.getElementById('r9Condition').value);});
 make.addEventListener('click',create);
  buttons.forEach((b,i)=>b.addEventListener('click',()=>play(IDS[i])));
  stopButton.addEventListener('click',()=>{stop();report('停止しました');});
