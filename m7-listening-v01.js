@@ -56,6 +56,9 @@ function attach(doc,api,AudioContextClass){
   const seed=Number(doc.getElementById('m7Seed').value);
   try{
    result=validate(api.generate(input,seed));
+   result.presentationOrder=presentationOrder(seed);
+   const holder=buttons[0]?.parentNode;
+   if(holder&&buttons.every(b=>b?.parentNode===holder))for(const id of result.presentationOrder)holder.appendChild(buttons[IDS.indexOf(id)]);
    buttons.forEach(b=>b.disabled=false);stopButton.disabled=false;
    if(root.PlotuneM7Evaluation?.controller)root.PlotuneM7Evaluation.controller.begin(result);
    report('4曲生成完了 · 同じ位置で切り替え可能 · 音量を静的補正');
