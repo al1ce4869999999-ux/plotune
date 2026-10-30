@@ -30,6 +30,15 @@ assert(plans.every(p=>p.plan.seed===42&&p.plan.duration===15));
 assert.throws(()=>m.request({...input,duration:12},42),{name:'RangeError'});
 assert.throws(()=>m.request({...input,style:'band'},42),{name:'RangeError'});
 assert.throws(()=>m.generate(input,42,{...deps,handheld:{...deps.handheld,render:()=>({samples:new Float32Array(5),sampleRate:8,score:{}})}}),{name:'RangeError'});
+const pairs=m.generateResearchPairs(input,42,deps);
+assert.equal(pairs.tracks.length,8);
+assert.deepEqual(Array.from(pairs.tracks.slice(0,2),t=>t.mode),['off','on']);
+assert.equal(pairs.tracks[0].config.research.musicTransitionOptimizationR8,false);
+assert.equal(pairs.tracks[1].config.research.musicTransitionOptimizationR8,true);
+assert.equal(pairs.tracks[1].config.research.musicExpectancyR3Selection,true);
+assert.equal(m.generateResearchPairs(input,42,deps,['r8']).tracks[1].config.research.musicTransitionOptimizationR8,false);
+assert.equal(m.generateResearchPairs(input,42,deps,['r8']).tracks[1].config.research.musicIdentityNoveltyR4,true);
+assert.throws(()=>m.researchFlags(true,['unknown']),{name:'RangeError'});
 console.log('M7.1 generation contract passed');
 assert.throws(()=>m.request({...input,instrumentSet:'unimplemented'},42),{name:'RangeError'});
 // Exercise the actual workflow script so escaping cannot silently weaken the gate.
