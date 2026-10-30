@@ -1,7 +1,7 @@
 /* M7.3: human listening evaluations; no automatic quality claims. */
 (function(root){'use strict';
 const IDS=['baseline','phase','m','phase-m'];
-const CRITERIA=[['motif','旋律・動機'],['development','展開'],['emotion','感情表現'],['coherence','まとまり'],['preference','好み'],['liking','好き／嫌い'],['expectation','予想通り／予想外'],['memorability','記憶に残る／残らない'],['naturalness','自然／不自然']];
+const CRITERIA=[['motif','旋律・動機'],['development','展開'],['emotion','感情表現'],['coherence','まとまり'],['preference','好み'],['liking','好き／嫌い'],['expectation','予想通り／予想外'],['memorability','記憶に残る／残らない'],['naturalness','自然／不自然'],['difference','違いの明瞭さ'],['emotionalComplexity','感情の複雑さ'],['motifRecognition','主題の再認しやすさ'],['variationFreshness','変奏の新鮮さ'],['melodyClarity','主旋律の明瞭さ'],['boundaryPersuasiveness','セクション境界の説得力'],['wholeSongCoherence','全曲のまとまり'],['relistenIntent','もう一度聴きたい度合い']];
 function rating(value){if(value===''||value==null)return null;const n=Number(value);if(!Number.isInteger(n)||n<1||n>5)throw new RangeError('rating must be 1..5');return n;}
 const DIAGNOSTIC_KEYS=['r0','r3','r4','r5','r7'];
 function diagnosticsFor(track){
