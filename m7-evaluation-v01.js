@@ -26,7 +26,7 @@ function setRating(record,id,key,value){
 function complete(record){return IDS.every(id=>CRITERIA.every(([key])=>record.ratings[id][key]!=null));}
 function compareRatings(record,left='baseline',right='phase-m'){
  if(!IDS.includes(left)||!IDS.includes(right)||left===right)throw new RangeError('invalid comparison');
- const dimensions=['liking','expectation','memorability','naturalness'];
+ const dimensions=CRITERIA.map(([key])=>key);
  return {left,right,axes:Object.fromEntries(dimensions.map(key=>{
   const a=record.ratings?.[left]?.[key]??null,b=record.ratings?.[right]?.[key]??null;
   return [key,{left:a,right:b,delta:a===null||b===null?null:b-a}];
