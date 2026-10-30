@@ -70,6 +70,7 @@ assert.equal(researchRecord.ratings.off.liking,null);
 assert.equal(researchRecord.ratings.on.liking,null);
 assert.equal(researchRecord.objectiveDiagnostics.on.r3.mean,2);
 assert.equal(researchRecord.ablation[0],'r8');
+assert.deepEqual(Array.from(researchRecord.presentationOrder),['off','on']);
 assert.throws(()=>m.createResearchRecord(researchPair,'baseline'),{name:'TypeError'});
 const html=fs.readFileSync('index.html','utf8');
 for(const id of ['m7Evaluation','m7RatingFields','m7RatingSave','m7RatingExport','m7RatingStatus'])assert(html.includes('id="'+id+'"'));
