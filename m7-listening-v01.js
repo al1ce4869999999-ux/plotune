@@ -47,7 +47,7 @@ function attach(doc,api,AudioContextClass){
    const node=context.createBufferSource(),gain=context.createGain();
    gain.gain.value=gainFor(item.track);node.buffer=buffer;node.loop=true;node.connect(gain);gain.connect(context.destination);
    node.start(0,offset);source=node;transport={id,offset,started:context.currentTime,duration:buffer.duration};
-   report((LABELS[id]||('研究'+id.slice(3).toUpperCase()))+' · '+offset.toFixed(1)+'秒から再生');
+   report((LABELS[id]||(id.startsWith('r9-')?'比較曲':'研究比較'))+' · '+offset.toFixed(1)+'秒から再生');
   }catch(e){stop();report('再生エラー: '+e.message);}
  }
  function create(){
@@ -71,6 +71,10 @@ function attach(doc,api,AudioContextClass){
   const seed=Number(doc.getElementById('m7Seed').value),excluded=doc.getElementById('r9Ablation')?.value;
   try{
    research=api.generateResearchPairs(input,seed,undefined,excluded?[excluded]:[]);
+   const modes=seed%2===0?['on','off']:['off','on'];
+   research.presentationOrder=modes.slice();
+   const holder=researchButtons[0]?.parentNode;
+   if(holder&&researchButtons.every(b=>b?.parentNode===holder))modes.forEach((mode,i)=>{const button=researchButtons[mode==='off'?0:1];button.textContent='▶ 曲'+(i+1);holder.appendChild(button);});
    researchButtons.forEach(b=>{if(b)b.disabled=false;});
    root.PlotuneM7Evaluation?.researchController?.begin(research,doc.getElementById('r9Condition')?.value||'phase-m');
    report('研究OFF/ON生成完了 · 同じ位置で比較可能');
