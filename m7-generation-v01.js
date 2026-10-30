@@ -68,5 +68,31 @@ function generate(input,seed,dependencies){
  });
  return {schemaVersion:'m7.1-v1',request:req,tracks};
 }
-root.PlotuneM7Generation={IDS,condition,request,makePlans,generate,dependenciesFromRoot};
+const RESEARCH_FLAGS=Object.freeze({
+ r2:['musicTensionR2','musicTensionR2Selection'],
+ r3:['musicExpectancyR3','musicExpectancyR3Selection'],
+ r4:['musicIdentityNoveltyR4','musicIdentityNoveltyR4Selection'],
+ r5:['musicArrangementPerceptionR5'],
+ r6:['musicArrangementOptimizationR6'],
+ r7:['musicTransitionEvaluationR7'],
+ r8:['musicTransitionOptimizationR8']
+});
+function researchFlags(enabled,ablation=[]){
+ if(!Array.isArray(ablation)||ablation.some(k=>!Object.hasOwn(RESEARCH_FLAGS,k)))throw new RangeError('unknown research ablation');
+ return Object.fromEntries(Object.entries(RESEARCH_FLAGS).flatMap(([key,flags])=>flags.map(flag=>[flag,Boolean(enabled)&&!ablation.includes(key)])));
+}
+function generateResearchPairs(input,seed,dependencies,ablation=[]){
+ dependencies=dependencies||dependenciesFromRoot();
+ const req=request(input,seed),plans=makePlans(req,dependencies),tracks=[];
+ for(const {conditionId,config,plan} of plans){
+  for(const mode of ['off','on']){
+   const flags=researchFlags(mode==='on',ablation);
+   const track=dependencies.handheld.render({...clone(plan),...flags});
+   if(!track?.samples||!track.score||!Number.isFinite(track.sampleRate)||track.samples.length!==Math.round(req.duration*track.sampleRate)||!track.samples.every(Number.isFinite))throw new RangeError('invalid research rendered track');
+   tracks.push({conditionId,mode,config:{...config,research:flags},request:req,track});
+  }
+ }
+ return {schemaVersion:'r9.research-pairs.v1',request:req,ablation:ablation.slice(),tracks};
+}
+root.PlotuneM7Generation={IDS,condition,request,makePlans,generate,dependenciesFromRoot,RESEARCH_FLAGS,researchFlags,generateResearchPairs};
 })(typeof window!=='undefined'?window:globalThis);
