@@ -115,5 +115,88 @@ function planH2(phrases,options={}){
  }
  return {chords,phrases:phrases.map(p=>p.map(e=>({...e}))),decisions};
 }
-root.PlotuneM3Harmony={plan,phraseFit,voiceLeading,planH2,h2Classify};
+
+/* H3: bounded multi-bar beam search; scale degrees stay in the global H1 frame.
+ * keyOffset is a diatonic degree offset, not a MIDI semitone or a motif rewrite.
+ * Modulation is restricted to phrase boundaries with preparation and confirmation.
+ */
+function planH3(phrases,options={}){
+ if(!Array.isArray(phrases)||!phrases.length||phrases.some(p=>!Array.isArray(p)||!p.length))
+  throw new TypeError('phrase bars required');
+ const progression=Array.isArray(options.progression)&&options.progression.length?options.progression:[0,4,5,3];
+ const width=Number.isInteger(options.beamWidth)?clamp(options.beamWidth,1,24):12;
+ const original=JSON.stringify(phrases);
+ const evidence=(bar,key)=>{
+  const notes=phrases[bar].filter(e=>!e.rest&&Number.isInteger(e.localScaleDegree??e.degree));
+  if(!notes.length)return 0;
+  const target=[key,key+2,key+4].map(mod);
+  return notes.reduce((s,e)=>{
+   const d=mod(e.localScaleDegree??e.degree);
+   return s+(target.includes(d)?1:0);
+  },0)/notes.length;
+ };
+ let beam=[{score:0,chords:[],regions:[],diagnostics:[],key:0,phase:'home',age:0,region:0,previous:null,tension:0}];
+ const beamSizes=[];
+ for(let b=0;b<phrases.length;b++){
+  const next=[];
+  const final=b===phrases.length-1;
+  const sectionBoundary=b>0&&b%4===0;
+  for(const state of beam){
+   const choices=[{key:state.key,phase:state.phase,region:state.region,age:state.age+1,reason:'retain'}];
+   // Prepare a dominant-related key at a structural boundary; stay long enough to establish it.
+   if(sectionBoundary&&state.key===0&&state.age>=3&&b+4<phrases.length&&
+      evidence(b,4)>=.45&&evidence(b+1,4)>=.35){
+    choices.push({key:4,phase:'transition',region:state.region+1,age:1,reason:'dominant-pivot'});
+   }
+   if(sectionBoundary&&state.key===4&&state.age>=4&&b+2<phrases.length&&
+      evidence(b,0)>=.45){
+    choices.push({key:0,phase:'return',region:state.region+1,age:1,reason:'tonic-return'});
+   }
+   for(const choice of choices){
+    const establishing=choice.phase==='transition'||choice.phase==='return';
+    const phase=establishing&&choice.age>=2?'established':choice.phase;
+    for(let local=0;local<7;local++){
+     const chord=mod(local+choice.key);
+     const diagnostic=h2Classify(phrases[b],chord);
+     const fit=phrases[b].reduce((sum,e,i)=>sum+(e.rest?0:diagnostic.notes[i].chordTone?1:
+       diagnostic.notes[i].role?.25:diagnostic.notes[i].intentional?0:-.5),0);
+     const previous=state.previous;
+     const motion=voiceLeading(chord,previous);
+     const repeat=previous===chord?.40:0;
+     const expected=mod(progression[b%progression.length]);
+     const cadence=final?(choice.key===0&&local===0?2.2:-2):0;
+     const preparation=b%4===3&&local===4?.65:0;
+     const tension=(local===4||local===6)?1:local===0?0:.5;
+     const resolution=state.tension>tension?.35:0;
+     const harmonicRhythm=(previous!==null&&previous!==chord?.10:0);
+     const modulation=establishing&&choice.age===1?-1.1:0;
+     const pitchEvidence=choice.key===0?0:evidence(b,choice.key)*.5-.20;
+     const stepScore=fit-diagnostic.collisions*1.5-motion*.19-repeat+
+       (chord===expected?.62:0)+cadence+preparation+resolution+harmonicRhythm+
+       modulation+pitchEvidence;
+     next.push({score:state.score+stepScore,chords:state.chords.concat(chord),
+       regions:state.regions.concat({bar:b,regionId:choice.region,keyOffset:choice.key,
+         localChordDegree:local,globalChordDegree:chord,phase,
+         reason:choice.reason}),
+       diagnostics:state.diagnostics.concat({bar:b,score:stepScore,fit,voiceLeading:motion,
+         collisions:diagnostic.collisions,nonChord:diagnostic.notes,
+         transition:choice.reason,tension}),key:choice.key,phase,
+       age:choice.age,region:choice.region,previous:chord,tension});
+    }
+   }
+  }
+  // Explicit deterministic tie-break; avoid unstable equal-score ordering.
+  next.sort((a,b)=>b.score-a.score||a.chords.join(',').localeCompare(b.chords.join(','))||
+    a.regions.map(r=>r.keyOffset).join(',').localeCompare(b.regions.map(r=>r.keyOffset).join(',')));
+  beam=next.slice(0,width);
+  beamSizes.push(beam.length);
+ }
+ const best=beam[0];
+ if(JSON.stringify(phrases)!==original)throw new Error('H3 modified source phrases');
+ return {chords:best.chords,phrases:phrases.map(p=>p.map(e=>({...e}))),
+  regions:best.regions,decisions:best.diagnostics,score:best.score,
+  search:{beamWidth:width,beamSizes}};
+}
+
+root.PlotuneM3Harmony={plan,phraseFit,voiceLeading,planH2,h2Classify,planH3};
 })(window);
