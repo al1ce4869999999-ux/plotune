@@ -36,8 +36,8 @@ function attach(doc,api,AudioContextClass){
  function position(){if(!transport||!context)return 0;const d=transport.duration;return (transport.offset+Math.max(0,context.currentTime-transport.started))%d;}
  function stop(){epoch++;if(source){try{source.onended=null;source.stop();source.disconnect();}catch{}source=null;}transport=null;}
  async function play(id){
-  if(!result)return;
-  const item=id.startsWith('r9-')?research?.tracks.find(x=>x.conditionId===doc.getElementById('r9Condition')?.value&&x.mode===id.slice(3)):result.tracks.find(x=>x.conditionId===id);if(!item)return;
+  if(!result&&!research)return;
+  const item=id.startsWith('r9-')?research?.tracks.find(x=>x.conditionId===doc.getElementById('r9Condition')?.value&&x.mode===id.slice(3)):result?.tracks.find(x=>x.conditionId===id);if(!item)return;
   const offset=transport?position():0;stop();const ticket=epoch;
   try{
    if(!AudioContextClass)throw new Error('Web Audio unavailable');
@@ -77,7 +77,7 @@ function attach(doc,api,AudioContextClass){
  }
  researchMake?.addEventListener('click',createResearch);
  researchButtons.forEach((b,i)=>b?.addEventListener('click',()=>play('r9-'+(i===0?'off':'on'))));
- doc.getElementById('r9Condition')?.addEventListener('change',()=>{stop();});
+ doc.getElementById('r9Condition')?.addEventListener('change',()=>{stop();buffers.clear();});
 make.addEventListener('click',create);
  buttons.forEach((b,i)=>b.addEventListener('click',()=>play(IDS[i])));
  stopButton.addEventListener('click',()=>{stop();report('停止しました');});
