@@ -156,6 +156,8 @@ button:focus-visible{outline:3px solid white;outline-offset:2px}
 <p class="note">DS風ゲームサウンド専用。同じseed・曲長で4曲を生成し、再生中に切り替えると同じ位置から続きます。</p>
 <label for="m7Seed">比較用seed</label><input id="m7Seed" type="number" min="0" max="4294967295" step="1" value="20261023">
 <div class="actions"><button id="m7Make" type="button">🎼 4曲を生成して聴き比べ</button></div>
+<div class="actions"><label for="r9Condition">R9比較条件</label><select id="r9Condition"><option value="baseline">Baseline</option><option value="phase">Phase</option><option value="m">M</option><option value="phase-m" selected>Phase + M</option></select><label for="r9Ablation">除外する研究</label><select id="r9Ablation"><option value="">除外なし</option><option value="r2">R2</option><option value="r3">R3</option><option value="r4">R4</option><option value="r5">R5</option><option value="r6">R6</option><option value="r7">R7</option><option value="r8">R8</option></select></div>
+<div class="actions"><button id="r9Make" type="button">R9 研究OFF/ONを生成</button><button id="r9Play-off" type="button" disabled>▶ 研究OFF</button><button id="r9Play-on" type="button" disabled>▶ 研究ON</button></div>
 <div class="actions dual-tracks">
 <button id="m7Play-baseline" class="alt" disabled type="button">▶ Baseline</button>
 <button id="m7Play-phase" class="alt" disabled type="button">▶ Phase</button>
