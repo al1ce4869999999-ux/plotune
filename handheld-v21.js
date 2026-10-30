@@ -353,9 +353,10 @@ function score(plan){
  }
  if(h0Phrases)h0Phrases.afterM2=sharedPhrases?sharedPhrases.map(p=>p.map(e=>({...e}))):null;
  // M3 shared melody/harmony planning (opt-in).
- const h2Enabled=plan.h2HarmonyAlignment===true && !!root.PlotuneM3Harmony?.planH2;
+ const h3Enabled=plan.h3HarmonicContinuity===true && !!root.PlotuneM3Harmony?.planH3;
+ const h2Enabled=(plan.h2HarmonyAlignment===true && !!root.PlotuneM3Harmony?.planH2)||h3Enabled;
  const m3JointPlan=(plan.musicHarmony===true||h2Enabled) && sharedPhrases && root.PlotuneM3Harmony?
-  (h2Enabled?root.PlotuneM3Harmony.planH2:root.PlotuneM3Harmony.plan)(sharedPhrases,{progression:prog,tension:clamp(Number(plan.harmonicTension)||.45,0,1)}):null;
+  (h3Enabled?root.PlotuneM3Harmony.planH3:h2Enabled?root.PlotuneM3Harmony.planH2:root.PlotuneM3Harmony.plan)(sharedPhrases,{progression:prog,tension:clamp(Number(plan.harmonicTension)||.45,0,1)}):null;
  if(m3JointPlan)for(let b=0;b<bars;b++)sharedPhrases[b]=m3JointPlan.phrases[b];
  if(h0Phrases){h0Phrases.afterM3=sharedPhrases?sharedPhrases.map(p=>p.map(e=>({...e}))):null;h0Phrases.chords=m3JointPlan?[...m3JointPlan.chords]:null;}
  // Repeat 4-bar thematic material; vary density and fills but keep a looping identity.
@@ -973,6 +974,7 @@ function score(plan){
   accompanimentNotes:voices.chords+voices.pad+voices.arp,
   bassNotes:voices.bass,percussionHits:voices.drums,
   breaks:0,shiftedChords:transform?bars:0,cueHits:transform?1:0,
+  ...(h3Enabled&&m3JointPlan?{h3:{regions:m3JointPlan.regions,decisions:m3JointPlan.decisions,search:m3JointPlan.search,score:m3JointPlan.score}}:{}),
   harmonyChanges:harmony.length,rests,events:[],harmonies:harmony
  };
  return {notes,drums,rests,harmony,theme:motif,details,genre:'game',
