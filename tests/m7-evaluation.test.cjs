@@ -4,6 +4,10 @@ vm.runInNewContext(fs.readFileSync('m7-evaluation-v01.js','utf8'),ctx);
 const m=ctx.PlotuneM7Evaluation;
 const generation={request:{seed:42,scene:'forest',style:'handheld',gameStyle:'auto',duration:15},tracks:m.IDS.map(conditionId=>({conditionId}))};
 const record=m.createRecord(generation);
+for(const key of ['difference','emotionalComplexity','motifRecognition','variationFreshness','melodyClarity','boundaryPersuasiveness','wholeSongCoherence','relistenIntent']){
+ assert(m.CRITERIA.some(([name])=>name===key));
+ assert.equal(record.ratings.baseline[key],null);
+}
 assert.equal(record.seed,42);assert.equal(m.complete(record),false);
 assert.equal(record.generation.schemaVersion,null);
 assert.equal(record.generation.conditions.length,4);
