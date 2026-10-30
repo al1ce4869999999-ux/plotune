@@ -336,7 +336,7 @@ function score(plan){
    b===0?motifPhrase:root.PlotuneMelodicGrammar.composePhrase(sharedGrammar,b,
      motifIdentity?{
        motifIdentity,
-       preserveSignature:plan.musicDevelopment===true,
+       preserveSignature:plan.m1CandidateSelection===true,
        motifTransform:arcAt(b).stage==='climax'?'contrast':
          arcAt(b).stage==='resolution'?'return':'variation'
      }:{
@@ -353,7 +353,7 @@ function score(plan){
   }
   return [...new Set([sounding[0].index,strongest.index])];
  };
- const m1Anchors=plan.musicDevelopment===true&&sharedPhrases?
+ const m1Anchors=plan.musicDevelopment===true&&plan.m1CandidateSelection===true&&sharedPhrases?
   sharedPhrases.map(motifAnchors):null;
  // R2 tension diagnostics use explicit per-section targets, never infer tension from emotion.
  const r2Sections=plan.musicTensionR2===true&&plan.tensionPlan?.schema==='plotune.tension-plan'&&Array.isArray(plan.tensionPlan.sections)?plan.tensionPlan.sections:null;
