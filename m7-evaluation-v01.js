@@ -85,6 +85,12 @@ function createResearchRecord(generation,conditionId){
   objectiveDiagnostics:Object.fromEntries(pair.map(t=>[t.mode,diagnosticsFor(t)])),
   ratings:Object.fromEntries(['off','on'].map(mode=>[mode,Object.fromEntries(CRITERIA.map(([key])=>[key,null]))])),notes:{off:'',on:''}};
 }
+function compareResearchRatings(record){
+ return Object.fromEntries(CRITERIA.map(([key])=>{
+  const off=record.ratings.off[key],on=record.ratings.on[key];
+  return [key,{off,on,delta:off===null||on===null?null:on-off}];
+ }));
+}
 function attachResearch(doc,storage){
  const panel=doc.getElementById('r9Evaluation'),body=doc.getElementById('r9RatingFields'),message=doc.getElementById('r9RatingStatus');
  if(!panel||!body)return null;
@@ -103,10 +109,10 @@ function attachResearch(doc,storage){
   }
   message.textContent='研究OFF/ONの評価を開始しました。';
  }
- doc.getElementById('r9RatingSave')?.addEventListener('click',()=>{if(!record)return;try{storage.setItem('plotune-r9-rating-v1',JSON.stringify(record));message.textContent='R9評価を保存しました';}catch(e){message.textContent='保存失敗: '+e.message;}});
+ doc.getElementById('r9RatingSave')?.addEventListener('click',()=>{if(!record)return;try{storage.setItem('plotune-r9-rating-v1',JSON.stringify(record));const deltas=compareResearchRatings(record);message.textContent='R9評価を保存しました · 好き '+(deltas.liking.delta??'未評価')+' / 自然さ '+(deltas.naturalness.delta??'未評価')+'（ON−OFF）';}catch(e){message.textContent='保存失敗: '+e.message;}});
  doc.getElementById('r9RatingExport')?.addEventListener('click',()=>{if(!record)return;const url=URL.createObjectURL(new Blob([JSON.stringify(record,null,2)],{type:'application/json'}));const link=doc.createElement('a');link.href=url;link.download='plotune-r9-'+record.seed+'.json';doc.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);});
  return {begin,get record(){return record;}};
 }
-root.PlotuneM7Evaluation={IDS,CRITERIA,DIAGNOSTIC_KEYS,diagnosticsFor,rating,createRecord,setRating,complete,compareRatings,attach,createResearchRecord,attachResearch};
+root.PlotuneM7Evaluation={IDS,CRITERIA,DIAGNOSTIC_KEYS,diagnosticsFor,rating,createRecord,setRating,complete,compareRatings,attach,createResearchRecord,compareResearchRatings,attachResearch};
 if(typeof document!=='undefined'){root.PlotuneM7Evaluation.controller=attach(document,root.PlotuneM7Listening,root.localStorage);root.PlotuneM7Evaluation.researchController=attachResearch(document,root.localStorage);}
 })(typeof window!=='undefined'?window:globalThis);
