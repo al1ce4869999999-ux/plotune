@@ -10,6 +10,14 @@ Branch: `feature/h3-harmonic-continuity`. Do not merge to main.
 - `handheld-v21.js`: `h3HarmonicContinuity` opt-in, H2-preserving OFF path, ON diagnostics in `score.details.h3`. H3 implies H2's no-chord-root-addition path for the lead.
 - `tests/h3-harmonic-continuity.test.cjs`: motif immutability, determinism, region mapping, OFF note/harmony comparisons at 15/30/60 seconds, independent opt-in.
 
+## Follow-up H3 search correction
+- Added repeated-chord streak penalty so a high local note-fit does not force the same root through an entire phrase.
+- Added beam-state diversity keyed by local tonic, phase, tenure, last chord and repetition streak, retaining distinct tonal hypotheses.
+- Inspected isolated planner execution through the GitHub-connected JavaScript runtime (NOT Node and NOT full existing tests): 16-bar representative input yielded chords `4,4,4,4,0,4,4,4,0,4,4,4,0,4,4,0`; repeat call produced the same serialized planning output. The example stayed in global key 0 throughout; it does NOT demonstrate successful modulation.
+- The 4-degree key offset currently represents a diatonic tonicization within the original scale. Real chromatic-key modulation/tonic establishment is **not implemented** and must not be called verified H3 modulation.
+- Impacted existing tests: `tests/m3-harmony-melody.test.cjs`, `tests/m3-harmony-ab-ui.test.cjs`, `tests/engine.test.cjs`, `tests/h0-diagnostics.test.cjs`, `tests/h0-real-engine.test.cjs`, `tests/motif-phrase-integration.test.cjs`, `tests/motif-planner-v01.test.cjs`, `tests/motif-score-integration.test.cjs`; new `tests/h3-harmonic-continuity.test.cjs`.
+- Local Node v22.16.0 is available in the tool container, but the repository could not be cloned because GitHub DNS lookup failed. Node repository tests and PCM rendering remain unexecuted.
+
 ## Not yet verified / blockers
 - Required formal `docs/HIERARCHICAL_TONAL_HARMONY_IMPLEMENTATION_PLAN.md` is absent from the H2 branch tree. The H2 completion/handoff note exists. Reconcile with the authoritative plan before final approval.
 - Node tests **NOT RUN** in the present environment: repository checkout unavailable, and GitHub connector does not provide a local Node execution environment.
