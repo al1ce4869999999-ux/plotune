@@ -135,7 +135,7 @@ function planH3(phrases,options={}){
    return s+(target.includes(d)?1:0);
   },0)/notes.length;
  };
- let beam=[{score:0,chords:[],regions:[],diagnostics:[],key:0,phase:'home',age:0,region:0,previous:null,tension:0}];
+ let beam=[{score:0,chords:[],regions:[],diagnostics:[],key:0,phase:'home',age:0,region:0,previous:null,tension:0,streak:0}];
  const beamSizes=[];
  for(let b=0;b<phrases.length;b++){
   const next=[];
@@ -162,7 +162,8 @@ function planH3(phrases,options={}){
        diagnostic.notes[i].role?.25:diagnostic.notes[i].intentional?0:-.5),0);
      const previous=state.previous;
      const motion=voiceLeading(chord,previous);
-     const repeat=previous===chord?.40:0;
+     const streak=previous===chord?state.streak+1:1;
+     const repeat=previous===chord?.40+.34*Math.min(6,streak-2):0;
      const expected=mod(progression[b%progression.length]);
      const cadence=final?(choice.key===0&&local===0?2.2:-2):0;
      const preparation=b%4===3&&local===4?.65:0;
@@ -181,14 +182,24 @@ function planH3(phrases,options={}){
        diagnostics:state.diagnostics.concat({bar:b,score:stepScore,fit,voiceLeading:motion,
          collisions:diagnostic.collisions,nonChord:diagnostic.notes,
          transition:choice.reason,tension}),key:choice.key,phase,
-       age:choice.age,region:choice.region,previous:chord,tension});
+       age:choice.age,region:choice.region,previous:chord,tension,streak});
     }
    }
   }
   // Explicit deterministic tie-break; avoid unstable equal-score ordering.
   next.sort((a,b)=>b.score-a.score||a.chords.join(',').localeCompare(b.chords.join(','))||
     a.regions.map(r=>r.keyOffset).join(',').localeCompare(b.regions.map(r=>r.keyOffset).join(',')));
-  beam=next.slice(0,width);
+  // Keep distinct tonal paths in the bounded beam instead of letting every
+  // slot be occupied by near-identical repeats of the same key/chord state.
+  const selected=[],seen=new Set();
+  for(const candidate of next){
+   const signature=[candidate.key,candidate.phase,candidate.age>=2?2:1,
+     candidate.previous,Math.min(candidate.streak,3)].join(':');
+   if(seen.has(signature))continue;
+   seen.add(signature);selected.push(candidate);
+   if(selected.length===width)break;
+  }
+  beam=selected;
   beamSizes.push(beam.length);
  }
  const best=beam[0];
