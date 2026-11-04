@@ -356,12 +356,16 @@ function score(plan){
  const h3Enabled=plan.h3HarmonicContinuity===true && !!root.PlotuneM3Harmony?.planH3;
  const h2Enabled=(plan.h2HarmonyAlignment===true && !!root.PlotuneM3Harmony?.planH2)||h3Enabled;
  const m3JointPlan=(plan.musicHarmony===true||h2Enabled) && sharedPhrases && root.PlotuneM3Harmony?
-  (h3Enabled?root.PlotuneM3Harmony.planH3:h2Enabled?root.PlotuneM3Harmony.planH2:root.PlotuneM3Harmony.plan)(sharedPhrases,{progression:prog,tension:clamp(Number(plan.harmonicTension)||.45,0,1)}):null;
+  (h3Enabled?root.PlotuneM3Harmony.planH3:h2Enabled?root.PlotuneM3Harmony.planH2:root.PlotuneM3Harmony.plan)(sharedPhrases,{progression:prog,mode:game.mode,tension:clamp(Number(plan.harmonicTension)||.45,0,1)}):null;
  if(m3JointPlan)for(let b=0;b<bars;b++)sharedPhrases[b]=m3JointPlan.phrases[b];
  if(h0Phrases){h0Phrases.afterM3=sharedPhrases?sharedPhrases.map(p=>p.map(e=>({...e}))):null;h0Phrases.chords=m3JointPlan?[...m3JointPlan.chords]:null;}
  // Repeat 4-bar thematic material; vary density and fills but keep a looping identity.
  for(let b=0;b<bars;b++){
   const chord=m3JointPlan?m3JointPlan.chords[b]:chordAt(b),next=m3JointPlan?m3JointPlan.chords[(b+1)%bars]:chordAt((b+1)%bars),barAt=b*meter;
+  const tonalRegion=h3Enabled?m3JointPlan?.regions[b]:null;
+  const keySemitones=tonalRegion?.keySemitones||0;
+  const tonalMidi=(root,degree)=>tonalRegion?.keyOffset===4?
+    midi(root+keySemitones,MAJOR,degree-tonalRegion.keyOffset):midi(root,scale,degree);
   harmony.push({t:barAt,chord});
   const section=b%4;
   const lift=b%8===4||kind==='bright';
@@ -369,7 +373,7 @@ function score(plan){
    const energy=clamp((section===2?1.08:section===3?.87:1)*(kind==='tense'?.76:kind==='effort'?1.12:1)*songEnergy*arcState.energy,.22,1.38);
   const isLast=b===bars-1;
   // Baseline original chord voicings, game ensemble uses bright, close four notes.
-  for(const d of [0,2,4,6])add(barAt,step*15.2,midi(tonic,scale,chord+d)-12,'pad',.016*energy);
+  for(const d of [0,2,4,6])add(barAt,step*15.2,tonalMidi(tonic,chord+d)-12,'pad',.016*energy);
   for(let i=0;i<16;i++){
    const t=barAt+i*step,beat=i%4,on=i%8;
    // Shared melodic phrasing; arrangement and instruments remain style-specific.
@@ -395,13 +399,13 @@ function score(plan){
    if(chordHit){
     const dur=step*(kind==='tense'?4:3.2);
     [0,2,4].forEach((degree,j)=>add(t+step*.045*j,dur,
-      midi(tonic,scale,chord+degree),'chords',.042*energy));
+      tonalMidi(tonic,chord+degree),'chords',.042*energy));
    }
    // Independent fast arpeggiator; alternates with chord stabs.
    if((i%(game.arpEvery===4?4:game.arpEvery===2?2:1)===(game.arpEvery===4?3:game.arpEvery===2?1:0)) || kind==='effort'&&i%2===0 || kind==='playful'&&i%3===0){
     const arpDegree=chord+[0,2,4,6,4,2,0,4][Math.floor(i/2)%8];
     add(t,step*(kind==='tense'?2:1.25),
-      midi(tonic+12,scale,arpDegree),'arp',.028*energy);
+      tonalMidi(tonic+12,arpDegree),'arp',.028*energy);
    }
    // Bass line is independent and changes its rhythmic intent with the story.
    if(i%4===0||game.bass==='running'&&i%2===0||game.bass==='bounce'&&i%4===3||kind==='effort'&&i%4===2||kind==='playful'&&i%4===3){
@@ -410,7 +414,7 @@ function score(plan){
       kind==='playful'?chord+[0,4,2,4][Math.floor(i/4)%4]:
       chord+(i===12?4:0);
     add(t,step*(kind==='tense'?4:2.8),
-      midi(tonic-24,scale,bassDegree),'bass',.11*energy);
+      tonalMidi(tonic-24,bassDegree),'bass',.11*energy);
    }
    // Groove is selected from the entire plot, starting on the first beat.
    const drumMode=game.drums;
@@ -447,11 +451,11 @@ function score(plan){
      if(i===12&&drumMode==='light')drum(t,'rim',.21*energy);
    }
    // Glitter is short and rare; it must not mask the lead.
-   if(i===3||i===11&&lift || shape==='spark'&&i===7)add(t,step*3.1,midi(tonic+24,scale,chord+4),
+   if(i===3||i===11&&lift || shape==='spark'&&i===7)add(t,step*3.1,tonalMidi(tonic+24,chord+4),
       'sparkle',.028*energy);
   }
   // Soft pickup to the next loop avoids terminal success cadence.
-  if(isLast)add(barAt+14*step,step*1.7,midi(tonic+12,scale,next),'counter',.034);
+  if(isLast)add(barAt+14*step,step*1.7,tonalMidi(tonic+12,next),'counter',.034);
  }
  // Re-orchestrate all layers for melancholy and dread. Pop/arpeggio
  // rhythms are deliberately removed; sustained melody and silence matter.
