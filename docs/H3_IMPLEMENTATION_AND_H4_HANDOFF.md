@@ -18,10 +18,18 @@ Branch: `feature/h3-harmonic-continuity`. Do not merge to main.
 - Impacted existing tests: `tests/m3-harmony-melody.test.cjs`, `tests/m3-harmony-ab-ui.test.cjs`, `tests/engine.test.cjs`, `tests/h0-diagnostics.test.cjs`, `tests/h0-real-engine.test.cjs`, `tests/motif-phrase-integration.test.cjs`, `tests/motif-planner-v01.test.cjs`, `tests/motif-score-integration.test.cjs`; new `tests/h3-harmonic-continuity.test.cjs`.
 - Local Node v22.16.0 is available in the tool container, but the repository could not be cloned because GitHub DNS lookup failed. Node repository tests and PCM rendering remain unexecuted.
 
+## 2026-11-04 continuation — evidence and limitations
+- Added chromatic **G-major** dominant-related region for original major mode: `keySemitones=7`, `keyScale='major'`, a local chord-degree ledger, and region-aware accompaniment rendering. H1 lead events and motif degrees stay unchanged. Minor-key modulation is intentionally disabled rather than pretending a nonchromatic offset constitutes modulation.
+- Added forced structurally prepared tonic return at a 4-bar boundary near the ending when incoming notes strongly support the home tonic. A 24-bar synthetic fixture with leading dominant-region evidence produced key-region offsets: 4 bars in home, 16 in dominant, 4 in home. The stated example is a synthetic control, not a listening result.
+- H3 OFF direct comparison against H2 commit `99665823a882be9431ec46447ca049b4b20fcc2d`: under identical scenario and preset, **15s / 30s / 60s notes, harmony and raw Float32 PCM bytes identical** (V8 runtime loading repository JavaScript through GitHub connector). PCM byte lengths: 1,323,000 / 2,646,000 / 5,292,000; first mismatched byte: none in all three.
+- The comparison used a V8 JavaScript execution environment, **not a local Node checkout**, and covered one deterministic scenario per duration. Full multi-seed compatibility and existing Node suite remain pending.
+- Added H3 test fixtures for chromatic region transition, prepared return and PCM comparisons (`tests/h3-harmonic-continuity.test.cjs`); the Node test file remains **unexecuted**.
+- Current key evidence is a conservative heuristic over original diatonic melody degrees. Accidental-aware melodic composition, mode-changing modulation, orchestration of every specialized palette and human listening evaluation remain future design/validation tasks.
+
 ## Not yet verified / blockers
 - Required formal `docs/HIERARCHICAL_TONAL_HARMONY_IMPLEMENTATION_PLAN.md` is absent from the H2 branch tree. The H2 completion/handoff note exists. Reconcile with the authoritative plan before final approval.
 - Node tests **NOT RUN** in the present environment: repository checkout unavailable, and GitHub connector does not provide a local Node execution environment.
-- PCM byte comparisons H3 OFF vs H2 at 15/30/60 seconds **NOT RUN**. The test added here compares serialized notes and harmony, NOT PCM, and must not be presented as a byte-level PCM verification.
+- One reference scenario each at 15/30/60 seconds passed a **direct H2 commit versus H3 OFF byte comparison in V8**. The Node test harness and wider seeds/presets remain **NOT RUN**.
 - All affected baseline/related tests and H0 fixed baseline **NOT RUN**; H3 ON listener tests **NOT RUN**.
 - Actual modulation and tonal establishment quality remain to be measured; tonal-region metadata does not by itself demonstrate musically convincing modulation.
 
@@ -33,5 +41,5 @@ Branch: `feature/h3-harmonic-continuity`. Do not merge to main.
 5. Fix any failures without relaxing existing contracts, then record commands and outcomes here.
 
 ## Completion decision
-**H3 NOT COMPLETE** pending plan reconciliation, execution, PCM verification and auditory evaluation.
+**H3 NOT COMPLETE** pending authoritative plan reconciliation, full local Node regression/H0 baseline and proper multi-seed musical/tonal evaluation. The 15/30/60 single-scenario PCM equivalence evidence is recorded above.
 H4 must not assume H3 is technically complete.
