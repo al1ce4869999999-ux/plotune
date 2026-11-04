@@ -149,8 +149,14 @@ function planH3(phrases,options={}){
       evidence(b,4)>=.45&&evidence(b+1,4)>=.35){
     choices.push({key:4,phase:'transition',region:state.region+1,age:1,reason:'dominant-pivot'});
    }
-   if(allowDominant&&sectionBoundary&&state.key===4&&state.age>=4&&b+2<phrases.length&&
-      evidence(b,0)>=.45){
+   // The return must begin at a structural boundary with clear tonic evidence.
+   // Do not defer it until the final bar, where it would sound abrupt.
+   if(allowDominant&&sectionBoundary&&state.key===4&&state.age>=4&&
+      b>=phrases.length-4&&evidence(b,0)>=.45&&evidence(Math.min(b+1,phrases.length-1),0)>=.45){
+    choices.length=0;
+    choices.push({key:0,phase:'return',region:state.region+1,age:1,reason:'prepared-tonic-return'});
+   }else if(allowDominant&&sectionBoundary&&state.key===4&&state.age>=4&&
+      b+4<phrases.length&&evidence(b,0)>=.6){
     choices.push({key:0,phase:'return',region:state.region+1,age:1,reason:'tonic-return'});
    }
    for(const choice of choices){
