@@ -26,6 +26,19 @@ assert.equal(result.regions.at(-1).keyOffset,0,'home cadence');
 assert.ok(result.decisions.every(d=>Array.isArray(d.nonChord)&&Number.isFinite(d.score)));
 assert.throws(()=>M.planH3([]),/phrase bars/);
 assert.throws(()=>M.planH3([[]]),/phrase bars/);
+
+const modulate=Array.from({length:24},(_,barIndex)=>Array.from({length:4},(_,i)=>({
+ position:i*4,durationUnits:2,degree:barIndex<4||barIndex>=20?0:(4+[0,2,4,0][i])%7
+})));
+const mod=M.planH3(modulate,{mode:'major',beamWidth:24});
+assert.equal(mod.regions[4].keyOffset,4,'dominant modulation begins at structural boundary');
+assert.equal(mod.regions[4].keySemitones,7,'chromatic dominant key rises a perfect fifth');
+assert.equal(mod.regions[4].phase,'transition','modulation transition is explicit');
+assert.equal(mod.regions[20].keyOffset,0,'home return begins before the ending');
+assert.equal(mod.regions[20].phase,'return','home return is explicit');
+assert.deepEqual(mod.regions.map(r=>r.regionId).filter((x,i,a)=>i===0||x!==a[i-1]),[0,1,2]);
+assert.equal(JSON.stringify(modulate[4][0]),JSON.stringify({position:0,durationUnits:2,degree:4}),'modulation does not alter melody');
+
 const input={title:'H3 regression',character:'旅人',world:'森',scene:'歩いて帰る',style:'handheld',duration:30};
 for(const seconds of [15,30,60]){
  const scenario={...input,duration:seconds};
