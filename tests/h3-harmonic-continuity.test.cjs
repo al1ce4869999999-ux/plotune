@@ -12,14 +12,16 @@ const bar=[{position:0,durationUnits:2,degree:0,localScaleDegree:0,motifDegree:0
  {position:8,durationUnits:2,degree:6,localScaleDegree:6,motifDegree:6},
  {position:12,durationUnits:2,degree:1,localScaleDegree:1,motifDegree:1}];
 const phrases=Array.from({length:16},()=>bar.map(e=>({...e}))),snapshot=JSON.stringify(phrases);
-const result=M.planH3(phrases,{progression:[0,4,5,3]});
+const result=M.planH3(phrases,{progression:[0,4,5,3],mode:'major'});
 assert.equal(JSON.stringify(phrases),snapshot,'H3 source remains unchanged');
 assert.equal(JSON.stringify(result.phrases),snapshot,'H3 motif/local degree unchanged');
-assert.equal(JSON.stringify(result),JSON.stringify(M.planH3(phrases,{progression:[0,4,5,3]})),'H3 deterministic');
+assert.equal(JSON.stringify(result),JSON.stringify(M.planH3(phrases,{progression:[0,4,5,3],mode:'major'})),'H3 deterministic');
 assert.equal(result.chords.length,16);assert.equal(result.regions.length,16);
 assert.ok(result.regions.every((r,i)=>r.bar===i&&r.globalChordDegree===result.chords[i]));
 assert.ok(result.regions.every(r=>Number.isInteger(r.regionId)&&[0,4].includes(r.keyOffset)));
 assert.equal(result.regions[0].keyOffset,0,'start in home key');
+assert.ok(result.regions.every(r=>r.keySemitones===0||r.keySemitones===7));
+assert.ok(M.planH3(phrases,{mode:'minor'}).regions.every(r=>r.keyOffset===0),'no unimplemented minor-key modulation');
 assert.equal(result.regions.at(-1).keyOffset,0,'home cadence');
 assert.ok(result.decisions.every(d=>Array.isArray(d.nonChord)&&Number.isFinite(d.score)));
 assert.throws(()=>M.planH3([]),/phrase bars/);
@@ -33,6 +35,9 @@ for(const seconds of [15,30,60]){
  const off=H.score({...base,h3HarmonicContinuity:false});
  assert.equal(JSON.stringify(off.notes),JSON.stringify(h2.notes),'H3 OFF H2 notes '+seconds);
  assert.equal(JSON.stringify(off.harmony),JSON.stringify(h2.harmony),'H3 OFF H2 harmony '+seconds);
+ const h2pcm=Buffer.from(H.render(base,h2).samples.buffer);
+ const offpcm=Buffer.from(H.render({...base,h3HarmonicContinuity:false},off).samples.buffer);
+ assert.deepEqual(offpcm,h2pcm,'H3 OFF H2 raw Float32 PCM bytes '+seconds);
  const on=H.score({...base,h3HarmonicContinuity:true});
  const again=H.score({...base,h3HarmonicContinuity:true});
  assert.equal(JSON.stringify(on.notes),JSON.stringify(again.notes),'H3 ON deterministic notes '+seconds);
