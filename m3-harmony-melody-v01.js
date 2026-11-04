@@ -123,6 +123,7 @@ function planH2(phrases,options={}){
 function planH3(phrases,options={}){
  if(!Array.isArray(phrases)||!phrases.length||phrases.some(p=>!Array.isArray(p)||!p.length))
   throw new TypeError('phrase bars required');
+ const allowDominant=options.mode==='major';
  const progression=Array.isArray(options.progression)&&options.progression.length?options.progression:[0,4,5,3];
  const width=Number.isInteger(options.beamWidth)?clamp(options.beamWidth,1,24):12;
  const original=JSON.stringify(phrases);
@@ -144,11 +145,11 @@ function planH3(phrases,options={}){
   for(const state of beam){
    const choices=[{key:state.key,phase:state.phase,region:state.region,age:state.age+1,reason:'retain'}];
    // Prepare a dominant-related key at a structural boundary; stay long enough to establish it.
-   if(sectionBoundary&&state.key===0&&state.age>=3&&b+4<phrases.length&&
+   if(allowDominant&&sectionBoundary&&state.key===0&&state.age>=3&&b+4<phrases.length&&
       evidence(b,4)>=.45&&evidence(b+1,4)>=.35){
     choices.push({key:4,phase:'transition',region:state.region+1,age:1,reason:'dominant-pivot'});
    }
-   if(sectionBoundary&&state.key===4&&state.age>=4&&b+2<phrases.length&&
+   if(allowDominant&&sectionBoundary&&state.key===4&&state.age>=4&&b+2<phrases.length&&
       evidence(b,0)>=.45){
     choices.push({key:0,phase:'return',region:state.region+1,age:1,reason:'tonic-return'});
    }
@@ -157,7 +158,22 @@ function planH3(phrases,options={}){
     const phase=establishing&&choice.age>=2?'established':choice.phase;
     for(let local=0;local<7;local++){
      const chord=mod(local+choice.key);
+     // Evaluate against the actual active major-key triad in semitone space.
+     // The lead stays in the original H1 frame; chromatic chord tones remain distinct.
+     const keySemitones=choice.key===4?7:0;
+     const activeScale=options.mode==='minor'?[0,2,3,5,7,8,10]:[0,2,4,5,7,9,11];
+     const pc=x=>(x%12+12)%12;
+     const chordPcs=[0,2,4].map(d=>pc(keySemitones+activeScale[mod(local+d)]));
      const diagnostic=h2Classify(phrases[b],chord);
+     if(choice.key===4)for(let i=0;i<phrases[b].length;i++){
+      const e=phrases[b][i],n=diagnostic.notes[i];
+      if(e.rest||!Number.isInteger(e.localScaleDegree??e.degree))continue;
+      const originalPc=pc(activeScale[mod(e.localScaleDegree??e.degree)]);
+      n.chordTone=chordPcs.includes(originalPc);
+      if(n.chordTone){n.role=null;n.collision=false;}
+      else n.collision=e.position%4<.6&&!n.role&&!n.intentional;
+     }
+     diagnostic.collisions=diagnostic.notes.filter(n=>n.collision).length;
      const fit=phrases[b].reduce((sum,e,i)=>sum+(e.rest?0:diagnostic.notes[i].chordTone?1:
        diagnostic.notes[i].role?.25:diagnostic.notes[i].intentional?0:-.5),0);
      const previous=state.previous;
@@ -171,13 +187,16 @@ function planH3(phrases,options={}){
      const resolution=state.tension>tension?.35:0;
      const harmonicRhythm=(previous!==null&&previous!==chord?.10:0);
      const modulation=establishing&&choice.age===1?-1.1:0;
-     const pitchEvidence=choice.key===0?0:evidence(b,choice.key)*.5-.20;
+     const pitchEvidence=choice.key===0?0:evidence(b,choice.key)*1.0-.20;
+     // An established tonic (I) is stronger evidence than simple diatonic overlap.
+     const establishment=choice.key===4&&local===0&&choice.age>=2?.75:0;
      const stepScore=fit-diagnostic.collisions*1.5-motion*.19-repeat+
        (chord===expected?.62:0)+cadence+preparation+resolution+harmonicRhythm+
-       modulation+pitchEvidence;
+       modulation+pitchEvidence+establishment;
      next.push({score:state.score+stepScore,chords:state.chords.concat(chord),
        regions:state.regions.concat({bar:b,regionId:choice.region,keyOffset:choice.key,
-         localChordDegree:local,globalChordDegree:chord,phase,
+         localChordDegree:local,globalChordDegree:chord,keySemitones,
+         keyScale:choice.key===4?'major':options.mode==='minor'?'minor':'major',phase,
          reason:choice.reason}),
        diagnostics:state.diagnostics.concat({bar:b,score:stepScore,fit,voiceLeading:motion,
          collisions:diagnostic.collisions,nonChord:diagnostic.notes,
