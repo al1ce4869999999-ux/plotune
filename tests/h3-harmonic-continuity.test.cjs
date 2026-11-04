@@ -36,7 +36,7 @@ assert.equal(mod.regions[4].keySemitones,7,'chromatic dominant key rises a perfe
 assert.equal(mod.regions[4].phase,'transition','modulation transition is explicit');
 assert.equal(mod.regions[20].keyOffset,0,'home return begins before the ending');
 assert.equal(mod.regions[20].phase,'return','home return is explicit');
-assert.deepEqual(mod.regions.map(r=>r.regionId).filter((x,i,a)=>i===0||x!==a[i-1]),[0,1,2]);
+assert.equal(JSON.stringify(mod.regions.map(r=>r.regionId).filter((x,i,a)=>i===0||x!==a[i-1])),JSON.stringify([0,1,2]));
 assert.equal(JSON.stringify(modulate[4][0]),JSON.stringify({position:0,durationUnits:2,degree:4}),'modulation does not alter melody');
 
 const input={title:'H3 regression',character:'旅人',world:'森',scene:'歩いて帰る',style:'handheld',duration:30};
