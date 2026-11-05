@@ -1,0 +1,23 @@
+name: R9 blinded listening protocol validation
+on:
+  push:
+    branches: [feature/r9-listening-evaluation]
+  pull_request:
+    paths:
+      - 'r9-listening-protocol.js'
+      - 'tests/r9-listening-protocol.test.cjs'
+      - '.github/workflows/r9-listening-protocol.yml'
+jobs:
+  r9-protocol:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: R9 deterministic blind protocol
+        run: node tests/r9-listening-protocol.test.cjs
+      - name: R8 boundary and real engine regression
+        run: node tests/transition-optimization-r8.test.cjs
+      - name: M7 real engine
+        run: node tests/m7-real-engine.test.cjs
